@@ -2,7 +2,7 @@
 
 The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contract.schema.json`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/schema/open-lakehouse-contract.schema.json). It has **28 top-level fields** and **63 nested model definitions**. Only `version` is strictly required; everything else is opt-in, so the smallest valid contract is tiny and you add surface as you need it.
 
-The schema is the source of truth — regenerate it any time with `python scripts/generate_schema.py` (see [Why Pydantic](../concepts/why-pydantic.md)). Below the fields are grouped by concern rather than listed flat.
+The schema is the source of truth — regenerate it any time with `python scripts/generate_schema.py` (see [Why Pydantic](../concepts/why-pydantic.md)). Below the fields are grouped by concern rather than listed flat — each links to the page that documents its options in full.
 
 ## Deep reference, by lifecycle stage
 
@@ -43,59 +43,59 @@ The contract is portable because each concern is implemented by a well-known lib
 
 ## Identity
 
-| Field | Purpose |
-|---|---|
-| `version` **(required)** | Contract version, e.g. `1.0.0`. |
-| `info` | Title, description, `table_name`, `target_layer`, owner. |
-| `metadata` | Free-form metadata; also carries backend hints (e.g. DuckLake metadata/data paths). |
-| `tier` | Data product tier / criticality. |
-| `contract_file_name` | Canonical file name for the contract. |
+| Field | Purpose | Reference |
+|---|---|---|
+| `version` **(required)** | Contract version, e.g. `1.0.0`. | [Getting Started](../getting-started.md#2-write-your-first-contract) |
+| `info` | Title, description, `table_name`, `target_layer`, owner. | [Getting Started](../getting-started.md#2-write-your-first-contract) |
+| `metadata` | Free-form metadata; also carries backend hints (e.g. DuckLake metadata/data paths). | [Providers → DuckDB/DuckLake](../providers/duckdb-ducklake.md) |
+| `tier` | Data product tier / criticality. | [SLOs & Lineage](slo.md) |
+| `contract_file_name` | Canonical file name for the contract. | — |
 
 ## Schema & keys
 
-| Field | Purpose |
-|---|---|
-| `model` | The declared shape — `model.fields[]` with `name`, `type`, `required`, `description`, and field-level `pii` / `masking`. |
-| `primary_key` | Column(s) that uniquely identify a row; drives merge/SCD2 convergence. |
-| `natural_key` | Business key(s), distinct from a generated surrogate key. |
-| `schema_policy` | How to react to schema drift (evolve / warn / fail). |
+| Field | Purpose | Reference |
+|---|---|---|
+| `model` | The declared shape — `model.fields[]` with `name`, `type`, `required`, `description`, and field-level `pii` / `masking`. | [Security & PII](security.md) · [Validation & Quality](quality.md#field-level-rules) |
+| `primary_key` | Column(s) that uniquely identify a row; drives merge/SCD2 convergence. | [Materialization](materialization.md#write-strategies) |
+| `natural_key` | Business key(s), distinct from a generated surrogate key. | [Materialization](materialization.md#scd2-history) |
+| `schema_policy` | How to react to schema drift (evolve / warn / fail). | [Materialization → Schema evolution](materialization.md#schema-evolution) |
 
 ## Quality & quarantine
 
-| Field | Purpose |
-|---|---|
-| `quality` | `row_rules[]` (per-row SQL predicates) and `dataset_rules[]` (uniqueness, referential, dataset-level checks). |
-| `quarantine` | Where and how failing rows are captured — **with the failed rule + reason** — instead of being dropped. |
+| Field | Purpose | Reference |
+|---|---|---|
+| `quality` | `row_rules[]` (per-row SQL predicates) and `dataset_rules[]` (uniqueness, referential, dataset-level checks). | [Validation & Quality](quality.md) |
+| `quarantine` | Where and how failing rows are captured — **with the failed rule + reason** — instead of being dropped. | [Validation & Quality → Quarantine](quality.md#quarantine) |
 
 ## Transformation & lineage
 
-| Field | Purpose |
-|---|---|
-| `source` | Where the input comes from (landing path, upstream table, etc.). |
-| `transformations` | Declared SQL steps between source and target. |
-| `logic` / `external_logic` | Inline or externally-referenced transform logic. |
-| `links` | Cross-dataset link registrations (e.g. a fact linking full upstream tables for joins). |
-| `lineage` | `enabled: true` injects provenance columns on every row. |
-| `upstream` / `downstream` | Declared lineage edges to other data products. |
+| Field | Purpose | Reference |
+|---|---|---|
+| `source` | Where the input comes from (landing path, upstream table, etc.). | [Ingestion & Sources](ingestion.md) · [Post-Ingestion Lifecycle](lifecycle.md) |
+| `transformations` | Declared, ordered steps between source and target (20+ ops + SQL). | [Transformation](transformation.md) |
+| `logic` / `external_logic` | Inline or externally-referenced transform logic. | [Transformation → SQL-first](transformation.md#sql-first-the-escape-hatch) |
+| `links` | Cross-dataset link registrations (e.g. a fact linking full upstream tables for joins). | [Transformation → Joins & lookups](transformation.md#joins-lookups) |
+| `lineage` | `enabled: true` injects provenance columns on every row. | [SLOs & Lineage → Lineage capture](slo.md#lineage-capture) |
+| `upstream` / `downstream` | Declared lineage edges to other data products. | [SLOs & Lineage](slo.md#lineage-capture) |
 
 ## Materialization
 
-| Field | Purpose |
-|---|---|
-| `materialization` | `strategy` (append / merge / scd2 / overwrite) + `format` (delta / iceberg / ducklake / native). The declarative-convergence target. |
-| `dataset` | Dataset-level materialization/registration attributes. |
-| `server` | Target server/warehouse connection context. |
-| `environments` | Per-environment overrides (dev / staging / prod). |
-| `schedule` | Intended run cadence. |
+| Field | Purpose | Reference |
+|---|---|---|
+| `materialization` | `strategy` (append / merge / scd2 / overwrite) + `format` (delta / iceberg / ducklake / native). The declarative-convergence target. | [Materialization & Storage](materialization.md) |
+| `dataset` | Dataset-level materialization/registration attributes. | [Materialization & Storage](materialization.md) |
+| `server` | Target server/warehouse connection context. | [Post-Ingestion Lifecycle](lifecycle.md#same-control-on-the-server-block) |
+| `environments` | Per-environment overrides (dev / staging / prod). | [Materialization & Storage](materialization.md) |
+| `schedule` | Intended run cadence. | [Ingestion & Sources → Load modes](ingestion.md#load-modes) |
 
 ## Governance & operations
 
-| Field | Purpose |
-|---|---|
-| `compliance` | Compliance classification and controls. |
-| `service_levels` | SLOs — freshness, volume, availability targets. |
-| `observatory` | Observability/monitoring configuration. |
-| `extraction` | Unstructured / LLM extraction configuration (text → structured). |
+| Field | Purpose | Reference |
+|---|---|---|
+| `compliance` | Compliance classification and controls. | [Security & PII](security.md#access-audit) |
+| `service_levels` | SLOs — freshness, volume, availability targets. | [SLOs & Lineage](slo.md#service-levels-slos) |
+| `observatory` | Observability/monitoring configuration. | [Notifications](notifications.md) |
+| `extraction` | Unstructured / LLM extraction configuration (text → structured). | [Unstructured / LLM Extraction](extraction.md) |
 
 ## The minimal contract
 
