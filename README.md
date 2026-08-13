@@ -1,8 +1,33 @@
-# Open Lakehouse Contract (OLC)
+<div align="center">
 
-**One human-readable contract that both *describes* and *executes* a data product — portable across engines, table formats, and platforms.**
+# Open Lakehouse Contract
 
-An Open Lakehouse Contract is a single YAML file that declares a dataset's **schema, quality rules, PII handling, lineage, materialization, and SLOs**. Unlike a descriptive data-contract spec, an OLC is **executable**: a conforming runtime validates, quarantines, enforces, and materializes straight from the file — so the standard and the implementation can't drift.
+### A portable, executable, **SQL-native** contract for the lakehouse
+
+![Spec](https://img.shields.io/badge/spec-v1%20draft-2965b3?style=flat-square)
+![JSON Schema](https://img.shields.io/badge/JSON%20Schema-2020--12-6a737d?style=flat-square)
+![Engines](https://img.shields.io/badge/engines-Spark%20%7C%20DuckDB%20%7C%20Polars-2e7d32?style=flat-square)
+![Formats](https://img.shields.io/badge/formats-Delta%20%7C%20Iceberg%20%7C%20DuckLake-6f42c1?style=flat-square)
+![Reference runtime](https://img.shields.io/badge/reference%20runtime-LakeLogic-e36209?style=flat-square)
+
+</div>
+
+> [!TIP]
+> **One file both *describes* and *runs* a data product** — schema, quality, PII, lineage, materialization, SLOs. The *same* contract runs on Spark / DuckDB / Polars → Delta / Iceberg / DuckLake, on Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck. The contract is the invariant; the backend is a flag. → **[Read the docs](docs/index.md)**
+
+**Our philosophy:**
+
+```
+→ executable, not just descriptive
+→ SQL-native, not framework-specific
+→ intent in the contract, engine as a flag
+→ one artifact, readable by humans and agents
+→ portable across every lakehouse, never locked in
+```
+
+---
+
+## The contract
 
 ```yaml
 version: 1.0.0
@@ -19,30 +44,104 @@ quality:
 materialization: { strategy: merge, format: iceberg }
 ```
 
+That's the whole thing: what the data *is*, the rules it must pass, how it's written. A conforming runtime validates, quarantines, masks, and materializes straight from this file — so the standard and the implementation can't drift.
+
+## See it in action
+
+An AI agent proposes a contract; you review it; then data is materialized. Spec-driven development for the **data plane** — align before acting.
+
+```text
+You: /olc:propose "daily revenue by city from Stripe charges, drop test rows, freshness < 6h"
+
+AI:  Created olc/changes/revenue-daily/
+     ✓ proposal.md        — source: payments.silver_stripe_charges; grain: (date, city)
+     ✓ contract.olc.yaml  — schema + quality + SLO + materialization: merge   [schema-valid]
+     ✓ tasks.md           — wire source · add rules · set SLO · materialize
+
+You: /olc:validate
+
+AI:  Schema OK. Dry-run on 5,000 sample rows:
+       4,812 kept · 188 quarantined (1.2% test rows, 2.5% negative fare) · freshness 3h ✓
+
+You: /olc:apply --provider duckdb
+
+AI:  Materialized silver.revenue_daily (merge, DuckLake) — 4,812 rows.
+     Same contract runs unchanged on Spark/Delta, Snowflake, or BigQuery — just change --provider.
+```
+
+> [!NOTE]
+> The `/olc:*` commands are the **proposed agent interface** ([Agent Workflow](docs/concepts/agent-workflow.md)) — built on what exists today: schema-constrained generation + the runtime's dry-run and apply. Notice the contract never named an engine; `--provider` chose it at apply.
+
 ## SQL-native
 
-**If you know SQL, you already know how to transform data in OLC.** Logic is expressed as SQL — the universal data language — not Python, not Spark code, not notebooks. The contract carries the SQL; a conforming runtime runs it, unchanged, on whichever engine you point it at.
+**If you know SQL, you already know how to transform data in OLC.** Logic is SQL — the universal data language — not Python, not Spark code, not notebooks. The contract carries the SQL; the runtime runs it, unchanged, on whichever engine you point it at.
 
 ```yaml
 transformations:
   - sql: |
       SELECT o.*,
-             ROUND(o.quantity * o.unit_price * (1 - COALESCE(o.discount_pct, 0)), 2) AS line_total,
-             c.name AS customer_name
+             ROUND(o.quantity * o.unit_price * (1 - COALESCE(o.discount_pct, 0)), 2) AS line_total
       FROM source o
-      LEFT JOIN customers c ON o.customer_id = c.customer_id
     phase: post
 ```
 
-The shorthand ops (`rename`, `filter`, `cast`, `join`, `rollup`, …) are just convenience wrappers that **compile to SQL** — every one shows its SQL variant in the [Transformation reference](docs/reference/transformation.md). Start with shorthand for the routine cases, drop to `sql:` the moment it gets bespoke — no rewrite, same contract. That's what makes OLC **portable**: SQL is the invariant, and the runtime rewrites dialect differences per engine (**PySpark** / **duckdb** / **polars**).
+The shorthand ops (`rename`, `filter`, `cast`, `join`, `rollup`, …) are convenience wrappers that **compile to SQL** — each shows its SQL variant in the [Transformation reference](docs/reference/transformation.md). SQL is the portability invariant; the runtime rewrites dialect differences per engine (**PySpark** / **duckdb** / **polars**).
 
 ## Why OLC
 
-- **SQL-native.** Transformation logic is SQL, so it's readable by analysts and engineers alike and runs on any SQL engine. No translation layer between what you write and what runs.
+- **SQL-native.** Logic is SQL — readable by analysts and engineers, runs on any SQL engine. No translation layer.
 - **Executable, not just descriptive.** The same file that documents the contract *runs* it — validation, quarantine, quality gates, PII masking, lineage, materialization. No spec-vs-implementation gap.
-- **Portable.** One contract, every lakehouse. The *same* definitions run on **Spark / DuckDB / Polars**, materialize to **Delta / Iceberg / DuckLake**, on **Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck**. The contract is the invariant; the backend is swappable.
-- **Broader than "data contract."** OLC covers the whole lakehouse surface — schema **+ quality + PII + lineage + materialization + SLOs** — not just schema.
-- **Agent-native.** Because it's typed, self-validating, and executable, an OLC is the ideal substrate for AI data agents: they can *generate* it (schema-constrained), *self-correct* against validation errors, *act* and observe real outcomes, and reason about the same contract across every platform.
+- **Portable.** One contract, every lakehouse. Same definitions on **Spark / DuckDB / Polars** → **Delta / Iceberg / DuckLake**, on **Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck**.
+- **Broader than "data contract."** The whole lakehouse surface — schema **+ quality + PII + lineage + materialization + SLOs** — not just schema.
+- **Agent-native.** Typed, self-validating, and executable — the ideal substrate for AI data agents to *generate*, *self-correct*, *act*, and reason across every platform.
+
+## Providers — one contract, every lakehouse
+
+The [providers matrix](docs/providers/index.md) runs the **same** RideFlow contract set across seven backends — each page shows the identical contract, the runtime invocation, and what it materialized (honest ✅ Live / ◑ Static-validated labels). Think of it as the OLC equivalent of a Terraform provider registry: one universal contract, many backends.
+
+| DuckDB/DuckLake | MotherDuck | Databricks | Snowflake | BigQuery | Fabric | AWS/Glue |
+|---|---|---|---|---|---|---|
+| ✅ | ✅ | ✅ | ✅ | ✅ | ◑ | ✅ |
+
+## Quickstart — validate a contract
+
+The spec is a single JSON Schema; validate any OLC file against it in any language.
+
+```bash
+pip install jsonschema pyyaml
+python tests/conformance.py           # checks examples/ + tests/ against the schema
+```
+
+To *run* a contract, use the reference runtime:
+
+```bash
+pip install lakelogic
+```
+```python
+from lakelogic import DataProcessor
+proc = DataProcessor("orders.olc.yaml", engine="duckdb")   # or "spark" / "polars"
+good, bad = proc.run(source_df)                            # validate + quarantine
+proc.materialize(good, bad)                                # write per `materialization`
+```
+
+## The schema is *derived*, never hand-maintained
+
+The JSON Schema is generated from the reference implementation's typed models (**Pydantic**), so the standard tracks a working runtime rather than a document that rots:
+
+```bash
+pip install lakelogic
+python scripts/generate_schema.py     # schema/ ← the Pydantic DataContract model
+```
+
+That's what makes "open" honest: **the spec is the JSON Schema; [LakeLogic](https://lakelogic.org) is the canonical reference runtime that implements it.** Any tool, any language, can validate OLC files against the schema.
+
+## Complements ODCS
+
+OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)** — it doesn't compete with it. ODCS is the excellent, widely-adopted standard for *describing* a data contract; OLC adds the *executable, lakehouse-scoped* layer that runs it. The reference runtime imports ODCS and exports back to it (field names accepted as aliases), so **import ODCS → run as OLC → export ODCS** loses nothing either direction. See [OLC & ODCS](docs/concepts/vs-odcs.md).
+
+## Part of a spec-driven movement
+
+OLC is spec-driven development for the **data plane**: humans and AI agree on a precise, machine-checkable contract, then agents generate, validate against, and execute it. Same conviction behind **[OpenSpec](https://github.com/Fission-AI/openspec)** (~65k★, spec-driven development for AI *coding* assistants) and **ODCS** (the descriptive data-contract standard) — *a precise, executable spec is the best interface between humans and AI.* See [Agent-Native](docs/concepts/agent-native.md) and the [Agent Workflow](docs/concepts/agent-workflow.md).
 
 ## What's in this repo
 
@@ -52,51 +151,25 @@ The shorthand ops (`rename`, `filter`, `cast`, `join`, `rollup`, …) are just c
 | `examples/` | Illustrative contracts. |
 | `tests/` | A **conformance suite** — `valid/` must pass, `invalid/` must fail. |
 | `scripts/generate_schema.py` | Regenerates the schema from the reference implementation. |
-| `docs/` | Spec overview. |
-
-## The schema is *derived*, never hand-maintained
-
-The JSON Schema is generated from the **reference implementation**'s typed models (Pydantic), so the standard tracks a working runtime rather than a document that rots:
-
-```bash
-pip install lakelogic
-python scripts/generate_schema.py     # schema/ ← the Pydantic DataContract model
-```
-
-That's what makes "open" honest: **the spec is the JSON Schema; [LakeLogic](https://lakelogic.org) is the canonical reference runtime that implements it.** Any tool in any language can validate OLC files against the schema.
+| `docs/` | The full documentation site (mkdocs-material) — concepts, providers, and a complete field reference. |
 
 ## Documentation
-
-A full documentation site lives in [`docs/`](docs/) (mkdocs-material):
 
 ```bash
 pip install -r docs-requirements.txt
 mkdocs serve            # http://127.0.0.1:8011
 ```
 
-It includes a **[providers matrix](docs/providers/index.md)** — the same RideFlow contract set rendered across DuckDB/DuckLake, MotherDuck, Databricks, Snowflake, BigQuery, Fabric, and AWS, each with the identical contract, the runtime invocation, and what it materialized (with honest ✅ Live / ◑ Static-validated status labels). Think of it as the OLC equivalent of a Terraform provider registry: one universal contract, many backends.
-
-## Validate a contract
-
-```bash
-pip install jsonschema pyyaml
-python tests/conformance.py           # checks examples/ + tests/ against the schema
-```
-
-Or validate your own file against `schema/open-lakehouse-contract.schema.json` with any JSON-Schema validator.
-
-## Complements ODCS
-
-OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)** — it doesn't compete with it. ODCS is the excellent, widely-adopted standard for *describing* a data contract; OLC adds the *executable, lakehouse-scoped* layer that runs it. The reference runtime imports ODCS and can export back to it (ODCS field names are accepted as aliases), so you can **import ODCS → run as OLC → export ODCS** with nothing lost either direction. See [OLC & ODCS](docs/concepts/vs-odcs.md).
-
-## Part of a spec-driven movement
-
-OLC is spec-driven development for the **data plane**: humans and AI agree on a precise, machine-checkable contract, then agents generate, validate against, and execute it. It's the same conviction behind **[OpenSpec](https://github.com/Fission-AI/openspec)** (~65k★, spec-driven development for AI *coding* assistants) and **ODCS** (the descriptive data-contract standard) — a precise, executable spec is the best interface between humans and AI. See [Agent-Native](docs/concepts/agent-native.md).
+Concepts (what/why/agent-native/agent-workflow/ODCS) · **[Providers matrix](docs/providers/index.md)** · a complete **[field reference](docs/reference/schema.md)** covering ingestion, lifecycle, quality, security, transformation, materialization, lineage, SLOs, notifications, and extraction.
 
 ## Status
 
-Draft `v1`. The schema is generated from the reference implementation and covers 28 top-level fields (schema, quality, materialization, lineage, PII/masking, SLOs, sources/links, environments, and more). Governance, formal versioning, and a language-neutral test corpus are on the roadmap — contributions welcome.
+Draft `v1`. The schema is generated from the reference implementation and covers **28 top-level fields** across schema, quality, materialization, lineage, PII/masking, SLOs, sources/links, environments, and more. Governance, formal versioning, and a language-neutral test corpus are on the roadmap — contributions welcome.
 
 ---
 
-*Reference implementation: [LakeLogic](https://lakelogic.org). This repo is the open specification; it is intentionally vendor-neutral.*
+<div align="center">
+
+*Reference implementation: **[LakeLogic](https://lakelogic.org)**. This repo is the open specification — intentionally vendor-neutral.*
+
+</div>
