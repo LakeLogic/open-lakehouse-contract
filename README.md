@@ -79,14 +79,17 @@ AI:  Materialized silver.revenue_daily (merge, DuckLake) — 4,812 rows.
 The workflow is **portable across AI agents** — same verbs, each assistant's native mechanism, no cloud required:
 
 ```bash
-pip install -e .                    # the `olc` CLI (validate + init)
-olc init --tools claude,codex       # installs integrations into ./.claude and ./.codex
+pip install -e .          # the `olc` CLI (validate + init)
+olc init --tools all      # install integrations for every supported assistant
 ```
 
-- **Claude Code** — `/olc:validate` (schema check, works now) · `/olc:contract "<intent>"` · `/olc:review` (breaking-change merge gate) · `/olc:discover` · `/olc:impact`.
-- **ChatGPT** — the same verbs as [Codex](https://github.com/openai/codex) prompts, or a Custom GPT with the schema as knowledge for the web.
+**Seven assistants ship today** — Claude Code, Codex (ChatGPT), Cursor, GitHub Copilot, Gemini CLI, Windsurf, Cline — each in its native format (slash commands, prompts, or rules):
 
-Verbs are data-native — **discover → contract → review → validate → impact** — and the integration layer is open (Cursor / Copilot / Gemini / Windsurf on the roadmap). See [`skills/`](skills/) and the [Agent Workflow](docs/concepts/agent-workflow.md).
+- **Claude Code / Gemini CLI** — `/olc:validate` (schema check, works now) · `/olc:contract "<intent>"` · `/olc:review` (breaking-change merge gate) · `/olc:discover` · `/olc:impact`.
+- **ChatGPT** — the same verbs as [Codex](https://github.com/openai/codex) prompts, or a Custom GPT with the schema as knowledge for the web.
+- **Cursor / Copilot / Windsurf / Cline** — the OLC rules load automatically for `*.olc.yaml`.
+
+Verbs are data-native — **discover → contract → review → validate → impact** — and the integration layer is open (no cloud). See [`skills/`](skills/) and the [Agent Workflow](docs/concepts/agent-workflow.md).
 
 ## SQL-native
 
@@ -194,7 +197,7 @@ OLC is spec-driven development for the **data plane**: humans and AI agree on a 
 |---|---|
 | `schema/open-lakehouse-contract.schema.json` | The **spec**: JSON Schema (Draft 2020-12), the language-neutral source of truth. |
 | `olc/` | The `olc` **CLI** — `olc validate` (schema-only, no runtime) + `olc init` (install agent integrations). |
-| `skills/` | **Agent integrations** — Claude Code slash commands + Agent Skill, and Codex prompts (Cursor/Copilot/Gemini/Windsurf on the roadmap). |
+| `skills/` | **Agent integrations** — for Claude Code, Codex, Cursor, GitHub Copilot, Gemini, Windsurf, and Cline (installed by `olc init`). |
 | `examples/` | Illustrative contracts. |
 | `tests/` | A **conformance suite** — `valid/` must pass, `invalid/` must fail. |
 | `scripts/` | `validate.py` (zero-install CI validator) + `generate_schema.py` (regenerate the schema). |

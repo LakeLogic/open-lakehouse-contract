@@ -10,19 +10,21 @@ LakeLogic Cloud, only the schema + the `olc` CLI.
 
 ```
 skills/
-  claude/                 # Claude Code (reference integration)
-    commands/olc/*.md     -> installed to <project>/.claude/commands/olc/   (slash commands)
-    skills/olc/SKILL.md   -> installed to <project>/.claude/skills/olc/     (Agent Skill)
-  codex/                  # OpenAI Codex / ChatGPT-in-the-terminal
-    prompts/olc-*.md      -> installed to <project>/.codex/prompts/         (custom prompts)
-  # cursor / copilot / gemini / windsurf — on the roadmap
+  claude/     commands/olc/*.md + skills/olc/SKILL.md  -> .claude/   (slash commands + Agent Skill)
+  codex/      prompts/olc-*.md                          -> .codex/prompts/       (custom prompts)
+  cursor/     rules/*.mdc                                -> .cursor/rules/        (project rule)
+  copilot/    copilot-instructions.md                   -> .github/              (repo instructions)
+  gemini/     root/GEMINI.md + commands/olc/*.toml       -> GEMINI.md + .gemini/commands/  (context + TOML slash commands)
+  windsurf/   rules/*.md                                 -> .windsurf/rules/      (rule)
+  cline/      *.md                                       -> .clinerules/          (rule)
 ```
 
 ## Install
 
 ```bash
 pip install -e .                    # provides the `olc` CLI (validate + init)
-olc init --tools claude,codex       # copies the integrations into ./.claude and ./.codex
+olc init --tools all                # install every integration
+olc init --tools claude,cursor      # or just the ones you use
 olc init --list                     # see available integrations
 ```
 

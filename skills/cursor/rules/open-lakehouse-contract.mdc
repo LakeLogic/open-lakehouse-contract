@@ -1,0 +1,33 @@
+---
+description: Open Lakehouse Contract (OLC) — author, validate, and review *.olc.yaml data-product contracts
+globs: ["**/*.olc.yaml", "**/*.olc.yml"]
+alwaysApply: false
+---
+# Open Lakehouse Contract (OLC)
+
+An OLC is one YAML file (`*.olc.yaml`) that defines a data product — schema, quality (SQL
+rules), PII/masking, lineage, materialization, and SLOs — executed by a conforming
+runtime. **Intent lives in the contract; the engine is a flag chosen at apply time.**
+
+## Rules
+- **Validate** every contract against `schema/open-lakehouse-contract.schema.json` — run
+  `olc validate <path>` (or `python scripts/validate.py <path>`) and fix each
+  `location: message` error until it passes.
+- **Stay SQL-native**: express quality rules and transforms as SQL (`sql: "amount > 0"`),
+  not bespoke check objects.
+- **Never hard-code the engine**: `materialization` sets `strategy` + `format`; the
+  provider is chosen at apply time (`--provider`), never in the contract.
+- **Preserve intent on changes**: keep `primary_key`, `quality`, `materialization`, `pii`,
+  and `service_levels` satisfied — or change the contract deliberately and call out the
+  breaking diff.
+- **Persist requirements** in the contract, not in chat.
+
+## Verbs (data-native workflow)
+`discover` → `contract` → `review` → `validate` → `impact`
+- **discover** — analyse the repo; propose contracts for its data products.
+- **contract `<product>`** — generate/update a schema-valid contract (info, model.fields
+  with pii/masking, primary_key, quality.row_rules as SQL, materialization, service_levels).
+- **review** — compare the current change to the contracts; flag breaking schema / quality
+  / PII / SLO / materialization changes (the merge gate).
+- **validate** — schema check + dry-run on synthetic or real data.
+- **impact `"<change>"`** — what schema / consumers / SLOs a change affects.

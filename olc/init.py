@@ -12,16 +12,31 @@ from pathlib import Path
 PKG_ROOT = Path(__file__).resolve().parents[1]
 SKILLS = PKG_ROOT / "skills"
 
-# tool -> [(source under skills/<tool>/, destination under the project root)]
+# tool -> [(source under skills/, destination under the project root)]
 INSTALLERS: dict[str, list[tuple[str, str]]] = {
     "claude": [
-        ("claude/commands", ".claude/commands"),
-        ("claude/skills", ".claude/skills"),
+        ("claude/commands", ".claude/commands"),   # slash commands
+        ("claude/skills", ".claude/skills"),        # Agent Skill
     ],
     "codex": [
-        ("codex/prompts", ".codex/prompts"),
+        ("codex/prompts", ".codex/prompts"),        # custom prompts
     ],
-    # cursor / copilot / gemini / windsurf: templates on the roadmap
+    "cursor": [
+        ("cursor/rules", ".cursor/rules"),          # project rule (.mdc)
+    ],
+    "copilot": [
+        ("copilot", ".github"),                     # .github/copilot-instructions.md
+    ],
+    "gemini": [
+        ("gemini/root", "."),                       # GEMINI.md
+        ("gemini/commands", ".gemini/commands"),    # TOML slash commands
+    ],
+    "windsurf": [
+        ("windsurf/rules", ".windsurf/rules"),      # rule (.md)
+    ],
+    "cline": [
+        ("cline", ".clinerules"),                   # .clinerules/*.md
+    ],
 }
 
 
@@ -39,7 +54,8 @@ def _copy_tree(src: Path, dst: Path, log) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="olc init", description="Install OLC agent integrations.")
-    ap.add_argument("--tools", default="claude", help="comma-separated: claude,codex[,...]")
+    ap.add_argument("--tools", default="claude",
+                    help="comma-separated: claude,codex,cursor,copilot,gemini,windsurf,cline — or 'all'")
     ap.add_argument("--dest", default=".", help="project root to install into (default: .)")
     ap.add_argument("--list", action="store_true", help="list available integrations and exit")
     args = ap.parse_args(argv)
@@ -48,11 +64,13 @@ def main(argv: list[str] | None = None) -> int:
         print("Available OLC agent integrations:")
         for t in INSTALLERS:
             print(f"  - {t}")
-        print("  (roadmap: cursor, copilot, gemini, windsurf)")
+        print("  (use --tools all to install every one)")
         return 0
 
     dest = Path(args.dest).resolve()
     tools = [t.strip() for t in args.tools.split(",") if t.strip()]
+    if "all" in tools:
+        tools = list(INSTALLERS)
     total = 0
     for tool in tools:
         specs = INSTALLERS.get(tool)
@@ -66,11 +84,15 @@ def main(argv: list[str] | None = None) -> int:
                 total += _copy_tree(src, dest / ddst, print)
 
     if total:
-        print(f"\nOK - installed {total} file(s).")
+        print(f"\nOK - installed {total} file(s) for: {', '.join(tools)}.")
         if "claude" in tools:
-            print("In Claude Code, try:  /olc:validate  |  /olc:contract \"<intent>\"  |  /olc:review")
+            print("In Claude Code:  /olc:validate  |  /olc:contract \"<intent>\"  |  /olc:review")
+        if "gemini" in tools:
+            print("In Gemini CLI:   /olc:validate  |  /olc:contract \"<intent>\"  |  /olc:review")
         if "codex" in tools:
             print("In Codex, the same verbs are available as prompts (/olc-validate, ...).")
+        if {"cursor", "copilot", "windsurf", "cline"} & set(tools):
+            print("Cursor / Copilot / Windsurf / Cline: the OLC rules load automatically for *.olc.yaml.")
     else:
         print("Nothing installed.")
     return 0

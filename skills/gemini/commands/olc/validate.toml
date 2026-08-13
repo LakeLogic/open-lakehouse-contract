@@ -1,0 +1,13 @@
+description = "Validate this repo's Open Lakehouse Contracts against the JSON Schema"
+prompt = """
+Validate the project's Open Lakehouse Contracts against the schema — structural check
+only, no runtime required. Run in the shell:
+
+    olc validate {{args}}
+
+(If `olc` is not installed, run `python scripts/validate.py {{args}}` instead.)
+
+If everything is OK, list which files passed. If any FAILED, read each
+`location: message`, open the offending `*.olc.yaml`, and edit it to satisfy the schema at
+`schema/open-lakehouse-contract.schema.json`. Re-run until it passes.
+"""
