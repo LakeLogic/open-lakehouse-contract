@@ -1,0 +1,5 @@
+# Build the OLC documentation site:
+#   pip install -r docs-requirements.txt
+#   mkdocs serve      # http://127.0.0.1:8011
+#   mkdocs build      # -> site/
+mkdocs-material>=9.5

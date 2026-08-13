@@ -47,6 +47,17 @@ python scripts/generate_schema.py     # schema/ ← the Pydantic DataContract mo
 
 That's what makes "open" honest: **the spec is the JSON Schema; [LakeLogic](https://lakelogic.org) is the canonical reference runtime that implements it.** Any tool in any language can validate OLC files against the schema.
 
+## Documentation
+
+A full documentation site lives in [`docs/`](docs/) (mkdocs-material):
+
+```bash
+pip install -r docs-requirements.txt
+mkdocs serve            # http://127.0.0.1:8011
+```
+
+It includes a **[providers matrix](docs/providers/index.md)** — the same RideFlow contract set rendered across DuckDB/DuckLake, MotherDuck, Databricks, Snowflake, BigQuery, Fabric, and AWS, each with the identical contract, the runtime invocation, and what it materialized (with honest ✅ Live / ◑ Static-validated status labels). Think of it as the OLC equivalent of a Terraform provider registry: one universal contract, many backends.
+
 ## Validate a contract
 
 ```bash

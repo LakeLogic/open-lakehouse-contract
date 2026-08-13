@@ -1,0 +1,103 @@
+site_name: Open Lakehouse Contract
+site_description: >
+  One human-readable contract that both describes and executes a data product —
+  portable across engines, table formats, and platforms. The open, executable,
+  agent-native contract for the lakehouse.
+site_url: https://lakelogic.github.io/open-lakehouse-contract/
+site_author: LakeLogic
+repo_name: LakeLogic/open-lakehouse-contract
+repo_url: https://github.com/LakeLogic/open-lakehouse-contract
+edit_uri: edit/main/docs/
+copyright: >
+  Copyright &copy; 2026 — the Open Lakehouse Contract is vendor-neutral ·
+  Reference runtime: <a href="https://lakelogic.org" target="_blank">LakeLogic</a>
+
+use_directory_urls: false
+dev_addr: 127.0.0.1:8011
+
+theme:
+  name: material
+  font:
+    text: "Inter"
+    code: "JetBrains Mono"
+  palette:
+    - scheme: default
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - navigation.sections
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+nav:
+  - Overview: index.md
+  - Getting Started: getting-started.md
+  - Concepts:
+      - What is OLC?: concepts/what-is-olc.md
+      - Why Pydantic: concepts/why-pydantic.md
+      - Agent-Native: concepts/agent-native.md
+      - OLC vs ODCS: concepts/vs-odcs.md
+  - Providers:
+      - Overview (matrix): providers/index.md
+      - DuckDB / DuckLake: providers/duckdb-ducklake.md
+      - MotherDuck: providers/motherduck.md
+      - Databricks: providers/databricks.md
+      - Snowflake: providers/snowflake.md
+      - BigQuery (GCP): providers/bigquery.md
+      - Microsoft Fabric: providers/fabric.md
+      - AWS (Glue): providers/aws.md
+  - Reference:
+      - Field Reference: reference/schema.md
+      - Conformance Suite: reference/conformance.md
+  - Contributing: contributing.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/LakeLogic/open-lakehouse-contract
+      name: OLC on GitHub
+    - icon: fontawesome/solid/globe
+      link: https://lakelogic.org
+      name: LakeLogic — reference runtime
+  generator: false

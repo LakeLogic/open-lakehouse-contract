@@ -1,0 +1,73 @@
+# Field Reference
+
+The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contract.schema.json`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/schema/open-lakehouse-contract.schema.json). It has **28 top-level fields** and **63 nested model definitions**. Only `version` is strictly required; everything else is opt-in, so the smallest valid contract is tiny and you add surface as you need it.
+
+The schema is the source of truth — regenerate it any time with `python scripts/generate_schema.py` (see [Why Pydantic](../concepts/why-pydantic.md)). Below the fields are grouped by concern rather than listed flat.
+
+## Identity
+
+| Field | Purpose |
+|---|---|
+| `version` **(required)** | Contract version, e.g. `1.0.0`. |
+| `info` | Title, description, `table_name`, `target_layer`, owner. |
+| `metadata` | Free-form metadata; also carries backend hints (e.g. DuckLake metadata/data paths). |
+| `tier` | Data product tier / criticality. |
+| `contract_file_name` | Canonical file name for the contract. |
+
+## Schema & keys
+
+| Field | Purpose |
+|---|---|
+| `model` | The declared shape — `model.fields[]` with `name`, `type`, `required`, `description`, and field-level `pii` / `masking`. |
+| `primary_key` | Column(s) that uniquely identify a row; drives merge/SCD2 convergence. |
+| `natural_key` | Business key(s), distinct from a generated surrogate key. |
+| `schema_policy` | How to react to schema drift (evolve / warn / fail). |
+
+## Quality & quarantine
+
+| Field | Purpose |
+|---|---|
+| `quality` | `row_rules[]` (per-row SQL predicates) and `dataset_rules[]` (uniqueness, referential, dataset-level checks). |
+| `quarantine` | Where and how failing rows are captured — **with the failed rule + reason** — instead of being dropped. |
+
+## Transformation & lineage
+
+| Field | Purpose |
+|---|---|
+| `source` | Where the input comes from (landing path, upstream table, etc.). |
+| `transformations` | Declared SQL steps between source and target. |
+| `logic` / `external_logic` | Inline or externally-referenced transform logic. |
+| `links` | Cross-dataset link registrations (e.g. a fact linking full upstream tables for joins). |
+| `lineage` | `enabled: true` injects provenance columns on every row. |
+| `upstream` / `downstream` | Declared lineage edges to other data products. |
+
+## Materialization
+
+| Field | Purpose |
+|---|---|
+| `materialization` | `strategy` (append / merge / scd2 / overwrite) + `format` (delta / iceberg / ducklake / native). The declarative-convergence target. |
+| `dataset` | Dataset-level materialization/registration attributes. |
+| `server` | Target server/warehouse connection context. |
+| `environments` | Per-environment overrides (dev / staging / prod). |
+| `schedule` | Intended run cadence. |
+
+## Governance & operations
+
+| Field | Purpose |
+|---|---|
+| `compliance` | Compliance classification and controls. |
+| `service_levels` | SLOs — freshness, volume, availability targets. |
+| `observatory` | Observability/monitoring configuration. |
+| `extraction` | Unstructured / LLM extraction configuration (text → structured). |
+
+## The minimal contract
+
+```yaml
+version: 1.0.0
+info: { title: Orders, table_name: orders, target_layer: silver }
+```
+
+Everything else layers on top. See [`examples/orders.olc.yaml`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/examples/orders.olc.yaml) for a fuller annotated contract, and validate your own against the schema with the [Conformance Suite](conformance.md).
+
+!!! note "Nested definitions"
+    The 63 `$defs` are the nested models — `Materialization`, `Quarantine`, `Link`, `Field`, quality-rule variants, and so on. Because they're generated from Pydantic, each carries its own type constraints (enums, required sub-fields) that a JSON-Schema validator enforces for you.

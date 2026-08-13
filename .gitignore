@@ -1,2 +1,7 @@
 __pycache__/
 *.pyc
+
+# mkdocs build output
+site/
+site_build/
+.cache/
