@@ -54,3 +54,5 @@ OLC belongs to a broader shift toward **spec-driven development** — align huma
 - **[ODCS](https://github.com/bitol-io/open-data-contract-standard)** is the descriptive standard for **agreeing on a data contract** across teams (OLC [complements it](vs-odcs.md)).
 
 OLC is the same philosophy applied to **data products**: the contract is the spec agents generate, validate against, and execute — spec-first for the data plane, the way OpenSpec is spec-first for code. Different artifact, same conviction: *a precise, executable spec is the best interface between humans and AI.*
+
+See the **[Agent Workflow](agent-workflow.md)** for the concrete `/olc:propose → validate → apply` loop this enables — with intent in the contract and the engine chosen only at apply time.

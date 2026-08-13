@@ -54,6 +54,7 @@ nav:
       - What is OLC?: concepts/what-is-olc.md
       - Why Pydantic: concepts/why-pydantic.md
       - Agent-Native: concepts/agent-native.md
+      - Agent Workflow: concepts/agent-workflow.md
       - OLC & ODCS: concepts/vs-odcs.md
   - Providers:
       - Overview (matrix): providers/index.md
