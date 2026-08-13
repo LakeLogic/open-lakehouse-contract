@@ -1,6 +1,9 @@
-# OLC vs ODCS
+# OLC & ODCS
 
-OLC is **interoperable with the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)**, not a competitor to it. They occupy different points on the same axis.
+OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)** — it doesn't compete with it. ODCS is the excellent, widely-adopted standard for *describing* a data contract; OLC adds the *executable, lakehouse-scoped* layer that runs it. They're two points on the same axis, with a round trip between them, and the reference runtime is deliberately ODCS-interoperable so you never have to choose.
+
+!!! tip "The short version"
+    Use **ODCS** to publish and agree on a contract across teams and catalogs. Use **OLC** to *run* it — validate, quarantine, mask, materialize. Import ODCS → run as OLC → export ODCS; nothing is lost either direction.
 
 ## The distinction
 

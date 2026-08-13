@@ -54,7 +54,7 @@ nav:
       - What is OLC?: concepts/what-is-olc.md
       - Why Pydantic: concepts/why-pydantic.md
       - Agent-Native: concepts/agent-native.md
-      - OLC vs ODCS: concepts/vs-odcs.md
+      - OLC & ODCS: concepts/vs-odcs.md
   - Providers:
       - Overview (matrix): providers/index.md
       - DuckDB / DuckLake: providers/duckdb-ducklake.md

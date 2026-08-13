@@ -85,9 +85,13 @@ python tests/conformance.py           # checks examples/ + tests/ against the sc
 
 Or validate your own file against `schema/open-lakehouse-contract.schema.json` with any JSON-Schema validator.
 
-## Relationship to ODCS
+## Complements ODCS
 
-OLC is **interoperable with the [Open Data Contract Standard](https://github.com/bitol-io/open-data-contract-standard)**: the reference runtime imports ODCS and can export back to it. OLC's native vocabulary stays lean; ODCS field names are accepted as aliases. Think of OLC as the **executable, lakehouse-scoped** contract, with a round-trip to ODCS for the descriptive, schema-scoped world.
+OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)** — it doesn't compete with it. ODCS is the excellent, widely-adopted standard for *describing* a data contract; OLC adds the *executable, lakehouse-scoped* layer that runs it. The reference runtime imports ODCS and can export back to it (ODCS field names are accepted as aliases), so you can **import ODCS → run as OLC → export ODCS** with nothing lost either direction. See [OLC & ODCS](docs/concepts/vs-odcs.md).
+
+## Part of a spec-driven movement
+
+OLC is spec-driven development for the **data plane**: humans and AI agree on a precise, machine-checkable contract, then agents generate, validate against, and execute it. It's the same conviction behind **[OpenSpec](https://github.com/Fission-AI/openspec)** (~65k★, spec-driven development for AI *coding* assistants) and **ODCS** (the descriptive data-contract standard) — a precise, executable spec is the best interface between humans and AI. See [Agent-Native](docs/concepts/agent-native.md).
 
 ## Status
 
