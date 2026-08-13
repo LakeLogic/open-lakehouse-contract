@@ -17,7 +17,8 @@ Each stage of a data product has a dedicated page enumerating every option, with
 - :material-shield-lock: **[Security & PII](security.md)** — pii / phi / sensitive, masking, vault, security groups.
 - :material-function-variant: **[Transformation](transformation.md)** — 20+ declarative ops + SQL escape hatch.
 - :material-content-save: **[Materialization & Storage](materialization.md)** — strategy, format, SCD2, facts, soft-delete, schema evolution.
-- :material-gauge: **[SLOs & Lineage](slo.md)** — freshness / availability / row-count objectives + provenance capture.
+- :material-sitemap: **[Lineage](lineage.md)** — row provenance + the contract graph (`links` / `upstream` / `downstream`) + the Airflow-style pipeline DAG (`depends_on` / `external_sources`).
+- :material-gauge: **[Service Levels (SLOs)](slo.md)** — freshness / availability / row-count objectives.
 - :material-bell: **[Notifications](notifications.md)** — channels, events, templating.
 - :material-file-document-outline: **[Unstructured / LLM Extraction](extraction.md)** — documents / audio / images → governed columns.
 
@@ -49,7 +50,7 @@ The contract is portable because each concern is implemented by a well-known lib
 | `version` **(required)** | Contract version, e.g. `1.0.0`. | [Getting Started](../getting-started.md#2-write-your-first-contract) |
 | `info` | Title, description, `table_name`, `target_layer`, owner. | [Getting Started](../getting-started.md#2-write-your-first-contract) |
 | `metadata` | Free-form metadata; also carries backend hints (e.g. DuckLake metadata/data paths). | [Providers → DuckDB/DuckLake](../providers/duckdb-ducklake.md) |
-| `tier` | Data product tier / criticality. | [SLOs & Lineage](slo.md) |
+| `tier` | Data product tier / criticality. | [Service Levels (SLOs)](slo.md) |
 | `contract_file_name` | Canonical file name for the contract. | — |
 
 ## Schema & keys
@@ -75,9 +76,9 @@ The contract is portable because each concern is implemented by a well-known lib
 | `source` | Where the input comes from (landing path, upstream table, etc.). | [Ingestion & Sources](ingestion.md) · [Post-Ingestion Lifecycle](lifecycle.md) |
 | `transformations` | Declared, ordered steps between source and target (20+ ops + SQL). | [Transformation](transformation.md) |
 | `logic` / `external_logic` | Inline or externally-referenced transform logic. | [Transformation → SQL-first](transformation.md#sql-first-the-escape-hatch) |
-| `links` | Cross-dataset link registrations (e.g. a fact linking full upstream tables for joins). | [Transformation → Joins & lookups](transformation.md#joins-lookups) |
-| `lineage` | `enabled: true` injects provenance columns on every row. | [SLOs & Lineage → Lineage capture](slo.md#lineage-capture) |
-| `upstream` / `downstream` | Declared lineage edges to other data products. | [SLOs & Lineage](slo.md#lineage-capture) |
+| `links` | Cross-dataset link registrations (a fact joining full upstream tables). | [Transformation → Joins](transformation.md#joins-lookups) · [Lineage → Graph](lineage.md#2-contract-level-lineage-graph) |
+| `lineage` | `enabled: true` injects provenance columns on every row. | [Lineage → Row provenance](lineage.md#1-row-level-provenance) |
+| `upstream` / `downstream` | Declared lineage edges to/from other data products. | [Lineage → Contract graph](lineage.md#2-contract-level-lineage-graph) |
 
 ## Materialization
 
@@ -94,7 +95,7 @@ The contract is portable because each concern is implemented by a well-known lib
 | Field | Purpose | Reference |
 |---|---|---|
 | `compliance` | Compliance classification and controls. | [Security & PII](security.md#access-audit) |
-| `service_levels` | SLOs — freshness, volume, availability targets. | [SLOs & Lineage](slo.md#service-levels-slos) |
+| `service_levels` | SLOs — freshness, volume, availability targets. | [Service Levels (SLOs)](slo.md) |
 | `observatory` | Observability/monitoring configuration. | [Notifications](notifications.md) |
 | `extraction` | Unstructured / LLM extraction configuration (text → structured). | [Unstructured / LLM Extraction](extraction.md) |
 

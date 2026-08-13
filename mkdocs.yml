@@ -74,7 +74,8 @@ nav:
       - Security & PII: reference/security.md
       - Transformation: reference/transformation.md
       - Materialization & Storage: reference/materialization.md
-      - SLOs & Lineage: reference/slo.md
+      - Lineage: reference/lineage.md
+      - Service Levels (SLOs): reference/slo.md
       - Notifications: reference/notifications.md
       - Unstructured (LLM Extraction): reference/extraction.md
       - Conformance Suite: reference/conformance.md
