@@ -7,7 +7,7 @@ Transformations are the declared steps between the source and the materialized t
 
 ## `phase` — pre or post
 
-Every op accepts `phase: pre | post`. **Pre** transforms run before quality checks and may reference only source columns; **post** transforms run after the good/bad split and may reference derived columns too.
+Every op accepts `phase: pre | post`. **Pre** transforms run before quality checks and may reference only source columns; **post** transforms run after the good/bad split and may reference derived columns too. The full run sequence — where pre and post sit relative to validation, quarantine, and materialization — is on the [Execution Order](execution-order.md) page.
 
 ---
 

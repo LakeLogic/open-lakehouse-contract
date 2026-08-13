@@ -66,6 +66,7 @@ nav:
       - AWS (Glue): providers/aws.md
   - Reference:
       - Overview & Libraries: reference/schema.md
+      - Execution Order (pre & post): reference/execution-order.md
       - Ingestion & Sources: reference/ingestion.md
       - Post-Ingestion Lifecycle: reference/lifecycle.md
       - Validation & Quality: reference/quality.md

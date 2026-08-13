@@ -10,6 +10,7 @@ Each stage of a data product has a dedicated page enumerating every option, with
 
 <div class="grid cards" markdown>
 
+- :material-sort-clock-ascending: **[Execution Order (pre & post)](execution-order.md)** — the full run sequence: where pre/post transforms and quality rules sit relative to the good/bad split and materialization.
 - :material-database-import: **[Ingestion & Sources](ingestion.md)** — files, databases, APIs (dlt), streaming, CDC, micro-batch, load modes, partitioning.
 - :material-broom: **[Post-Ingestion Lifecycle](lifecycle.md)** — delete / archive / retain consumed input, watermark, retry.
 - :material-check-decagram: **[Validation & Quality](quality.md)** — row & dataset rules, severities, quarantine.
