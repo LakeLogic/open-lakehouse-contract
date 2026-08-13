@@ -74,6 +74,7 @@ nav:
       - Validation & Quality: reference/quality.md
       - Security & PII: reference/security.md
       - Transformation: reference/transformation.md
+      - External Logic (Spark / notebooks): reference/external-logic.md
       - Materialization & Storage: reference/materialization.md
       - Lineage: reference/lineage.md
       - Service Levels (SLOs): reference/slo.md

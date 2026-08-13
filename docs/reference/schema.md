@@ -16,6 +16,7 @@ Each stage of a data product has a dedicated page enumerating every option, with
 - :material-check-decagram: **[Validation & Quality](quality.md)** — row & dataset rules, severities, quarantine.
 - :material-shield-lock: **[Security & PII](security.md)** — pii / phi / sensitive, masking, vault, security groups.
 - :material-function-variant: **[Transformation](transformation.md)** — 20+ declarative ops + SQL escape hatch.
+- :material-cog-transfer: **[External Logic](external-logic.md)** — plug in a Spark job / notebook / stored proc when it isn't one SQL statement; OLC still governs the output.
 - :material-content-save: **[Materialization & Storage](materialization.md)** — strategy, format, SCD2, facts, soft-delete, schema evolution.
 - :material-sitemap: **[Lineage](lineage.md)** — row provenance + the contract graph (`links` / `upstream` / `downstream`) + the Airflow-style pipeline DAG (`depends_on` / `external_sources`).
 - :material-gauge: **[Service Levels (SLOs)](slo.md)** — freshness / availability / row-count objectives.
@@ -75,7 +76,7 @@ The contract is portable because each concern is implemented by a well-known lib
 |---|---|---|
 | `source` | Where the input comes from (landing path, upstream table, etc.). | [Ingestion & Sources](ingestion.md) · [Post-Ingestion Lifecycle](lifecycle.md) |
 | `transformations` | Declared, ordered steps between source and target (20+ ops + SQL). | [Transformation](transformation.md) |
-| `logic` / `external_logic` | Inline or externally-referenced transform logic. | [Transformation → SQL-first](transformation.md#sql-first-the-escape-hatch) |
+| `logic` / `external_logic` | Inline code, or a referenced Spark job / notebook / stored proc. | [External Logic](external-logic.md) |
 | `links` | Cross-dataset link registrations (a fact joining full upstream tables). | [Transformation → Joins](transformation.md#joins-lookups) · [Lineage → Graph](lineage.md#2-contract-level-lineage-graph) |
 | `lineage` | `enabled: true` injects provenance columns on every row. | [Lineage → Row provenance](lineage.md#1-row-level-provenance) |
 | `upstream` / `downstream` | Declared lineage edges to/from other data products. | [Lineage → Contract graph](lineage.md#2-contract-level-lineage-graph) |
