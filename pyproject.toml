@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-lakehouse-contract"
+version = "0.1.0"
+description = "The Open Lakehouse Contract — an open, executable, SQL-native data-product contract. CLI + validator + agent integrations."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+authors = [{ name = "LakeLogic" }]
+keywords = ["data-contract", "lakehouse", "data-quality", "odcs", "spec-driven"]
+dependencies = ["jsonschema>=4.18", "pyyaml>=6.0"]
+
+[project.urls]
+Homepage = "https://lakelogic.org"
+Repository = "https://github.com/LakeLogic/open-lakehouse-contract"
+
+[project.scripts]
+olc = "olc.cli:main"
+
+[tool.setuptools]
+packages = ["olc"]
+# The specification, schema, and agent-integration templates ship with the package so
+# `olc validate` (schema) and `olc init` (skills) work after install.
+[tool.setuptools.package-data]
+"*" = []
+
+[tool.setuptools.data-files]
+# (roadmap) bundle schema/ + skills/ as package data for non-editable installs.

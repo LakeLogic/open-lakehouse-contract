@@ -1,0 +1,15 @@
+Act as the Open Lakehouse Contract merge gate for the current change.
+
+1. Gather context: `git diff --stat` then `git diff`, and find applicable contracts
+   (`**/*.olc.yaml`).
+2. For each affected data product, compare the change to its contract and flag BREAKING
+   changes as a diff of intent:
+   - schema: dropped/renamed/retyped fields, widened nullability
+   - quality: removed or weakened rules
+   - materialization: strategy change (merge -> append), format change
+   - PII: a field that lost `pii`/`masking`, or widened exposure
+   - keys/SLO/lineage: changed `primary_key`, relaxed freshness, broken upstream/downstream
+3. Validate contracts still pass: `olc validate`.
+4. Output PASS or FAIL with the specific breaking items and the minimal edits to make it safe.
+
+Answer "does the data product still satisfy its contract?", not "did the code change?"

@@ -1,0 +1,12 @@
+Analyse the impact of this proposed change: $ARGUMENTS
+
+1. Locate the target data product's contract (`**/*.olc.yaml`) and its `downstream`
+   consumers, `links`, and `upstream` edges.
+2. Determine what the change touches — schema, quality rules, PII, materialization, keys,
+   or SLOs.
+3. Trace downstream: which consumers (matched via `columns_used`) and dependent contracts
+   reference the affected columns.
+4. Report: what changes in the contract, who is affected, whether it is breaking, the
+   minimal contract edits to make it safe, and any `downstream[].sla` / SLO put at risk.
+
+Read-only analysis — propose, don't apply.

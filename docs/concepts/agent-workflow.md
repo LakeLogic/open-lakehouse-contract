@@ -125,29 +125,27 @@ flowchart TD
     RT --> E[Spark / DuckDB / Polars]
 ```
 
-Proposed developer experience — pick your assistants once, get the same verbs everywhere:
+Developer experience — pick your assistants once, get the same verbs everywhere:
 
 ```bash
-pip install open-lakehouse-contract
-olc init            # pick your assistants → installs their skill / command files
-```
-```
-Which AI tools do you use?
- [x] Claude Code   [x] Cursor   [x] Codex   [ ] Copilot   [ ] Gemini
+pip install -e .                    # provides the `olc` CLI (validate + init)
+olc init --tools claude,codex       # installs the integrations into ./.claude and ./.codex
 ```
 
-The verbs (`discover` / `contract` / `review` / `validate` / `impact`) stay identical; only the per-assistant wrapper differs. The proposed repo layout keeps this open and vendor-neutral:
+That copies the per-assistant wrappers into their native locations:
 
 ```
-open-lakehouse-contract/
-├── specification/          # what the fields mean
-├── schema/                 # JSON Schema (structural)
-├── python/                 # Pydantic reference models
-├── skills/                 # per-assistant integrations
-│   ├── claude/  cursor/  codex/  copilot/  gemini/  windsurf/
-├── examples/
-└── conformance/
+your-repo/
+├── .claude/
+│   ├── commands/olc/{discover,contract,review,validate,impact}.md   # slash commands
+│   └── skills/olc/SKILL.md                                          # Agent Skill
+└── .codex/
+    └── prompts/olc-{discover,contract,review,validate,impact}.md    # Codex prompts
 ```
+
+The verbs stay identical; only the wrapper differs. **Claude Code and Codex integrations ship today** (see [`skills/`](https://github.com/LakeLogic/open-lakehouse-contract/tree/main/skills)); Cursor / Copilot / Gemini / Windsurf are on the roadmap.
+
+> **Test it in Claude Code:** in a repo with `*.olc.yaml`, run `/olc:validate` (validates against the schema — works now), `/olc:contract "<intent>"`, or `/olc:review` (the merge gate). **In ChatGPT:** the same verbs run as Codex prompts, or use a Custom GPT with the schema as knowledge for the web.
 
 !!! note "Where the line sits (open vs. enterprise)"
     The AI integration, the CLI, the skills, and the reference runtime (**LakeLogic Core**) are **open** — no cloud dependency. **LakeLogic Cloud** is the enterprise layer *around* the standard: estate-wide context, telemetry history, Jira/organisational graph, policy & trust, collaboration, managed agents. The open standard is the entry point; the cloud is the enterprise convenience — never a gate on adoption.
@@ -155,7 +153,7 @@ open-lakehouse-contract/
 ## What's real today vs. proposed
 
 !!! info "Honest status"
-    The **capabilities** this workflow rests on exist now: OLC contracts are generated/validated against a published **JSON Schema** (valid-by-construction for LLMs), the standard validates in CI with no runtime (`scripts/validate.py`), and the reference runtime already **dry-runs** (validate + quarantine + report) and **applies** (materialize) across every [provider](../providers/index.md). What's **proposed / on the roadmap**: the `/olc:*` verbs, the `olc/` change-folder convention, `olc init` with per-assistant skill generation, and the `skills/` layout. This page fixes the design so that tooling — an `olc` CLI + per-assistant skills — can be built against it.
+    **Shipping today:** the `olc` CLI (`olc validate` + `olc init`), the Claude Code and Codex integrations (`/olc:validate`, `/olc:contract`, `/olc:review`, `/olc:discover`, `/olc:impact`), schema-only validation with no runtime, and schema-constrained generation. **Provided by the reference runtime (LakeLogic):** the *execute-against-real-data* half — the dry-run (quarantine %, SLO status) and `apply` (materialize) that `/olc:validate` and `/olc:review` deepen into when a runtime is present. **On the roadmap:** the `olc/` change-folder convention, Cursor / Copilot / Gemini / Windsurf integrations, and (not yet published) the `open-lakehouse-contract` package on PyPI.
 
 ## Related
 

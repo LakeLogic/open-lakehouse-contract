@@ -5,3 +5,10 @@ __pycache__/
 site/
 site_build/
 .cache/
+
+# python packaging / editable install
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
