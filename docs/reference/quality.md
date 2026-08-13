@@ -123,7 +123,13 @@ Any `QualityRule` can attach numeric bounds instead of writing the comparison in
 
 ## Dataset rules
 
-A dataset rule is an **aggregate** SQL assertion over the whole good dataset — it must evaluate true.
+A dataset rule is an **aggregate** SQL assertion over the whole good dataset — it returns a scalar (or boolean) that must hold. Where row rules quarantine bad *rows*, dataset rules judge the *whole batch*: they're your **in-pipeline quality gate** for the aggregate invariants that make up a data-quality SLO — volume, completeness, freshness, reconciliation.
+
+**Enforcement — what a failing dataset rule does:**
+
+- `severity: error | warning | info` — `error` fails the rule; `warning` / `info` log only.
+- `fail_pipeline_on_dataset_error: true` (on the `quality` block) — a failed error-severity dataset rule **aborts the whole run**, so a bad aggregate never publishes.
+- `must_be_between` / `must_be_greater_than` / `must_be_less_than` — bound the scalar the rule's SQL returns (else the SQL should return a boolean).
 
 ### Custom SQL (the canonical form)
 
@@ -164,6 +170,131 @@ SELECT COUNT(*) BETWEEN 1000 AND 10000000 FROM source
 ```yaml
 - row_count_between: { min: 1000, max: 10000000, category: completeness }
 ```
+
+---
+
+## Quality-SLO scenarios
+
+Dataset rules are how you encode data-quality SLOs as **gates** — checked every run, enforced before publish. Each scenario shows the SQL, the rule, and what it protects against. Set `fail_pipeline_on_dataset_error: true` to make these hard gates.
+
+### Volume within band — catch truncated / runaway loads
+
+*A daily feed normally lands 8k–40k rows. A source glitch that ships 200 (or a fan-out bug that ships 400k) should fail, not silently publish.*
+
+```sql
+SELECT COUNT(*) BETWEEN 8000 AND 40000 FROM source
+```
+```yaml
+- row_count_between: { min: 8000, max: 40000, category: completeness, severity: error }
+```
+
+### Volume drop vs a rolling baseline — silent-stall detection
+
+*Absolute bands miss gradual drift. Compare today's volume to a rolling baseline and fail if it collapses — an upstream feed that quietly stopped.*
+
+```sql
+SELECT COUNT(*) * 1.0 / (SELECT avg_daily_rows FROM volume_baseline) FROM source
+```
+```yaml
+links:
+  - { name: volume_baseline, table: "reference.gold_volume_baseline", type: table }
+quality:
+  dataset_rules:
+    - name: volume_not_dropped
+      sql: "SELECT COUNT(*) * 1.0 / (SELECT avg_daily_rows FROM volume_baseline) FROM source"
+      must_be_greater_than: 0.70          # today ≥ 70% of the 30-day average
+      severity: error
+      category: volume
+```
+
+### Completeness threshold — a key column can't go mostly-null
+
+*An upstream schema change nulls `customer_email`. The completeness SLO is "≤ 2% null."*
+
+```sql
+SELECT COUNT(*) FILTER (WHERE customer_email IS NULL) * 1.0 / COUNT(*) <= 0.02 FROM source
+```
+```yaml
+- null_ratio: { field: customer_email, max: 0.02, severity: error, category: completeness }
+```
+
+### Financial reconciliation — the numbers must tie out
+
+*The classic: net revenue must equal gross − fees − refunds. A reconciliation break (5% off, or 100% off) should stop the run before finance sees wrong totals.*
+
+```sql
+SELECT ABS(SUM(net_amount) - SUM(gross_amount - fee_amount - refund_amount)) FROM source
+```
+```yaml
+- name: revenue_reconciles
+  sql: "SELECT ABS(SUM(net_amount) - SUM(gross_amount - fee_amount - refund_amount)) FROM source"
+  must_be_less_than: 0.01                 # penny tolerance
+  severity: error
+  category: reconciliation
+```
+
+### Freshness gate — block a stale batch
+
+*The batch ran, but every row is a day old — the upstream stalled. Fail the publish. (Complements the freshness [SLO](slo.md), which watches it over time; this blocks the current run.)*
+
+```sql
+SELECT max(event_time) >= current_timestamp - INTERVAL 24 HOUR FROM source
+```
+```yaml
+- name: data_is_fresh
+  sql: "SELECT max(event_time) >= current_timestamp - INTERVAL 24 HOUR FROM source"
+  severity: error
+  category: timeliness
+```
+
+### Referential completeness — no orphan facts
+
+*Every fact row must match a dimension. Zero facts may reference a driver that isn't in `dim_driver`. This is the dataset-level guarantee behind the row-level `referential_integrity` rule.*
+
+```sql
+SELECT COUNT(*) FILTER (WHERE d.driver_id IS NULL)
+FROM source f LEFT JOIN dim_driver d ON f.driver_id = d.driver_id
+```
+```yaml
+links:
+  - { name: dim_driver, table: "marketplace.gold_rideflow_dim_driver", type: table }
+quality:
+  dataset_rules:
+    - name: no_orphan_facts
+      sql: "SELECT COUNT(*) FILTER (WHERE d.driver_id IS NULL) FROM source f LEFT JOIN dim_driver d ON f.driver_id = d.driver_id"
+      must_be_less_than: 1
+      severity: error
+      category: integrity
+```
+
+### Distribution / skew guard — catch fan-out & stuck partitions
+
+*No single city should own more than 60% of trips. A runaway join or a stuck partition shows up as skew. Warn (don't block) so the team investigates.*
+
+```sql
+SELECT max(city_share) FROM (
+  SELECT COUNT(*) * 1.0 / SUM(COUNT(*)) OVER () AS city_share FROM source GROUP BY city_code
+)
+```
+```yaml
+- name: city_distribution_sane
+  sql: "SELECT max(city_share) FROM (SELECT COUNT(*) * 1.0 / SUM(COUNT(*)) OVER () AS city_share FROM source GROUP BY city_code)"
+  must_be_less_than: 0.60
+  severity: warning
+  category: distribution
+```
+
+## Dataset rules vs. `service_levels`
+
+Both guard aggregate quality — they differ in **when**:
+
+| | Dataset rules | [`service_levels`](slo.md) (SLOs) |
+|---|---|---|
+| **When** | In-run, on this batch | Across runs, over time |
+| **Effect** | Pass/fail (and can **abort**) the current run before publish | Tracked by the control plane → incidents / notifications |
+| **Use for** | *Stop bad data shipping now* | *Track whether the product keeps its promise* |
+
+`row_count` and freshness appear in both by design: the **dataset rule is the hard gate**, the **SLO is the watched target**. Author the gate to protect this run; author the SLO to hold the product accountable over time.
 
 !!! note "Rules that reference injected columns"
     A dataset rule may reference a column that materialization injects later (a surrogate key, SCD2 audit columns). At validation time that column doesn't exist yet and such keys are unique by construction — the runtime treats a "column not found" bind as *not-evaluated-here* (enforced at materialization), not an error.
