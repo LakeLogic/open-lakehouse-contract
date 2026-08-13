@@ -52,7 +52,7 @@ Without execution, each of those is speculation. With OLC, each is an observatio
 
 OLC belongs to a broader shift toward **spec-driven development** — align humans and AI on a precise, machine-checkable spec *before* acting, then let agents work against it. The same idea is winning in adjacent domains:
 
-- **[OpenSpec](https://github.com/Fission-AI/openspec)** (~65k★) brings spec-driven development to **AI coding assistants**: a lightweight spec that humans and agents agree on *before code is written*, so the outcome is predictable rather than improvised in chat.
+- **[OpenSpec](https://github.com/Fission-AI/openspec)** brings spec-driven development to **AI coding assistants**: a lightweight spec that humans and agents agree on *before code is written*, so the outcome is predictable rather than improvised in chat.
 - **[ODCS](https://github.com/bitol-io/open-data-contract-standard)** is the descriptive standard for **agreeing on a data contract** across teams (OLC [complements it](vs-odcs.md)).
 
 OLC is the same philosophy applied to **data products**: the contract is the spec agents generate, validate against, and execute — spec-first for the data plane, the way OpenSpec is spec-first for code. Different artifact, same conviction: *a precise, executable spec is the best interface between humans and AI.*

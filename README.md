@@ -189,7 +189,7 @@ OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bi
 
 ## Part of a spec-driven movement
 
-OLC is spec-driven development for the **data plane**: humans and AI agree on a precise, machine-checkable contract, then agents generate, validate against, and execute it. Same conviction behind **[OpenSpec](https://github.com/Fission-AI/openspec)** (~65k★, spec-driven development for AI *coding* assistants) and **ODCS** (the descriptive data-contract standard) — *a precise, executable spec is the best interface between humans and AI.* See [Agent-Native](docs/concepts/agent-native.md) and the [Agent Workflow](docs/concepts/agent-workflow.md).
+OLC is spec-driven development for the **data plane**: humans and AI agree on a precise, machine-checkable contract, then agents generate, validate against, and execute it. Same conviction behind **[OpenSpec](https://github.com/Fission-AI/openspec)** (spec-driven development for AI *coding* assistants) and **ODCS** (the descriptive data-contract standard) — *a precise, executable spec is the best interface between humans and AI.* See [Agent-Native](docs/concepts/agent-native.md) and the [Agent Workflow](docs/concepts/agent-workflow.md).
 
 ## What's in this repo
 
