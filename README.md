@@ -23,7 +23,8 @@
 → SQL-native, not framework-specific
 → intent in the contract, engine as a flag
 → one artifact, readable by humans and agents
-→ portable across every lakehouse, never locked in
+→ portable across every lakehouse — and every AI agent
+→ the contract persists; the tool, model, and platform are replaceable
 ```
 
 ---
@@ -52,7 +53,7 @@ That's the whole thing: what the data *is*, the rules it must pass, how it's wri
 An AI agent proposes a contract; you review it; then data is materialized. Spec-driven development for the **data plane** — align before acting.
 
 ```text
-You: /olc:propose "daily revenue by city from Stripe charges, drop test rows, freshness < 6h"
+You: /olc:contract "daily revenue by city from Stripe charges, drop test rows, freshness < 6h"
 
 AI:  Created olc/changes/revenue-daily/
      ✓ proposal.md        — source: payments.silver_stripe_charges; grain: (date, city)
