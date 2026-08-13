@@ -59,3 +59,44 @@ The core idea in one sentence: **the contract is the invariant; the backend is s
 ```
 
 Change the three lines under the fold; the contract above never moves. That's the promise the [Providers](../providers/index.md) matrix demonstrates end-to-end.
+
+## The contract is independent of the runtime
+
+Crucially, OLC sits *above* any particular runtime. The contract is portable intent; a **conforming runtime** carries it out, and that runtime is itself swappable. [LakeLogic](https://lakelogic.org) is the reference runtime — but the specification does not depend on it, and a second runtime in another language could implement the same contract.
+
+```mermaid
+flowchart TD
+    OLC[Open Lakehouse Contract<br/><b>portable intent</b>] --> R1[LakeLogic<br/>reference runtime]
+    OLC -.-> R2[Future OLC runtime]
+    OLC -.-> R3[Future OLC runtime]
+    R1 --> E1[Spark]
+    R1 --> E2[DuckDB]
+    R1 --> E3[Polars]
+```
+
+Two levels of pluggability: the **runtime** that interprets the contract, and the **engine + format** it targets. The contract commits to neither — that's what keeps it an open standard rather than one vendor's config file.
+
+## Scope — and non-goals
+
+OLC answers exactly one question:
+
+> **What must be true about this data product and its execution?**
+
+That question bounds the spec. Schema, quality, PII, lineage, materialization, and SLOs all answer it — they describe *the data product itself*. The discipline that keeps OLC coherent (and adoptable) is refusing to grow beyond it.
+
+**In scope** — properties of a single data product: `model` (schema), `quality`, `pii` / masking, `lineage`, `materialization`, `service_levels`, keys, `transformations`, sources, and declared `upstream` / `downstream` edges.
+
+**Explicit non-goals** — things that belong to *other* tools, not the contract:
+
+| Not in the spec | Where it belongs |
+|---|---|
+| Orchestration / scheduling (the run DAG) | Airflow / Dagster / the mesh config — OLC declares dependencies, it doesn't schedule |
+| Infrastructure provisioning | Terraform / Pulumi |
+| Dashboards & BI | the consumers (captured as `downstream`, not defined here) |
+| ML models / feature engineering logic | the ML platform |
+| Semantic layer / metrics definitions | dbt / a metrics layer |
+| Cataloguing & discovery | the catalog (ODCS is the interchange — see [OLC & ODCS](vs-odcs.md)) |
+| Cost governance | FinOps tooling |
+
+!!! tip "Why the discipline matters"
+    A spec that tries to run the whole data organization becomes a spec no one can implement or agree on. OLC stays *about the data product* — one artifact a human or an agent can read and know exactly what must hold true. Everything else composes *around* it.

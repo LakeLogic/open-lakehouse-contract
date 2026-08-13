@@ -78,6 +78,23 @@ AI:  Materialized silver.revenue_daily (merge, DuckLake) — 4,812 rows.
 
 Notice the contract never mentioned DuckDB, Spark, or a bucket. Intent was fixed at `propose`; the engine was chosen at `apply`. Re-running `--provider snowflake` materializes the *identical* contract on Snowflake.
 
+## The contract as a merge gate
+
+The same properties make OLC a natural fit for **code review and CI**. A change — whether a human or an agent authored it — arrives as a git PR. The contract is the *expected state*; a conforming runtime validates and tests the change against it; the PR passes or fails on that result, and a human reviews with the outcome in hand. This is the OLC analogue of an AI code-review gate — but the reviewer is checking *data behaviour*, not just code.
+
+```mermaid
+flowchart TD
+    C[Human / AI authors a change] --> PR[Git pull request]
+    PR --> OLC[Open Lakehouse Contract<br/><b>expected state</b>]
+    OLC --> RT[Conforming runtime<br/>validate + dry-run test]
+    RT --> V{PASS / FAIL}
+    V -- fail --> C
+    V -- pass --> H[Human review<br/>with evidence]
+    H --> M[Merge → apply]
+```
+
+Because the contract declares `primary_key`, `quality`, `materialization`, and SLOs, a reviewer (or an automated check) can see exactly **what must be preserved** when the implementation changes — a `merge` strategy that silently became `append`, a dropped `not_null` rule, a widened PII field all surface as a *diff of intent*, not a buried code change. The contract turns "did this PR break the data product?" into a checkable, PASS/FAIL question.
+
 ## What's real today vs. proposed
 
 !!! info "Honest status"

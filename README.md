@@ -12,7 +12,7 @@
 </div>
 
 > [!TIP]
-> **One file both *describes* and *runs* a data product** — schema, quality, PII, lineage, materialization, SLOs. The *same* contract runs on Spark / DuckDB / Polars → Delta / Iceberg / DuckLake, on Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck. The contract is the invariant; the backend is a flag. → **[Read the docs](docs/index.md)**
+> **One contract defines a data product** — schema, quality, PII, lineage, materialization, SLOs — and a *conforming runtime executes that intent*, unchanged, across compatible lakehouse engines: Spark / DuckDB / Polars → Delta / Iceberg / DuckLake, on Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck. The contract is the invariant; the runtime and backend are pluggable. → **[Read the docs](docs/index.md)**
 
 **Our philosophy:**
 
@@ -123,16 +123,31 @@ good, bad = proc.run(source_df)                            # validate + quaranti
 proc.materialize(good, bad)                                # write per `materialization`
 ```
 
-## The schema is *derived*, never hand-maintained
+## Specification, schema, and reference implementation
 
-The JSON Schema is generated from the reference implementation's typed models (**Pydantic**), so the standard tracks a working runtime rather than a document that rots:
+OLC is deliberately **three separable layers**, so the standard never collapses into one vendor's code:
+
+```
+   Open Lakehouse Contract  ·  the specification — what the fields MEAN
+                    │
+        ┌───────────┴───────────┐
+        ▼                       ▼
+   JSON Schema           Pydantic reference models
+   structural            executable behaviour, in the
+   validation,           reference runtime (LakeLogic)
+   any language
+```
+
+- **Specification** — defines what `model`, `quality`, `primary_key`, `materialization`, `pii`, `service_levels`… *mean*. Language- and runtime-neutral; documented in the [field reference](docs/reference/schema.md).
+- **JSON Schema** (`schema/open-lakehouse-contract.schema.json`) — the machine-readable *structural* form. Validate an OLC file in any language.
+- **Reference implementation** — [LakeLogic](https://lakelogic.org)'s **Pydantic** models + Core, which *execute* the intent. The JSON Schema is generated from these models, so it can't drift from a working runtime.
+
+The Pydantic models are the **reference implementation, not the specification itself** — a second runtime, in any language, is free to implement the same spec. Regenerate the schema whenever the reference models change:
 
 ```bash
 pip install lakelogic
-python scripts/generate_schema.py     # schema/ ← the Pydantic DataContract model
+python scripts/generate_schema.py     # schema/ ← the reference DataContract models
 ```
-
-That's what makes "open" honest: **the spec is the JSON Schema; [LakeLogic](https://lakelogic.org) is the canonical reference runtime that implements it.** Any tool, any language, can validate OLC files against the schema.
 
 ## Complements ODCS
 

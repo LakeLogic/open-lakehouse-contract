@@ -1,8 +1,8 @@
 # Open Lakehouse Contract
 
-**One human-readable contract that both *describes* and *executes* a data product — portable across engines, table formats, and platforms.**
+**One contract that *describes* a data product and, through a conforming runtime, *executes its intent* — portable across engines, table formats, and platforms.**
 
-An Open Lakehouse Contract (OLC) is a single YAML file that declares a dataset's **schema, quality rules, PII handling, lineage, materialization, and SLOs**. Unlike a purely *descriptive* data-contract spec, an OLC is **executable**: a conforming runtime validates, quarantines, enforces, masks, and materializes straight from the file — so the standard and the implementation can't drift.
+An Open Lakehouse Contract (OLC) is a single YAML file that declares a dataset's **schema, quality rules, PII handling, lineage, materialization, and SLOs**. Unlike a purely *descriptive* data-contract spec, an OLC is **executable**: a conforming runtime validates, quarantines, enforces, masks, and materializes the declared intent straight from the file — so the standard and the implementation can't drift. The contract itself doesn't run anything; it's the portable *intent*, and any conforming runtime carries it out.
 
 ```yaml
 version: 1.0.0

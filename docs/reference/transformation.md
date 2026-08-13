@@ -5,6 +5,9 @@ Transformations are the declared steps between the source and the materialized t
 !!! abstract "Powered by"
     Transformations are **Pydantic** models compiled to native operations on the active engine — DataFrame ops / SQL on **PySpark**, **duckdb**, or **polars**. The SQL below is shown DuckDB-flavored for concreteness; the runtime rewrites dialect differences (e.g. `QUALIFY`, `DATE_DIFF`, `PIVOT`) per engine, so the *same* op runs everywhere. In every `sql:` block, `source` is the current dataset and `links:` datasets are joinable by name.
 
+!!! info "SQL is the portability bet — dialects are a v-next concern"
+    OLC is SQL-native on purpose: `sql: "amount > 0"` is far more portable across engines than a bespoke `{ check: greater_than, value: 0 }` object, because Spark SQL, DuckDB, Snowflake, BigQuery, and Fabric all understand broadly SQL-shaped expressions. Dialect differences are real but bounded — today the reference runtime rewrites the common ones. A future spec version may let a rule pin its dialect explicitly, e.g. `expression: { sql: "amount > 0", dialect: ansi }`, so authors can opt into a portable ANSI subset or an engine-specific escape hatch. **v1 does not try to solve every dialect** — write standard-leaning SQL, and let the runtime handle the rest.
+
 ## `phase` — pre or post
 
 Every op accepts `phase: pre | post`. **Pre** transforms run before quality checks and may reference only source columns; **post** transforms run after the good/bad split and may reference derived columns too. The full run sequence — where pre and post sit relative to validation, quarantine, and materialization — is on the [Execution Order](execution-order.md) page.
