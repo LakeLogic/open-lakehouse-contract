@@ -1,20 +1,17 @@
 <div align="center">
 
-<img src="assets/banner.svg" alt="Open Lakehouse Contract — a portable, executable, SQL-native contract for the lakehouse" width="860">
+<img src="assets/banner.svg" alt="Open Lakehouse Contract — a portable, executable, SQL-native contract for the lakehouse" width="100%">
 
-![Spec](https://img.shields.io/badge/spec-v1%20draft-2965b3?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-2965b3?style=flat-square)
-![JSON Schema](https://img.shields.io/badge/JSON%20Schema-2020--12-6a737d?style=flat-square)
 ![Engines](https://img.shields.io/badge/engines-Spark%20%7C%20DuckDB%20%7C%20Polars-2e7d32?style=flat-square)
 ![Formats](https://img.shields.io/badge/formats-Delta%20%7C%20Iceberg%20%7C%20DuckLake-6f42c1?style=flat-square)
-![Reference runtime](https://img.shields.io/badge/reference%20runtime-LakeLogic-e36209?style=flat-square)
+[![Reference runtime](https://img.shields.io/badge/reference%20runtime-LakeLogic-e36209?style=flat-square)](https://github.com/LakeLogic/LakeLogic)
 
-**Designed to complement, not replace, data-contract standards like [ODCS](https://github.com/bitol-io/open-data-contract-standard).** OLC adds portable execution and lakehouse engineering semantics; the [LakeLogic](https://lakelogic.org) reference runtime consumes both. → *ODCS standardises the agreement · OLC standardises the execution · LakeLogic runs both.*
+**Designed to complement, not replace, data-contract standards like [ODCS](https://github.com/bitol-io/open-data-contract-standard).** OLC adds portable execution and lakehouse engineering semantics; the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference runtime consumes both. → *ODCS standardises the agreement · OLC standardises the execution · LakeLogic runs both.*
 
 </div>
 
-> [!TIP]
-> **One contract defines a data product** — schema, quality, PII, lineage, materialization, SLOs — and a *conforming runtime executes that intent*, unchanged, across compatible lakehouse engines: Spark / DuckDB / Polars → Delta / Iceberg / DuckLake, on Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck. The contract is the invariant; the runtime and backend are pluggable. → **[Read the docs](docs/index.md)**
+An Open Lakehouse Contract is one YAML file that defines a data product — its **schema, quality, PII, lineage, materialization, and SLOs** — and a conforming runtime executes that definition, unchanged, across **Spark / DuckDB / Polars → Delta / Iceberg / DuckLake** on Databricks, Snowflake, Fabric, BigQuery, AWS, or MotherDuck. The contract is the invariant; the runtime and backend are pluggable. **[Read the docs →](https://lakelogic.github.io/open-lakehouse-contract/)**
 
 **Our philosophy:**
 
@@ -163,7 +160,7 @@ OLC is deliberately **three separable layers**, so the standard never collapses 
 
 - **Specification** — defines what `model`, `quality`, `primary_key`, `materialization`, `pii`, `service_levels`… *mean*. Language- and runtime-neutral; documented in the [field reference](docs/reference/schema.md).
 - **JSON Schema** (`schema/open-lakehouse-contract.schema.json`) — the machine-readable *structural* form. Validate an OLC file in any language.
-- **Reference implementation** — [LakeLogic](https://lakelogic.org)'s **Pydantic** models + Core, which *execute* the intent. The JSON Schema is generated from these models, so it can't drift from a working runtime.
+- **Reference implementation** — [LakeLogic](https://github.com/LakeLogic/LakeLogic)'s **Pydantic** models + Core, which *execute* the intent. The JSON Schema is generated from these models, so it can't drift from a working runtime.
 
 The Pydantic models are the **reference implementation, not the specification itself** — a second runtime, in any language, is free to implement the same spec. Regenerate the schema whenever the reference models change:
 
@@ -185,7 +182,7 @@ OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bi
 | Materialization (merge/append, Delta/Iceberg/DuckLake) | — | ✅ |
 | Engine execution (Spark/DuckDB/Polars) · runtime portability | not its role | ✅ **core objective** |
 
-**ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://lakelogic.org) reference runtime runs both.** It imports ODCS and exports back (field names accepted as aliases), so **import ODCS → run as OLC → export ODCS** loses nothing either direction — and (proposed) an OLC file can *reference* an ODCS document rather than duplicate it. See [OLC & ODCS](docs/concepts/vs-odcs.md).
+**ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference runtime runs both.** It imports ODCS and exports back (field names accepted as aliases), so **import ODCS → run as OLC → export ODCS** loses nothing either direction — and (proposed) an OLC file can *reference* an ODCS document rather than duplicate it. See [OLC & ODCS](docs/concepts/vs-odcs.md).
 
 ## Part of a spec-driven movement
 
@@ -224,6 +221,6 @@ Draft `v1`. The schema is generated from the reference implementation and covers
 
 <div align="center">
 
-*Reference implementation: **[LakeLogic](https://lakelogic.org)**. This repo is the open specification — intentionally vendor-neutral.*
+*Reference implementation: **[LakeLogic](https://github.com/LakeLogic/LakeLogic)**. This repo is the open specification — intentionally vendor-neutral.*
 
 </div>
