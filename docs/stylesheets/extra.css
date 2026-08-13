@@ -1322,7 +1322,7 @@ html {
   text-align: center;
 }
 .md-typeset .mermaid svg {
-  width: 100%;
-  max-width: 100%;
+  width: 100% !important;      /* override mermaid's inline max-width:<N>px so it fills the column */
+  max-width: 100% !important;
   height: auto;
 }
