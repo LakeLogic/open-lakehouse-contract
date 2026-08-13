@@ -1313,3 +1313,16 @@ html {
   margin-top: 0.55rem;
   padding-top: 0.55rem;
 }
+
+/* Render mermaid diagrams larger — fill the content width instead of their small
+   natural size — and give them a little breathing room. Wide flowcharts (LR) become
+   far more legible; narrow ones scale up but stay centered. */
+.md-typeset .mermaid {
+  margin: 1.6rem 0;
+  text-align: center;
+}
+.md-typeset .mermaid svg {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
