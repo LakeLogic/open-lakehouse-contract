@@ -31,6 +31,15 @@ flowchart LR
 
 4. **It catches regressions later.** Months on, a different engineer (or a different AI) tweaks the SQL. The agent runs a **review**: it compares the change to the contract and says *"⚠️ this quietly turned a merge into an append and dropped the mask on email — FAIL."* The contract catches what a tired human reviewer would miss.
 
+## Works with what you already have
+
+You don't need a fresh, empty project. OLC works two ways:
+
+- **Starting fresh (greenfield)?** The agent writes the contract first, proves it against synthetic data, then builds. The contract is your design.
+- **Existing platform (brownfield)?** No rewrite. The agent *reverse-engineers* draft contracts from your current tables, dbt models, and SQL, validates them against your **real** data, and from then on gates changes. Start with one important table and grow — contracts accumulate as you go, they aren't a big documentation project up front.
+
+The [Agent Workflow](agent-workflow.md#greenfield-and-brownfield) has the details.
+
 ## Why this beats "just ask an AI to build it"
 
 - **The AI can't bluff.** A normal AI says "done" and you hope. Here the contract is *executed*, so "done" means *the data actually satisfies the rules* — a checkable PASS/FAIL, not a promise.

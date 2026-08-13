@@ -43,6 +43,31 @@ Not `propose → apply` (a generic software-spec workflow) — `discover → con
 !!! tip "No real data? Validate against synthetic data"
     The dry-run **doesn't need production data**. The reference runtime generates synthetic data *from the contract itself* — `lakelogic generate --contract <file> --rows N` produces rows that respect the declared types, nullability, `accepted_values`, and ranges (Faker-semantic, so `customer_email` looks like an email). So an agent can validate a contract the moment it writes it — **greenfield, in CI, before a single real row exists**. And it can prove the gates *fire*: `--invalid-ratio 0.1` deliberately injects bad rows so the agent confirms the quality rules and quarantine actually catch them. Real data, when it exists, just deepens the same check.
 
+## Greenfield and brownfield
+
+The same verbs work whether you're starting fresh or wrapping an existing platform — only the *starting point* differs. OLC is **brownfield-first on purpose**: you should get value from the first contract on a live platform without pausing to document everything.
+
+**Greenfield — start from intent.** No pipelines or data yet. The agent writes the contract *first* (`/olc:contract`), validates it against **synthetic data** (nothing real exists yet), and only then builds. The contract doubles as the design doc *and* the pipeline spec: agree on it, then materialize it on whatever engine you choose.
+
+```
+contract  →  validate (synthetic)  →  apply
+```
+
+**Brownfield — start from reality.** You already have tables, dbt models, Spark jobs, a warehouse. OLC does **not** require a rewrite — adopt it incrementally:
+
+- `/olc:discover` reverse-engineers draft contracts from what already exists — table DDL, dbt schemas, existing SQL.
+- `/olc:validate` runs them against your **real** existing data, so the contract captures reality (today's schema, quality, volume, freshness).
+- From then on, `/olc:review` gates changes to that data product; contracts **accumulate around the changes you make**, not as a big-bang documentation project.
+- OLC sits *beside* your stack — it governs the pipeline's output, it doesn't replace the pipeline. Start with a single `/olc:validate` in CI on one important table and grow. Existing [ODCS](vs-odcs.md) agreements import directly.
+
+| | Greenfield | Brownfield |
+|---|---|---|
+| **Start from** | intent — what it *should* be | reality — what it *is* |
+| **First verb** | `contract` | `discover` |
+| **Validate against** | synthetic data | your real existing data |
+| **Adoption** | contract-first, then build | one table at a time, accumulate |
+| **OLC's role** | the design + the spec | a governing gate beside the existing pipeline |
+
 ## The `olc/` folder
 
 Mirroring OpenSpec's `openspec/`, contracts and in-flight proposals live in a reviewable folder — the shared source of truth for humans and agents:
