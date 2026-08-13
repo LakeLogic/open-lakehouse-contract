@@ -19,8 +19,26 @@ quality:
 materialization: { strategy: merge, format: iceberg }
 ```
 
+## SQL-native
+
+**If you know SQL, you already know how to transform data in OLC.** Logic is expressed as SQL — the universal data language — not Python, not Spark code, not notebooks. The contract carries the SQL; a conforming runtime runs it, unchanged, on whichever engine you point it at.
+
+```yaml
+transformations:
+  - sql: |
+      SELECT o.*,
+             ROUND(o.quantity * o.unit_price * (1 - COALESCE(o.discount_pct, 0)), 2) AS line_total,
+             c.name AS customer_name
+      FROM source o
+      LEFT JOIN customers c ON o.customer_id = c.customer_id
+    phase: post
+```
+
+The shorthand ops (`rename`, `filter`, `cast`, `join`, `rollup`, …) are just convenience wrappers that **compile to SQL** — every one shows its SQL variant in the [Transformation reference](docs/reference/transformation.md). Start with shorthand for the routine cases, drop to `sql:` the moment it gets bespoke — no rewrite, same contract. That's what makes OLC **portable**: SQL is the invariant, and the runtime rewrites dialect differences per engine (**PySpark** / **duckdb** / **polars**).
+
 ## Why OLC
 
+- **SQL-native.** Transformation logic is SQL, so it's readable by analysts and engineers alike and runs on any SQL engine. No translation layer between what you write and what runs.
 - **Executable, not just descriptive.** The same file that documents the contract *runs* it — validation, quarantine, quality gates, PII masking, lineage, materialization. No spec-vs-implementation gap.
 - **Portable.** One contract, every lakehouse. The *same* definitions run on **Spark / DuckDB / Polars**, materialize to **Delta / Iceberg / DuckLake**, on **Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck**. The contract is the invariant; the backend is swappable.
 - **Broader than "data contract."** OLC covers the whole lakehouse surface — schema **+ quality + PII + lineage + materialization + SLOs** — not just schema.

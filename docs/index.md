@@ -21,6 +21,9 @@ materialization: { strategy: merge, format: iceberg }
 
 That same file runs on **Spark / DuckDB / Polars**, materializes to **Delta / Iceberg / DuckLake**, on **Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck** — [see it proven on each →](providers/index.md).
 
+!!! tip "SQL-native"
+    Transformation logic is **SQL** — the universal data language — not Python, not Spark code, not notebooks. Write SQL in the contract; the runtime runs it, unchanged, on whichever engine you point it at. The shorthand ops (`rename`, `filter`, `join`, `rollup`, …) are convenience wrappers that **compile to SQL** — each shows its SQL variant in the [Transformation reference](reference/transformation.md).
+
 ---
 
 ## Terraform for the lakehouse
