@@ -35,10 +35,13 @@ OLC deliberately uses **data-engineering verbs**, not a generic software-spec wo
 | **Contract** | `/olc:contract <product>` | Generate or update the contract for one data product — a **valid** draft with rationale + task checklist. Nothing runs yet. |
 | **Impact** | `/olc:impact "<change>"` | Impact analysis: *"add `customer_segment` to `customer_360`"* → what schema / consumers / SLOs are affected. |
 | **Review** | `/olc:review` | Compare the current changes against the applicable contracts and flag **breaking** schema / quality / SLO / PII / lineage / materialization changes (the merge gate). |
-| **Validate** | `/olc:validate` | JSON-Schema check **plus a dry-run on sample data** → rows, quarantine %, failed rules, SLO status. The agent self-corrects on the errors. |
+| **Validate** | `/olc:validate` | JSON-Schema check **plus a dry-run on synthetic data generated from the contract** (no real data needed) → rows, quarantine %, failed rules, SLO status. The agent self-corrects on the errors. |
 | **Apply** | `/olc:apply --provider <x>` | Materialize for real (merge / SCD2 → Delta / Iceberg / DuckLake). **The engine is chosen here, not in the contract.** |
 
 Not `propose → apply` (a generic software-spec workflow) — `discover → contract → review → validate → impact`. That's what makes OLC feel like a data-engineering standard rather than OpenSpec with different nouns.
+
+!!! tip "No real data? Validate against synthetic data"
+    The dry-run **doesn't need production data**. The reference runtime generates synthetic data *from the contract itself* — `lakelogic generate --contract <file> --rows N` produces rows that respect the declared types, nullability, `accepted_values`, and ranges (Faker-semantic, so `customer_email` looks like an email). So an agent can validate a contract the moment it writes it — **greenfield, in CI, before a single real row exists**. And it can prove the gates *fire*: `--invalid-ratio 0.1` deliberately injects bad rows so the agent confirms the quality rules and quarantine actually catch them. Real data, when it exists, just deepens the same check.
 
 ## The `olc/` folder
 
@@ -71,18 +74,19 @@ AI:  Created olc/changes/revenue-daily/
 
 You: /olc:validate
 
-AI:  Schema OK. Dry-run on 5,000 sample rows:
-       4,812 kept · 188 quarantined (1.2% test rows, 2.5% negative fare)
-       freshness 3h  ✓ within SLO
-     Suggest: the negative-fare rate is high — tighten upstream, or accept as quarantine?
+AI:  Schema OK. Generated 5,000 synthetic rows from the contract (no real data needed),
+     incl. 10% deliberately-bad rows to test the gates. Dry-run:
+       4,510 kept · 490 quarantined — every bad row caught by fare_non_negative / no-test-rows
+       freshness rule fires correctly.
+     The gates work. Point it at real Stripe data to see live pass rates.
 
-You: accept as quarantine. /olc:apply --provider duckdb
+You: looks right. /olc:apply --provider duckdb
 
-AI:  Materialized silver.revenue_daily (merge, DuckLake) — 4,812 rows.
+AI:  Materialized silver.revenue_daily (merge, DuckLake) from live Stripe data — 4,812 rows.
      Same contract runs unchanged on Spark/Delta, Snowflake, or BigQuery — just change --provider.
 ```
 
-Notice the contract never mentioned DuckDB, Spark, or a bucket. Intent was fixed at `propose`; the engine was chosen at `apply`. Re-running `--provider snowflake` materializes the *identical* contract on Snowflake.
+Notice the contract never mentioned DuckDB, Spark, or a bucket. Intent was fixed at `contract`; the engine was chosen at `apply`. Re-running `--provider snowflake` materializes the *identical* contract on Snowflake.
 
 ## The contract as a merge gate
 
@@ -153,7 +157,7 @@ The verbs stay identical; only the wrapper differs. **Claude Code and Codex inte
 ## What's real today vs. proposed
 
 !!! info "Honest status"
-    **Shipping today:** the `olc` CLI (`olc validate` + `olc init`), the Claude Code and Codex integrations (`/olc:validate`, `/olc:contract`, `/olc:review`, `/olc:discover`, `/olc:impact`), schema-only validation with no runtime, and schema-constrained generation. **Provided by the reference runtime (LakeLogic):** the *execute-against-real-data* half — the dry-run (quarantine %, SLO status) and `apply` (materialize) that `/olc:validate` and `/olc:review` deepen into when a runtime is present. **On the roadmap:** the `olc/` change-folder convention, Cursor / Copilot / Gemini / Windsurf integrations, and (not yet published) the `open-lakehouse-contract` package on PyPI.
+    **Shipping today:** the `olc` CLI (`olc validate` + `olc init`), the Claude Code and Codex integrations (`/olc:validate`, `/olc:contract`, `/olc:review`, `/olc:discover`, `/olc:impact`), schema-only validation with no runtime, and schema-constrained generation. **Provided by the reference runtime (LakeLogic):** the *execution* half — **contract-driven synthetic data generation** (`lakelogic generate`, so validation needs no real data), the dry-run (quarantine %, SLO status), and `apply` (materialize) that `/olc:validate` and `/olc:review` deepen into when a runtime is present. **On the roadmap:** the `olc/` change-folder convention, Cursor / Copilot / Gemini / Windsurf integrations, and (not yet published) the `open-lakehouse-contract` package on PyPI.
 
 ## Related
 
