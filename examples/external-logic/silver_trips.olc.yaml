@@ -1,0 +1,64 @@
+# Example: an OLC contract whose transformation is a reusable PySpark job.
+#
+# The contract owns the *governance* — schema, quality, PII, lineage, materialization,
+# SLO. The heavy compute (sessionization via a Spark window) lives in an external
+# PySpark script that the runtime invokes. OLC still validates and materializes the
+# result. See docs/reference/external-logic.md.
+#
+# Note (depends on complexity): sessionization *could* be written as a windowed SQL
+# `transformations` step and kept fully in-contract. This example uses external_logic to
+# show how you reuse an existing Spark job when you'd rather not port it.
+version: 1.0.0
+
+info:
+  title: Silver Trips
+  table_name: silver_trips
+  target_layer: silver
+  description: Cleaned, validated trips with a sessionization step (external PySpark logic).
+  owner: marketplace-team@example.com
+
+model:
+  fields:
+    - { name: trip_id, type: string, required: true, description: Primary key. }
+    - { name: rider_id, type: string, required: true }
+    - { name: driver_id, type: string, required: true }
+    - { name: requested_at, type: timestamp, required: true }
+    - { name: completed_at, type: timestamp }
+    - { name: fare_amount, type: float }
+    - { name: distance_km, type: float }
+    - { name: city_code, type: string }
+    - { name: rider_email, type: string, pii: true, masking: partial }
+    - name: session_id
+      type: string
+      description: Injected by the external PySpark sessionization job (30-min gap per rider).
+
+primary_key: [trip_id]
+
+quality:
+  row_rules:
+    - { name: fare_non_negative, sql: "fare_amount >= 0" }
+    - { name: valid_email, sql: "rider_email LIKE '%@%.%'" }
+  dataset_rules:
+    - unique: trip_id
+
+lineage:
+  enabled: true
+
+# The transformation is a reusable PySpark job — governed by this contract.
+# handles_output: false → the job returns a dataframe; OLC materializes + governs it.
+external_logic:
+  type: python
+  path: sessionize_trips.py
+  entrypoint: run
+  args: { session_gap_minutes: 30 }
+  handles_output: false
+
+materialization:
+  strategy: merge
+  format: delta
+
+service_levels:
+  freshness:
+    threshold: "6h"
+    field: requested_at
+    description: Trips land within 6h of the request event.

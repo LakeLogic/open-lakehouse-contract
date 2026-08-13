@@ -1,13 +1,29 @@
 # External Logic — Spark, notebooks & complex processes
 
-OLC is [SQL-first](transformation.md), but not every transformation is one SQL statement. When a data product is built by a **Spark job**, a **notebook**, a **stored procedure**, or an existing **dbt model**, OLC doesn't make you rewrite it as declarative YAML — it **references** the real compute and keeps governing the result. The contract owns schema / quality / PII / lineage / materialization / SLO; the external code owns the transformation.
+OLC is [SQL-first](transformation.md), and it expresses far more than one SQL statement — ordered multi-step SQL, window functions, joins, SCD2, and 20+ declarative ops. So **a lot of "complex" processing can simply be rewritten in OLC** — and usually should be, because declarative/SQL logic stays portable, reviewable, and diff-able. It's a **spectrum keyed on complexity**: express it in OLC where you can; reference external compute (`external_logic`) only when the logic genuinely exceeds SQL, or when you want to reuse an existing Spark job / notebook / stored proc rather than port it. Either way, the contract keeps governing the result.
 
 !!! abstract "Powered by"
     `logic` (inline) and `external_logic` (referenced) are **Pydantic** models. The reference runtime executes external `python` in a sandboxed subprocess (restricted builtins + timeout) and `notebook` via a Jupyter kernel. A PySpark job is just `type: python` that uses **PySpark**.
 
-There are two ways to handle "more than one SQL statement," in order of preference.
+## Rewrite in OLC, or reference it?
 
-## 1. Multi-step SQL — stay in the contract
+Work up this ladder — stay in the contract as long as you can:
+
+| If the work is… | Do this — **in OLC** |
+|---|---|
+| Multi-step SQL, joins, lookups, CTEs, window functions, CASE logic | `transformations` — ordered `sql:` steps (each sees the previous) |
+| Dedup, pivot / unpivot, rollup, bucketing, date-range explode, casts | the declarative [ops](transformation.md) |
+| Slowly-changing dimensions, merge/upsert, soft-delete | [`materialization`](materialization.md) strategy |
+| Cross-dataset joins to reference tables | `links` + a `sql:` step |
+
+Reach for **`external_logic`** only when:
+
+- the logic genuinely exceeds SQL — iterative ML feature loops, graph algorithms, a custom Python library — **or**
+- you want to **reuse existing code** (a Spark job, a notebook, a stored proc, a dbt model) instead of porting it.
+
+The rest of this page is that escape hatch. If you're unsure, try expressing it as `transformations` first; drop to `external_logic` when it stops being natural SQL.
+
+## Multi-step SQL, in-contract
 
 If it's simply several SQL steps you own, list them: `transformations` runs **in order**, each a `sql:` step that sees the previous step's output. No external code needed.
 
@@ -19,7 +35,7 @@ transformations:
 
 Multi-step, fully governed, still portable across engines. Reach for external logic only when the work genuinely isn't SQL.
 
-## 2. External logic — plug in real compute
+## External logic — the escape hatch
 
 When the transformation is a *script* — PySpark, a notebook, or code that calls a stored procedure — declare `external_logic`:
 
@@ -50,6 +66,8 @@ A Spark job is just `type: python` — a script that uses Spark. It receives the
 ```yaml
 external_logic: { type: python, path: jobs/spark_sessionize.py, entrypoint: run }
 ```
+
+The runtime calls the entrypoint after validation as `run(good_df, contract=…, engine=…, **args)`; return a dataframe (OLC materializes it) or a path/None. **Worked example:** [`examples/external-logic/`](https://github.com/LakeLogic/open-lakehouse-contract/tree/main/examples/external-logic) — a `silver_trips` contract whose transform is a reusable PySpark sessionization job, schema-valid and ready to validate against synthetic data.
 
 ### A notebook
 
