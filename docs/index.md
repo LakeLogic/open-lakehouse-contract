@@ -1,25 +1,30 @@
-# Open Lakehouse Contract
+---
+title: Open Lakehouse Contract
+description: A portable, executable, SQL-native contract for the lakehouse — one file that defines a data product's schema, quality, PII, lineage, materialization, and SLOs, executed by any conforming runtime.
+---
 
-**One contract that *describes* a data product and, through a conforming runtime, *executes its intent* — portable across engines, table formats, and platforms.**
+<div class="ll-eyebrow"><span class="ll-eyebrow__pip"></span> v1 draft · Apache 2.0 · reference runtime: LakeLogic</div>
+
+<div class="hero-section"><div class="hero-content"><h1 class="hero-title">One contract.<br><span style="color:var(--md-accent-fg-color)">Every lakehouse.</span></h1><p class="hero-subtitle">A portable, executable, SQL-native contract for the lakehouse. One YAML file defines a data product — schema, quality, PII, lineage, materialization, SLOs — and any conforming runtime executes that intent, on Spark / DuckDB / Polars → Delta / Iceberg / DuckLake.</p><div class="hero-cta"><a class="md-button md-button--primary" href="getting-started.html">Get started →</a> <a class="md-button md-button--secondary" href="providers/index.html">See the providers</a> <a class="md-button" href="https://github.com/LakeLogic/open-lakehouse-contract" target="_blank">★ Star on GitHub</a></div></div><div class="hero-visual"><div class="ll-win ll-win--yaml"><div class="ll-win__head"><span class="ll-win__dots"><i></i><i></i><i></i></span><span class="ll-win__name">orders.olc.yaml</span></div><pre class="ll-code"><span class="k">version</span>: <span class="n">1.0.0</span>
+<span class="k">info</span>: { <span class="k">title</span>: Orders, <span class="k">table_name</span>: orders }
+
+<span class="k">model</span>:
+  <span class="k">fields</span>:
+    - <span class="k">name</span>: order_id
+      <span class="k">type</span>: <span class="s">integer</span>
+      <span class="k">required</span>: <span class="b">true</span>
+<span class="hl">    - <span class="k">name</span>: customer_email
+      <span class="k">type</span>: <span class="s">string</span>
+      <span class="k">pii</span>: <span class="b">true</span>
+      <span class="k">masking</span>: <span class="s">partial</span></span>
+<span class="k">quality</span>:
+  <span class="k">row_rules</span>:
+    - <span class="k">sql</span>: <span class="s">"amount &gt; 0"</span>
+<span class="k">materialization</span>: { <span class="k">strategy</span>: <span class="s">merge</span>, <span class="k">format</span>: <span class="s">iceberg</span> }</pre></div><div class="ll-pr"><div class="ll-pr__head"><span class="ll-pr__num">pull request #128</span><span class="ll-pr__count">2 of 3 passed</span></div><div class="ll-pr__check"><span class="ll-ck ll-ck--ok">✓</span><span class="ll-pr__name">ci / <b>build</b></span><span class="ll-res ll-res--ok">Passed</span></div><div class="ll-pr__check"><span class="ll-ck ll-ck--ok">✓</span><span class="ll-pr__name">ci / <b>unit-tests</b></span><span class="ll-res ll-res--ok">Passed</span></div><div class="ll-pr__check"><span class="ll-ck ll-ck--no">✕</span><span class="ll-pr__name">olc / <b>data-contract</b></span><span class="ll-res ll-res--no">Breaking</span></div></div></div></div>
 
 An Open Lakehouse Contract (OLC) is a single YAML file that declares a dataset's **schema, quality rules, PII handling, lineage, materialization, and SLOs**. Unlike a purely *descriptive* data-contract spec, an OLC is **executable**: a conforming runtime validates, quarantines, enforces, masks, and materializes the declared intent straight from the file — so the standard and the implementation can't drift. The contract itself doesn't run anything; it's the portable *intent*, and any conforming runtime carries it out.
 
-```yaml
-version: 1.0.0
-info: { title: Orders, table_name: orders, target_layer: silver }
-model:
-  fields:
-    - { name: order_id, type: integer, required: true }
-    - { name: customer_email, type: string, pii: true, masking: partial }
-    - { name: amount, type: float, required: true }
-primary_key: [order_id]
-quality:
-  row_rules:
-    - { name: positive_amount, sql: "amount > 0" }
-materialization: { strategy: merge, format: iceberg }
-```
-
-That same file runs on **Spark / DuckDB / Polars**, materializes to **Delta / Iceberg / DuckLake**, on **Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck** — [see it proven on each →](providers/index.md).
+That same contract runs on **Spark / DuckDB / Polars**, materializes to **Delta / Iceberg / DuckLake**, on **Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck** — [see it proven on each →](providers/index.md).
 
 !!! tip "SQL-native"
     Transformation logic is **SQL** — the universal data language — not Python, not Spark code, not notebooks. Write SQL in the contract; the runtime runs it, unchanged, on whichever engine you point it at. The shorthand ops (`rename`, `filter`, `join`, `rollup`, …) are convenience wrappers that **compile to SQL** — each shows its SQL variant in the [Transformation reference](reference/transformation.md).

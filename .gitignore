@@ -12,3 +12,6 @@ build/
 dist/
 .venv/
 venv/
+
+# local mkdocs serve log
+.mkdocs-serve.log
