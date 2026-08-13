@@ -1,10 +1,9 @@
 <div align="center">
 
-# Open Lakehouse Contract
-
-### A portable, executable, **SQL-native** contract for the lakehouse
+<img src="assets/banner.svg" alt="Open Lakehouse Contract — a portable, executable, SQL-native contract for the lakehouse" width="860">
 
 ![Spec](https://img.shields.io/badge/spec-v1%20draft-2965b3?style=flat-square)
+![License](https://img.shields.io/badge/license-Apache%202.0-2965b3?style=flat-square)
 ![JSON Schema](https://img.shields.io/badge/JSON%20Schema-2020--12-6a737d?style=flat-square)
 ![Engines](https://img.shields.io/badge/engines-Spark%20%7C%20DuckDB%20%7C%20Polars-2e7d32?style=flat-square)
 ![Formats](https://img.shields.io/badge/formats-Delta%20%7C%20Iceberg%20%7C%20DuckLake-6f42c1?style=flat-square)
@@ -165,6 +164,10 @@ Concepts (what/why/agent-native/agent-workflow/ODCS) · **[Providers matrix](doc
 ## Status
 
 Draft `v1`. The schema is generated from the reference implementation and covers **28 top-level fields** across schema, quality, materialization, lineage, PII/masking, SLOs, sources/links, environments, and more. Governance, formal versioning, and a language-neutral test corpus are on the roadmap — contributions welcome.
+
+## License
+
+[Apache License 2.0](LICENSE). The Open Lakehouse Contract is an open specification — free to implement, extend, and build on.
 
 ---
 
