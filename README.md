@@ -9,6 +9,8 @@
 ![Formats](https://img.shields.io/badge/formats-Delta%20%7C%20Iceberg%20%7C%20DuckLake-6f42c1?style=flat-square)
 ![Reference runtime](https://img.shields.io/badge/reference%20runtime-LakeLogic-e36209?style=flat-square)
 
+**Designed to complement, not replace, data-contract standards like [ODCS](https://github.com/bitol-io/open-data-contract-standard).** OLC adds portable execution and lakehouse engineering semantics; the [LakeLogic](https://lakelogic.org) reference runtime consumes both. → *ODCS standardises the agreement · OLC standardises the execution · LakeLogic runs both.*
+
 </div>
 
 > [!TIP]
@@ -104,12 +106,15 @@ The [providers matrix](docs/providers/index.md) runs the **same** RideFlow contr
 
 ## Quickstart — validate a contract
 
-The spec is a single JSON Schema; validate any OLC file against it in any language.
+The spec is a single JSON Schema; validate any OLC file against it in any language — **no runtime required**. Keep `*.olc.yaml` contracts beside your SQL / dbt / PySpark and gate every PR on them:
 
 ```bash
 pip install jsonschema pyyaml
-python tests/conformance.py           # checks examples/ + tests/ against the schema
+python scripts/validate.py                    # discovers + validates **/*.olc.yaml
+python tests/conformance.py                   # (this repo) the spec's own conformance corpus
 ```
+
+A ready-to-use GitHub Action lives in [`.github/workflows/validate-olc.yml`](.github/workflows/validate-olc.yml) — drop it into any repo (point `--schema` at the published schema URL) and contracts are checked on every push.
 
 To *run* a contract, use the reference runtime:
 
@@ -151,7 +156,18 @@ python scripts/generate_schema.py     # schema/ ← the reference DataContract m
 
 ## Complements ODCS
 
-OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)** — it doesn't compete with it. ODCS is the excellent, widely-adopted standard for *describing* a data contract; OLC adds the *executable, lakehouse-scoped* layer that runs it. The reference runtime imports ODCS and exports back to it (field names accepted as aliases), so **import ODCS → run as OLC → export ODCS** loses nothing either direction. See [OLC & ODCS](docs/concepts/vs-odcs.md).
+OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)** — it doesn't compete with it. ODCS is the excellent, widely-adopted standard for the *business + semantic agreement* about a data product; OLC adds the *engineering + runtime* contract that executes it.
+
+|  | ODCS | Open Lakehouse Contract |
+|---|---|---|
+| Ownership · stakeholders · business semantics | ✅ defines | reference / integrate |
+| Schema · terms · SLA · quality expectations | ✅ defines | ✅ **enforces at runtime** |
+| PII classification | ✅ classifies | ✅ **masks at runtime** |
+| SQL rules | some representation | **core design principle** |
+| Materialization (merge/append, Delta/Iceberg/DuckLake) | — | ✅ |
+| Engine execution (Spark/DuckDB/Polars) · runtime portability | not its role | ✅ **core objective** |
+
+**ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://lakelogic.org) reference runtime runs both.** It imports ODCS and exports back (field names accepted as aliases), so **import ODCS → run as OLC → export ODCS** loses nothing either direction — and (proposed) an OLC file can *reference* an ODCS document rather than duplicate it. See [OLC & ODCS](docs/concepts/vs-odcs.md).
 
 ## Part of a spec-driven movement
 

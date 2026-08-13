@@ -3,18 +3,44 @@
 OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)** — it doesn't compete with it. ODCS is the excellent, widely-adopted standard for *describing* a data contract; OLC adds the *executable, lakehouse-scoped* layer that runs it. They're two points on the same axis, with a round trip between them, and the reference runtime is deliberately ODCS-interoperable so you never have to choose.
 
 !!! tip "The short version"
-    Use **ODCS** to publish and agree on a contract across teams and catalogs. Use **OLC** to *run* it — validate, quarantine, mask, materialize. Import ODCS → run as OLC → export ODCS; nothing is lost either direction.
+    **ODCS standardises the agreement · OLC standardises the execution · the reference runtime runs both.** Use ODCS to publish and agree on a data product across teams and catalogs; use OLC to *run* it — validate, quarantine, mask, materialize. You never have to choose.
 
-## The distinction
+## Two layers of one data product
 
-| | ODCS | Open Lakehouse Contract |
+They're not rivals — they stack. ODCS is the *business + semantic agreement*; OLC is the *engineering + runtime* contract that carries it out:
+
+```mermaid
+flowchart TD
+    DP[Data product] --> ODCS[Open Data Contract Standard<br/>business + semantic agreement<br/>ownership · semantics · terms · SLA]
+    ODCS --> OLC[Open Lakehouse Contract<br/>engineering + runtime contract<br/>SQL rules · materialization · engine · incremental]
+    OLC --> RT[OLC-compatible runtime]
+    RT --> E1[Spark]
+    RT --> E2[DuckDB]
+    RT --> E3[Polars]
+    E1 --> F[Delta / Iceberg / DuckLake]
+    E2 --> F
+    E3 --> F
+```
+
+## By concern
+
+| Concern | ODCS | Open Lakehouse Contract |
 |---|---|---|
-| **Primary purpose** | *Describe* a data contract — a shared, human/tool-readable agreement | *Execute* a data product — validate, quarantine, mask, materialize |
-| **Scope** | Schema-centric (plus SLAs, terms, quality descriptions) | Whole lakehouse surface: schema **+ quality + quarantine + PII + lineage + materialization + SLOs + keys + transforms** |
-| **Relationship to a runtime** | Runtime-agnostic description | Emitted from a reference runtime; the file *runs* |
-| **Best at** | Cataloguing, discovery, governance sign-off, cross-org agreement | Building and enforcing the pipeline that produces the data |
+| Data-product metadata | ✅ defines | basic |
+| Schema | ✅ defines | ✅ enforces |
+| Ownership / stakeholders | ✅ defines | reference / integrate |
+| Business semantics | ✅ defines | reference / integrate |
+| Terms / SLA | ✅ defines | ✅ **runtime enforcement** |
+| Quality expectations | ✅ describes | ✅ **executable checks** |
+| PII classification | ✅ classifies | ✅ **runtime masking** |
+| SQL rules | some representation | **core design principle** |
+| Materialization (merge / append / overwrite) | — | ✅ |
+| Table format (Delta / Iceberg / DuckLake) | — | ✅ |
+| Engine execution (Spark / DuckDB / Polars) | — | ✅ |
+| Runtime portability | not its role | ✅ **core objective** |
+| CI behaviour | validation-oriented | **contract execution** |
 
-Think of ODCS as the **descriptive, schema-scoped** contract for the whole data-agreement world, and OLC as the **executable, lakehouse-scoped** contract for building the data product — with a round trip between them.
+Read it as: **ODCS says what the data product *is and promises*; OLC says how that promise is *executed and enforced* on a lakehouse.** Where they overlap (schema, quality, SLA, PII), ODCS *declares* and OLC *enforces at runtime* — the same intent, one described, one executed.
 
 ## Round-trip interop
 
@@ -29,6 +55,53 @@ odcs = contract.to_odcs()                               # emit ODCS back out
 ```
 
 There's also a CLI export (`lakelogic export-odcs`) in the reference runtime.
+
+## Two contracts, one runtime model
+
+The most powerful mode isn't converting one to the other — it's letting each own what it's best at, and resolving both into a single runtime model. The reference runtime validates either, and can run OLC *with* an ODCS agreement alongside:
+
+```bash
+lakelogic validate product.odcs.yaml          # validate the agreement
+lakelogic validate product.olc.yaml           # validate the execution contract
+lakelogic run product.olc.yaml \              # run OLC, resolving the ODCS agreement
+  --data-contract product.odcs.yaml            #   (proposed)
+```
+
+```mermaid
+flowchart LR
+    subgraph ODCS[ODCS · the agreement]
+      A1[ownership]
+      A2[semantics]
+      A3[schema]
+      A4[quality expectations]
+      A5[SLA]
+    end
+    subgraph OLC[OLC · the execution]
+      B1[engine]
+      B2[materialization]
+      B3[SQL execution]
+      B4[incremental behaviour]
+      B5[runtime quality]
+    end
+    ODCS --> M[Reference runtime model]
+    OLC --> M
+    M --> X[execute]
+```
+
+The ODCS document stays the organisation's data-product *agreement*; the OLC file is the executable lakehouse *implementation*. Neither duplicates the other.
+
+!!! note "Proposed: reference an ODCS contract from OLC"
+    A future OLC version may let a contract *point at* its ODCS agreement instead of restating it, so ownership/semantics/schema live once (in ODCS) and execution lives in OLC:
+    ```yaml
+    version: 1.0.0
+    data_contract: { standard: odcs, ref: ./customer.odcs.yaml }   # ← proposed binding
+    info: { title: Customer, target_layer: gold }
+    materialization: { strategy: merge, format: iceberg }
+    quality:
+      row_rules:
+        - { name: valid_customer, sql: "customer_id IS NOT NULL" }
+    ```
+    This `data_contract:` binding and the `--data-contract` flag are **proposed** — not in the v1 schema yet. Today, use the [round-trip](#round-trip-interop) (`from_odcs` / `to_odcs`).
 
 ## Native vocabulary, ODCS aliases
 

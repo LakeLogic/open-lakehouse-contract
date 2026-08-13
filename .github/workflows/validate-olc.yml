@@ -1,0 +1,32 @@
+# Validate Open Lakehouse Contract files in CI — no LakeLogic runtime required,
+# just a JSON-Schema validator. Drop this into any repo that keeps *.olc.yaml
+# contracts beside its code, and every PR is gated on valid contracts.
+name: Validate OLC contracts
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install a JSON-Schema validator
+        run: pip install jsonschema pyyaml
+
+      # Validate every **/*.olc.yaml against the schema. In your own repo, point
+      # --schema at the published schema URL (or vendor the schema file):
+      #   python validate.py --schema https://…/open-lakehouse-contract.schema.json
+      - name: Validate contracts
+        run: python scripts/validate.py
+
+      # (This repo only) also run the spec conformance corpus.
+      - name: Conformance suite
+        run: python tests/conformance.py
