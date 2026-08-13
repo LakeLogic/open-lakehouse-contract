@@ -53,6 +53,7 @@ nav:
   - Concepts:
       - What is OLC?: concepts/what-is-olc.md
       - Why Pydantic: concepts/why-pydantic.md
+      - AI Data Agents: concepts/ai-data-agents.md
       - Agent-Native: concepts/agent-native.md
       - Agent Workflow: concepts/agent-workflow.md
       - OLC & ODCS: concepts/vs-odcs.md

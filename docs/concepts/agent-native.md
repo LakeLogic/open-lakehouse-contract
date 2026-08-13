@@ -1,5 +1,7 @@
 # Agent-Native
 
+> New to this? Start with the plain-language [AI Data Agents](ai-data-agents.md) on-ramp, then come back here for the *why*.
+
 An Open Lakehouse Contract is an unusually good substrate for **AI data agents** — not because it mentions AI anywhere, but because of four properties it already has: it's **typed**, **self-validating**, **executable**, and **portable**. Those four turn the usual "LLM writes some SQL and hopes" loop into a closed, verifiable one.
 
 ## The four properties, and what each unlocks
