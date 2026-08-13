@@ -2,6 +2,9 @@
 
 This is the OLC equivalent of the Terraform Registry: **one canonical contract, rendered across a matrix of backends.** The RideFlow data mesh — the *same* contracts throughout — has been run on each platform below. Every provider page shows the identical contract, the runtime invocation for that backend, and what it materialized.
 
+!!! info "What's RideFlow?"
+    **RideFlow** is the running example used throughout OLC: a realistic, fictional ride-hailing company's data mesh — **6 domains** (marketplace, payments, operations, marketing, reference, shared) across **11 source systems** (Stripe, Twilio, Zendesk, Checkr, Google Ads, HubSpot, and more), ~60 governed tables through a bronze → silver → gold medallion. It exists as one set of OLC contracts; each provider page runs *those exact contracts* on a different lakehouse. Think of it as the "hello world" that's big enough to be real — nothing here is platform-specific to any one backend.
+
 The contract never changes between these pages. Only the `engine`, the `format`, and where the data lands do.
 
 ## The matrix
