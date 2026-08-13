@@ -1,0 +1,8 @@
+version: 1.0.0
+info:
+  title: Minimal
+  table_name: minimal
+model:
+  fields:
+    - name: id
+      type: integer

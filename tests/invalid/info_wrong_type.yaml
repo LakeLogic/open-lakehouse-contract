@@ -1,0 +1,6 @@
+version: 1.0.0
+info: "just a title"
+model:
+  fields:
+    - name: id
+      type: integer

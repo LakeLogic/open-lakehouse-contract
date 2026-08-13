@@ -1,0 +1,4147 @@
+{
+  "$defs": {
+    "ConfidenceConfig": {
+      "description": "Configuration for HOW extraction confidence is scored.\n\nThe confidence THRESHOLD belongs in quality.row_rules, not here::\n\n    quality:\n      row_rules:\n        - name: confidence_gate\n          sql: \"_lakelogic_extraction_confidence >= 0.7\"\n          action: quarantine\n\nMethods:\n  - log_probs: use token-level log probabilities (OpenAI, etc.)\n  - self_assessment: ask the LLM to rate its own confidence\n  - consistency: run extraction N times, measure field-level agreement\n  - field_completeness: % of non-nullable fields that are present",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "method": {
+          "default": "field_completeness",
+          "title": "Method",
+          "type": "string"
+        },
+        "column": {
+          "default": "_lakelogic_extraction_confidence",
+          "title": "Column",
+          "type": "string"
+        },
+        "consistency_runs": {
+          "default": 3,
+          "title": "Consistency Runs",
+          "type": "integer"
+        }
+      },
+      "title": "ConfidenceConfig",
+      "type": "object"
+    },
+    "DatasetRuleNullRatio": {
+      "description": "Business-friendly null ratio rule.",
+      "properties": {
+        "null_ratio": {
+          "additionalProperties": true,
+          "title": "Null Ratio",
+          "type": "object"
+        }
+      },
+      "required": [
+        "null_ratio"
+      ],
+      "title": "DatasetRuleNullRatio",
+      "type": "object"
+    },
+    "DatasetRuleRowCountBetween": {
+      "description": "Business-friendly row count rule.",
+      "properties": {
+        "row_count_between": {
+          "additionalProperties": true,
+          "title": "Row Count Between",
+          "type": "object"
+        }
+      },
+      "required": [
+        "row_count_between"
+      ],
+      "title": "DatasetRuleRowCountBetween",
+      "type": "object"
+    },
+    "DatasetRuleUnique": {
+      "description": "Business-friendly unique rule.",
+      "properties": {
+        "unique": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": true,
+              "type": "object"
+            }
+          ],
+          "title": "Unique"
+        }
+      },
+      "required": [
+        "unique"
+      ],
+      "title": "DatasetRuleUnique",
+      "type": "object"
+    },
+    "DltEndpointConfig": {
+      "additionalProperties": true,
+      "description": "Single REST API endpoint configuration for dlt.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        },
+        "paginator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Paginator"
+        }
+      },
+      "required": [
+        "name",
+        "path"
+      ],
+      "title": "DltEndpointConfig",
+      "type": "object"
+    },
+    "DltSourceConfig": {
+      "additionalProperties": true,
+      "description": "DLT-specific source configuration, embedded in SourceConfig.\n\nSupports two modes:\n\nMode 1 \u2014 Verified Source::\n\n    source:\n      type: dlt\n      dlt:\n        source: stripe_analytics\n        resource: charges\n        credentials:\n          api_key: ${STRIPE_API_KEY}\n\nMode 2 \u2014 Declarative REST API::\n\n    source:\n      type: dlt\n      dlt:\n        base_url: https://api.example.com/v1/\n        credentials:\n          api_key: ${API_KEY}\n        endpoints:\n          - name: users\n            path: users\n            params:\n              limit: 100",
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "resource": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource"
+        },
+        "base_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Base Url"
+        },
+        "endpoints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/DltEndpointConfig"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endpoints"
+        },
+        "credentials": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Credentials",
+          "type": "object"
+        },
+        "write_disposition": {
+          "default": "replace",
+          "title": "Write Disposition",
+          "type": "string"
+        },
+        "max_table_nesting": {
+          "default": 1,
+          "title": "Max Table Nesting",
+          "type": "integer"
+        }
+      },
+      "title": "DltSourceConfig",
+      "type": "object"
+    },
+    "DownstreamConsumer": {
+      "additionalProperties": true,
+      "description": "A downstream consumer of a contract's output.\n\nEnables end-to-end lineage tracking from source \u2192 gold \u2192 dashboard/report.\nDeclared on gold-layer contracts to capture what uses the data.\n\nExample YAML:\n    downstream:\n      - type: dashboard\n        name: Monthly Revenue Dashboard\n        platform: power_bi\n        url: https://app.powerbi.com/groups/.../dashboards/...\n        owner: analytics-team\n        refresh: \"daily 06:00 UTC\"\n\n      - type: report\n        name: Weekly Sales Report\n        platform: databricks_sql\n\n      - type: api\n        name: Customer Lookup API\n        platform: internal\n        url: https://api.internal.com/v1/customers\n\n      - type: ml_model\n        name: Churn Prediction\n        platform: mlflow\n        owner: data-science",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "platform": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Platform"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "refresh": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Refresh"
+        },
+        "columns_used": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns Used",
+          "type": "array"
+        },
+        "sla": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sla"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "DownstreamConsumer",
+      "type": "object"
+    },
+    "Environment": {
+      "description": "Environment-specific path/format overrides.",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "Environment",
+      "type": "object"
+    },
+    "ExternalLogic": {
+      "description": "External logic hook for advanced processing.",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "entrypoint": {
+          "default": "run",
+          "title": "Entrypoint",
+          "type": "string"
+        },
+        "args": {
+          "additionalProperties": true,
+          "title": "Args",
+          "type": "object"
+        },
+        "output_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Path"
+        },
+        "output_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Format"
+        },
+        "handles_output": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handles Output"
+        },
+        "kernel_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kernel Name"
+        }
+      },
+      "required": [
+        "type",
+        "path"
+      ],
+      "title": "ExternalLogic",
+      "type": "object"
+    },
+    "ExtractionConfig": {
+      "additionalProperties": true,
+      "description": "LLM extraction configuration for unstructured data processing.\n\nTurns raw unstructured content (text, PDFs, images, audio, video)\ninto structured rows via LLM, governed by the data contract.\n\nExample YAML:\n    extraction:\n      provider: openai\n      model: gpt-4o-mini\n      temperature: 0.1\n      prompt_template: |\n        Extract the following from this support ticket:\n        {{ ticket_body }}\n      output_schema:\n        - name: sentiment\n          type: string\n          enum: [positive, neutral, negative]\n      source:\n        text_column: ticket_body\n      confidence:\n        min_threshold: 0.8",
+      "properties": {
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "default": "auto",
+          "title": "Model",
+          "type": "string"
+        },
+        "temperature": {
+          "default": 0.1,
+          "title": "Temperature",
+          "type": "number"
+        },
+        "max_tokens": {
+          "default": 1000,
+          "title": "Max Tokens",
+          "type": "integer"
+        },
+        "response_format": {
+          "default": "json",
+          "title": "Response Format",
+          "type": "string"
+        },
+        "prompt_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompt Template"
+        },
+        "system_prompt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "System Prompt"
+        },
+        "text_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text Column"
+        },
+        "context_columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Context Columns",
+          "type": "array"
+        },
+        "preprocessing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreprocessingConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "output_schema": {
+          "items": {
+            "$ref": "#/$defs/FieldDefinition"
+          },
+          "title": "Output Schema",
+          "type": "array"
+        },
+        "batch_size": {
+          "default": 50,
+          "title": "Batch Size",
+          "type": "integer"
+        },
+        "concurrency": {
+          "default": 5,
+          "title": "Concurrency",
+          "type": "integer"
+        },
+        "retry": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RetryConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfidenceConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_cost_per_run": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Cost Per Run"
+        },
+        "max_rows_per_run": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Rows Per Run"
+        },
+        "fallback_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback Model"
+        },
+        "fallback_provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback Provider"
+        },
+        "redact_pii_before_llm": {
+          "default": false,
+          "title": "Redact Pii Before Llm",
+          "type": "boolean"
+        },
+        "pii_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Pii Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider"
+      ],
+      "title": "ExtractionConfig",
+      "type": "object"
+    },
+    "FactConfig": {
+      "description": "Kimball Fact Table Automated Governance.\n\nAutomatically injects pipeline constraints based on the defined Fact Table architecture:\n- accumulating_snapshot: ensures milestone dates are monotonically increasing\n- transaction: lock strategy to append\n- factless: asserts no metric columns exist\n\nYAML example::\n    materialization:\n      strategy: merge\n      fact:\n        type: accumulating_snapshot\n        milestone_dates:\n          - placed_date\n          - shipped_date",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "milestone_dates": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Milestone Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "FactConfig",
+      "type": "object"
+    },
+    "FieldDefinition": {
+      "description": "Schema field definition.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "pii": {
+          "default": false,
+          "title": "Pii",
+          "type": "boolean"
+        },
+        "phi": {
+          "default": false,
+          "title": "Phi",
+          "type": "boolean"
+        },
+        "sensitive": {
+          "default": false,
+          "title": "Sensitive",
+          "type": "boolean"
+        },
+        "classification": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classification"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/QualityRule"
+          },
+          "title": "Rules",
+          "type": "array"
+        },
+        "accepted_values": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accepted Values"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max"
+        },
+        "foreign_key": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ForeignKeyRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "nullable": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nullable"
+        },
+        "milestone": {
+          "default": false,
+          "title": "Milestone",
+          "type": "boolean"
+        },
+        "generated": {
+          "default": false,
+          "title": "Generated",
+          "type": "boolean"
+        },
+        "security_groups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Security Groups",
+          "type": "array"
+        },
+        "masking": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Masking"
+        },
+        "masking_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Masking Format"
+        },
+        "pii_vault": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pii Vault"
+        },
+        "extraction_task": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extraction Task"
+        },
+        "extraction_examples": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Extraction Examples",
+          "type": "array"
+        },
+        "max_length": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Length"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "title": "FieldDefinition",
+      "type": "object"
+    },
+    "ForeignKeyRef": {
+      "description": "Declaration of a foreign-key relationship on a field.\n\nUsed in two places:\n  1. ``FieldDefinition.foreign_key`` \u2014 field-level documentation + generator hint.\n     The generator samples FK column values from the PK pool of the referenced contract.\n  2. ``RowRuleReferentialIntegrity.referential_integrity`` \u2014 quality-rule payload\n     that the DataProcessor evaluates at validation time.\n\nContract YAML example\n---------------------\n# Field-level (documentation + generator hint)\nschema:\n  columns:\n    - name: agent_id\n      type: BIGINT\n      foreign_key:\n        contract: silver_agents   # LakeLogic contract name\n        column:   agent_id        # PK column in that contract\n\n# Quality rule (validation)\nquality:\n  row_rules:\n    - referential_integrity:\n        field:    agent_id\n        contract: silver_agents\n        column:   agent_id\n        severity: critical\n\ndbt equivalent\n---------------\n- name: agent_id\n  tests:\n    - relationships:\n        to:    ref('agents')\n        field: agent_id",
+      "properties": {
+        "contract": {
+          "title": "Contract",
+          "type": "string"
+        },
+        "column": {
+          "title": "Column",
+          "type": "string"
+        },
+        "severity": {
+          "default": "error",
+          "title": "Severity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract",
+        "column"
+      ],
+      "title": "ForeignKeyRef",
+      "type": "object"
+    },
+    "Info": {
+      "description": "Contract metadata such as title, version, and ownership.",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "table_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Name"
+        },
+        "version": {
+          "default": "1.0.0",
+          "title": "Version",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner"
+        },
+        "contact": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contact"
+        },
+        "target_layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Layer"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        },
+        "classification": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classification"
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain"
+        },
+        "system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "System"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "Info",
+      "type": "object"
+    },
+    "LineageConfig": {
+      "additionalProperties": true,
+      "description": "Lineage capture settings.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "capture_source_path": {
+          "default": true,
+          "title": "Capture Source Path",
+          "type": "boolean"
+        },
+        "capture_timestamp": {
+          "default": true,
+          "title": "Capture Timestamp",
+          "type": "boolean"
+        },
+        "capture_run_id": {
+          "default": true,
+          "title": "Capture Run Id",
+          "type": "boolean"
+        },
+        "source_column_name": {
+          "default": "_lakelogic_source",
+          "title": "Source Column Name",
+          "type": "string"
+        },
+        "timestamp_column_name": {
+          "default": "_lakelogic_processed_at",
+          "title": "Timestamp Column Name",
+          "type": "string"
+        },
+        "run_id_column_name": {
+          "default": "_lakelogic_run_id",
+          "title": "Run Id Column Name",
+          "type": "string"
+        },
+        "capture_contract_name": {
+          "default": true,
+          "title": "Capture Contract Name",
+          "type": "boolean"
+        },
+        "contract_name_column_name": {
+          "default": "_lakelogic_contract_name",
+          "title": "Contract Name Column Name",
+          "type": "string"
+        },
+        "capture_domain": {
+          "default": true,
+          "title": "Capture Domain",
+          "type": "boolean"
+        },
+        "capture_system": {
+          "default": true,
+          "title": "Capture System",
+          "type": "boolean"
+        },
+        "domain_column_name": {
+          "default": "_lakelogic_domain",
+          "title": "Domain Column Name",
+          "type": "string"
+        },
+        "system_column_name": {
+          "default": "_lakelogic_system",
+          "title": "System Column Name",
+          "type": "string"
+        },
+        "capture_created_at": {
+          "default": true,
+          "title": "Capture Created At",
+          "type": "boolean"
+        },
+        "created_at_column_name": {
+          "default": "_lakelogic_created_at",
+          "title": "Created At Column Name",
+          "type": "string"
+        },
+        "capture_created_by": {
+          "default": true,
+          "title": "Capture Created By",
+          "type": "boolean"
+        },
+        "created_by_column_name": {
+          "default": "_lakelogic_created_by",
+          "title": "Created By Column Name",
+          "type": "string"
+        },
+        "created_by_override": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Created By Override"
+        },
+        "preserve_upstream": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Preserve Upstream",
+          "type": "array"
+        },
+        "upstream_prefix": {
+          "default": "_upstream",
+          "title": "Upstream Prefix",
+          "type": "string"
+        },
+        "run_id_source": {
+          "default": "run_id",
+          "title": "Run Id Source",
+          "type": "string"
+        }
+      },
+      "title": "LineageConfig",
+      "type": "object"
+    },
+    "Link": {
+      "description": "Reference dataset link (file path or table name).",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "type": {
+          "default": "parquet",
+          "title": "Type",
+          "type": "string"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table"
+        },
+        "broadcast": {
+          "default": false,
+          "title": "Broadcast",
+          "type": "boolean"
+        },
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Link",
+      "type": "object"
+    },
+    "Materialization": {
+      "additionalProperties": true,
+      "description": "Materialization settings for writing outputs.",
+      "properties": {
+        "strategy": {
+          "default": "append",
+          "title": "Strategy",
+          "type": "string"
+        },
+        "partition_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Partition By",
+          "type": "array"
+        },
+        "cluster_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cluster By",
+          "type": "array"
+        },
+        "reprocess_policy": {
+          "default": "overwrite_partition",
+          "title": "Reprocess Policy",
+          "type": "string"
+        },
+        "reprocess_date_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reprocess Date Column"
+        },
+        "target_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Path"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "scd2": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scd2"
+        },
+        "fact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FactConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "soft_delete_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Delete Column"
+        },
+        "soft_delete_value": {
+          "default": true,
+          "title": "Soft Delete Value"
+        },
+        "soft_delete_time_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Delete Time Column"
+        },
+        "soft_delete_reason_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Delete Reason Column"
+        },
+        "table_properties": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Properties"
+        },
+        "compaction": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Compaction"
+        },
+        "unknown_member": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unknown Member"
+        },
+        "merge_dedup_guard": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "title": "Merge Dedup Guard"
+        }
+      },
+      "title": "Materialization",
+      "type": "object"
+    },
+    "Model": {
+      "description": "Schema model definition.",
+      "properties": {
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/FieldDefinition"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "grain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Grain"
+        },
+        "grain_key": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Grain Key",
+          "type": "array"
+        }
+      },
+      "title": "Model",
+      "type": "object"
+    },
+    "Notification": {
+      "additionalProperties": true,
+      "description": "Notification channel configuration.\n\nMinimal usage \u2014 just ``target`` and ``on_events``::\n\n    notifications:\n      - target: \"env:TEAMS_WEBHOOK\"\n        on_events: [quarantine, failure]\n\nThe ``type`` field defaults to ``apprise`` which auto-detects the\nchannel from the target URL scheme (``mailto://``, ``slack://``,\n``msteams://``, etc.).  Set ``type`` explicitly only when using the\nlegacy built-in adapters (``smtp``, ``sendgrid``, ``slack``,\n``teams``, ``webhook``).",
+      "properties": {
+        "type": {
+          "default": "apprise",
+          "title": "Type",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "targets": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Targets"
+        },
+        "on_events": {
+          "items": {
+            "type": "string"
+          },
+          "title": "On Events",
+          "type": "array"
+        },
+        "subject_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Template"
+        },
+        "subject_template_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Template File"
+        },
+        "message_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message Template"
+        },
+        "message_template_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message Template File"
+        },
+        "body_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Body Template"
+        },
+        "body_template_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Body Template File"
+        },
+        "template_context": {
+          "additionalProperties": true,
+          "title": "Template Context",
+          "type": "object"
+        }
+      },
+      "title": "Notification",
+      "type": "object"
+    },
+    "PostIngestionConfig": {
+      "description": "Landing zone lifecycle policy \u2014 what to do with source files after\nsuccessful Bronze ingestion.\n\nActions:\n  delete  \u2014 remove source files after commit (zero-retention)\n  archive \u2014 move source files to archive_path after commit\n  retain  \u2014 leave source files in place (default / no-op)\n\nSafety guarantees:\n  - Cleanup only executes AFTER a successful Bronze Delta commit.\n  - If cleanup fails, the pipeline still succeeds (unless\n    cleanup_is_blocking is True).\n  - Cleanup failures are logged as warnings for manual intervention.\n\nExample YAML (system-level default)::\n\n    server:\n      bronze:\n        post_ingestion:\n          action: delete\n          cleanup_is_blocking: false\n\nExample YAML (contract-level with archive)::\n\n    source:\n      post_ingestion:\n        action: archive\n        archive_path: \"/archive/crm/customers\"",
+      "properties": {
+        "action": {
+          "default": "retain",
+          "enum": [
+            "delete",
+            "archive",
+            "retain"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "cleanup_is_blocking": {
+          "default": false,
+          "title": "Cleanup Is Blocking",
+          "type": "boolean"
+        },
+        "archive_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archive Path"
+        }
+      },
+      "title": "PostIngestionConfig",
+      "type": "object"
+    },
+    "PreprocessingConfig": {
+      "additionalProperties": true,
+      "description": "Preprocessing pipeline for raw unstructured files before LLM extraction.\n\nBronze holds raw files (PDFs, images, videos, audio). Before the LLM\ncan extract structured data, we need to convert them to text.\n\nExample YAML:\n    preprocessing:\n      content_type: pdf\n      ocr:\n        enabled: true\n        engine: tesseract     # tesseract | azure_di | textract | google_vision\n        language: eng\n      chunking:\n        strategy: page        # page | paragraph | sentence | fixed_size\n        max_chunk_tokens: 4000\n        overlap_tokens: 200\n\nFor video:\n    preprocessing:\n      content_type: video\n      transcription:\n        engine: whisper       # whisper | azure_speech | google_speech\n        language: en\n      frame_extraction:\n        enabled: true\n        interval_seconds: 30\n        engine: gpt-4o        # vision model for frame analysis",
+      "properties": {
+        "content_type": {
+          "title": "Content Type",
+          "type": "string"
+        },
+        "ocr": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ocr"
+        },
+        "transcription": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transcription"
+        },
+        "frame_extraction": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frame Extraction"
+        },
+        "chunking": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chunking"
+        },
+        "file_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Column"
+        },
+        "text_output_column": {
+          "default": "_extracted_text",
+          "title": "Text Output Column",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content_type"
+      ],
+      "title": "PreprocessingConfig",
+      "type": "object"
+    },
+    "Quality": {
+      "description": "Quality rule groups for row and dataset checks.",
+      "properties": {
+        "enforce_required": {
+          "default": true,
+          "title": "Enforce Required",
+          "type": "boolean"
+        },
+        "fail_pipeline_on_dataset_error": {
+          "default": false,
+          "title": "Fail Pipeline On Dataset Error",
+          "type": "boolean"
+        },
+        "row_rules": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/QualityRule"
+              },
+              {
+                "$ref": "#/$defs/RowRuleNotNull"
+              },
+              {
+                "$ref": "#/$defs/RowRuleAcceptedValues"
+              },
+              {
+                "$ref": "#/$defs/RowRuleRegexMatch"
+              },
+              {
+                "$ref": "#/$defs/RowRuleRange"
+              },
+              {
+                "$ref": "#/$defs/RowRuleReferentialIntegrity"
+              },
+              {
+                "$ref": "#/$defs/RowRuleLifecycleWindow"
+              }
+            ]
+          },
+          "title": "Row Rules",
+          "type": "array"
+        },
+        "dataset_rules": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/QualityRule"
+              },
+              {
+                "$ref": "#/$defs/DatasetRuleUnique"
+              },
+              {
+                "$ref": "#/$defs/DatasetRuleNullRatio"
+              },
+              {
+                "$ref": "#/$defs/DatasetRuleRowCountBetween"
+              }
+            ]
+          },
+          "title": "Dataset Rules",
+          "type": "array"
+        }
+      },
+      "title": "Quality",
+      "type": "object"
+    },
+    "QualityRule": {
+      "description": "Row-level or dataset-level quality rule.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "sql": {
+          "title": "Sql",
+          "type": "string"
+        },
+        "category": {
+          "default": "correctness",
+          "title": "Category",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "severity": {
+          "default": "error",
+          "title": "Severity",
+          "type": "string"
+        },
+        "phase": {
+          "default": "pre",
+          "title": "Phase",
+          "type": "string"
+        },
+        "must_be_between": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Must Be Between"
+        },
+        "must_be_less_than": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Must Be Less Than"
+        },
+        "must_be_greater_than": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Must Be Greater Than"
+        }
+      },
+      "required": [
+        "name",
+        "sql"
+      ],
+      "title": "QualityRule",
+      "type": "object"
+    },
+    "Quarantine": {
+      "additionalProperties": true,
+      "description": "Quarantine settings and notification routing.",
+      "properties": {
+        "target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "include_error_reason": {
+          "default": true,
+          "title": "Include Error Reason",
+          "type": "boolean"
+        },
+        "strict_notifications": {
+          "default": true,
+          "title": "Strict Notifications",
+          "type": "boolean"
+        },
+        "fail_on_quarantine": {
+          "default": false,
+          "title": "Fail On Quarantine",
+          "type": "boolean"
+        },
+        "notifications_enabled": {
+          "default": true,
+          "title": "Notifications Enabled",
+          "type": "boolean"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "write_mode": {
+          "default": "append",
+          "title": "Write Mode",
+          "type": "string"
+        },
+        "notifications": {
+          "items": {
+            "$ref": "#/$defs/Notification"
+          },
+          "title": "Notifications",
+          "type": "array"
+        }
+      },
+      "title": "Quarantine",
+      "type": "object"
+    },
+    "RetryConfig": {
+      "description": "Retry configuration for LLM API calls.",
+      "properties": {
+        "max_attempts": {
+          "default": 3,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "backoff": {
+          "default": "exponential",
+          "title": "Backoff",
+          "type": "string"
+        },
+        "initial_delay": {
+          "default": 1.0,
+          "title": "Initial Delay",
+          "type": "number"
+        }
+      },
+      "title": "RetryConfig",
+      "type": "object"
+    },
+    "RowCountSLO": {
+      "description": "Row count SLO for individual contracts.\n\nValidates that the output row count falls within expected bounds.\nChecked against the field specified by check_field (default: counts_good).\n\nWhen skip_reprocess_days is set and the reprocess date range exceeds that\nthreshold, SLO checks and counts_source computation are skipped entirely\nto avoid expensive Spark wide-transformation actions on large backfills.",
+      "properties": {
+        "min_rows": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Rows"
+        },
+        "max_rows": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Rows"
+        },
+        "check_field": {
+          "default": "counts_good",
+          "title": "Check Field",
+          "type": "string"
+        },
+        "skip_reprocess_days": {
+          "default": 3,
+          "title": "Skip Reprocess Days",
+          "type": "integer"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "title": "RowCountSLO",
+      "type": "object"
+    },
+    "RowRuleAcceptedValues": {
+      "description": "Business-friendly accepted values rule.",
+      "properties": {
+        "accepted_values": {
+          "additionalProperties": true,
+          "title": "Accepted Values",
+          "type": "object"
+        }
+      },
+      "required": [
+        "accepted_values"
+      ],
+      "title": "RowRuleAcceptedValues",
+      "type": "object"
+    },
+    "RowRuleLifecycleWindow": {
+      "description": "Business-friendly lifecycle window rule.",
+      "properties": {
+        "lifecycle_window": {
+          "additionalProperties": true,
+          "title": "Lifecycle Window",
+          "type": "object"
+        }
+      },
+      "required": [
+        "lifecycle_window"
+      ],
+      "title": "RowRuleLifecycleWindow",
+      "type": "object"
+    },
+    "RowRuleNotNull": {
+      "description": "Business-friendly not-null rule.",
+      "properties": {
+        "not_null": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Not Null"
+        }
+      },
+      "required": [
+        "not_null"
+      ],
+      "title": "RowRuleNotNull",
+      "type": "object"
+    },
+    "RowRuleRange": {
+      "description": "Business-friendly range rule.",
+      "properties": {
+        "range": {
+          "additionalProperties": true,
+          "title": "Range",
+          "type": "object"
+        }
+      },
+      "required": [
+        "range"
+      ],
+      "title": "RowRuleRange",
+      "type": "object"
+    },
+    "RowRuleReferentialIntegrity": {
+      "description": "Business-friendly referential integrity rule.",
+      "properties": {
+        "referential_integrity": {
+          "additionalProperties": true,
+          "title": "Referential Integrity",
+          "type": "object"
+        }
+      },
+      "required": [
+        "referential_integrity"
+      ],
+      "title": "RowRuleReferentialIntegrity",
+      "type": "object"
+    },
+    "RowRuleRegexMatch": {
+      "description": "Business-friendly regex match rule.",
+      "properties": {
+        "regex_match": {
+          "additionalProperties": true,
+          "title": "Regex Match",
+          "type": "object"
+        }
+      },
+      "required": [
+        "regex_match"
+      ],
+      "title": "RowRuleRegexMatch",
+      "type": "object"
+    },
+    "SchemaPolicy": {
+      "description": "Schema enforcement rules for unknown and evolving fields.",
+      "properties": {
+        "evolution": {
+          "default": "allow",
+          "enum": [
+            "strict",
+            "append",
+            "merge",
+            "overwrite",
+            "compatible",
+            "allow"
+          ],
+          "title": "Evolution",
+          "type": "string"
+        },
+        "unknown_fields": {
+          "default": "allow",
+          "enum": [
+            "quarantine",
+            "drop",
+            "allow"
+          ],
+          "title": "Unknown Fields",
+          "type": "string"
+        }
+      },
+      "title": "SchemaPolicy",
+      "type": "object"
+    },
+    "Server": {
+      "description": "Storage and ingestion settings for a contract.",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "format": {
+          "default": "parquet",
+          "title": "Format",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "mode": {
+          "default": "validate",
+          "title": "Mode",
+          "type": "string"
+        },
+        "schema_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SchemaPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cast_to_string": {
+          "default": false,
+          "title": "Cast To String",
+          "type": "boolean"
+        },
+        "post_ingestion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PostIngestionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "type",
+        "path"
+      ],
+      "title": "Server",
+      "type": "object"
+    },
+    "ServiceLevel": {
+      "description": "Service-level settings for freshness, availability, and row counts.",
+      "properties": {
+        "freshness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/ServiceLevelObjective"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Freshness"
+        },
+        "availability": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "$ref": "#/$defs/ServiceLevelObjective"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Availability"
+        },
+        "row_count": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RowCountSLO"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "ServiceLevel",
+      "type": "object"
+    },
+    "ServiceLevelObjective": {
+      "description": "Service-level objective definition.",
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        },
+        "field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Field"
+        }
+      },
+      "title": "ServiceLevelObjective",
+      "type": "object"
+    },
+    "SourceConfig": {
+      "additionalProperties": true,
+      "description": "Source acquisition settings for landing/stream/table/dlt inputs.",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "load_mode": {
+          "default": "full",
+          "title": "Load Mode",
+          "type": "string"
+        },
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern"
+        },
+        "watermark_field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Watermark Field"
+        },
+        "cdc_op_field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cdc Op Field"
+        },
+        "cdc_delete_values": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cdc Delete Values",
+          "type": "array"
+        },
+        "cdc_timestamp_field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cdc Timestamp Field"
+        },
+        "dlt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DltSourceConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "partition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcePartition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "empty_behavior": {
+          "anyOf": [
+            {
+              "enum": [
+                "skip",
+                "fail"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Empty Behavior"
+        },
+        "watermark_strategy": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "max_target",
+          "title": "Watermark Strategy"
+        },
+        "target_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Path"
+        },
+        "lookback": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lookback"
+        },
+        "from_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From Date"
+        },
+        "to_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "To Date"
+        },
+        "pipeline_log_table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pipeline Log Table"
+        },
+        "pipeline_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pipeline Name"
+        },
+        "manifest_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manifest Path"
+        },
+        "watermark_date_parts": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Watermark Date Parts"
+        },
+        "partition_filters": {
+          "additionalProperties": true,
+          "title": "Partition Filters",
+          "type": "object"
+        },
+        "flatten_nested": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": false,
+          "title": "Flatten Nested"
+        },
+        "post_ingestion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PostIngestionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "SourceConfig",
+      "type": "object"
+    },
+    "SourcePartition": {
+      "additionalProperties": true,
+      "description": "Date-partitioned landing directory configuration.\n\nLimits file globbing to only the relevant date partitions instead\nof scanning the entire landing directory.\n\nExample YAML::\n\n    source:\n      path: \"{landing_root}/events\"\n      partition:\n        format: \"y_%Y/m_%m/d_%d\"   # strftime tokens\n        lookback_days: 3",
+      "properties": {
+        "format": {
+          "title": "Format",
+          "type": "string"
+        },
+        "lookback_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lookback Days"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Date"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        },
+        "file_pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Pattern"
+        }
+      },
+      "required": [
+        "format"
+      ],
+      "title": "SourcePartition",
+      "type": "object"
+    },
+    "Transformation": {
+      "additionalProperties": true,
+      "description": "Transformation step (SQL or structured).",
+      "properties": {
+        "rename": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationRename"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "derive": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDerive"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lookup": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationLookup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationFilter"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deduplicate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDeduplicate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "select": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationSelect"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "drop": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDrop"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cast": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationCast"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "trim": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationTrim"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lower": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationLower"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "upper": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationUpper"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "coalesce": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationCoalesce"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "split": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationSplit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "explode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationExplode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "map_values": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationMapValues"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rollup": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationRollup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "join": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationJoin"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "pivot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationPivot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unpivot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationUnpivot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "json_extract": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationJsonExtract"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "date_range_explode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDateRangeExplode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "bucket": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationBucket"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "date_diff": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDateDiff"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sql": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sql"
+        },
+        "phase": {
+          "default": "post",
+          "title": "Phase",
+          "type": "string"
+        }
+      },
+      "title": "Transformation",
+      "type": "object"
+    },
+    "TransformationBucket": {
+      "description": "Map a numeric (or string) column into labelled bands.\n\nCompiles to a standard SQL CASE expression \u2014 identical across all engines.\n\nYAML example::\n\n    - phase: post\n      bucket:\n        field: price_band\n        source: pricing_price\n        bins:\n          - lt: 250000\n            label: sub_250k\n          - lt: 500000\n            label: 250k_500k\n          - lt: 1000000\n            label: 500k_1m\n        default: 1m_plus",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "bins": {
+          "items": {
+            "$ref": "#/$defs/TransformationBucketBin"
+          },
+          "title": "Bins",
+          "type": "array"
+        },
+        "default": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default"
+        }
+      },
+      "required": [
+        "field",
+        "source"
+      ],
+      "title": "TransformationBucket",
+      "type": "object"
+    },
+    "TransformationBucketBin": {
+      "description": "A single range/equality bin for TransformationBucket.",
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "lt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lt"
+        },
+        "lte": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lte"
+        },
+        "gt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gt"
+        },
+        "gte": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gte"
+        },
+        "eq": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Eq"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "TransformationBucketBin",
+      "type": "object"
+    },
+    "TransformationCast": {
+      "description": "Cast columns to specific types.",
+      "properties": {
+        "columns": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "object"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "TransformationCast",
+      "type": "object"
+    },
+    "TransformationCoalesce": {
+      "description": "Coalesce multiple fields into a single output.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "default": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        }
+      },
+      "required": [
+        "field"
+      ],
+      "title": "TransformationCoalesce",
+      "type": "object"
+    },
+    "TransformationDateDiff": {
+      "description": "Compute the integer difference between two date/timestamp columns.\n\nThe YAML spec is engine-agnostic; each adapter emits the dialect-correct\nSQL (DATEDIFF, DATE_PART, etc.).\n\nYAML example::\n\n    - phase: post\n      date_diff:\n        field: listing_age_days\n        from_col: creation_date\n        to_col: event_date\n        unit: days",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "from_col": {
+          "title": "From Col",
+          "type": "string"
+        },
+        "to_col": {
+          "title": "To Col",
+          "type": "string"
+        },
+        "unit": {
+          "default": "days",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "from_col",
+        "to_col"
+      ],
+      "title": "TransformationDateDiff",
+      "type": "object"
+    },
+    "TransformationDateRangeExplode": {
+      "description": "Explode each row into one row per calendar day in [start_col, end_col].\n\nThe output column receives successive date values. If end_col is omitted\nor null the current date is used as the upper bound.\n\nEngine-agnostic: Polars uses pl.date_range + explode,\nDuckDB uses generate_series + unnest.\n\nYAML example::\n\n    - phase: post\n      date_range_explode:\n        output: snapshot_date\n        start_col: creation_date\n        end_col: deleted_at       # nullable \u2014 defaults to today when null",
+      "properties": {
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "start_col": {
+          "title": "Start Col",
+          "type": "string"
+        },
+        "end_col": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Col"
+        },
+        "interval": {
+          "default": "1d",
+          "title": "Interval",
+          "type": "string"
+        }
+      },
+      "required": [
+        "output",
+        "start_col"
+      ],
+      "title": "TransformationDateRangeExplode",
+      "type": "object"
+    },
+    "TransformationDeduplicate": {
+      "description": "Deduplication rule configuration.",
+      "properties": {
+        "on": {
+          "items": {
+            "type": "string"
+          },
+          "title": "On",
+          "type": "array"
+        },
+        "sort_by": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sort By"
+        },
+        "order": {
+          "default": "desc",
+          "title": "Order",
+          "type": "string"
+        }
+      },
+      "required": [
+        "on"
+      ],
+      "title": "TransformationDeduplicate",
+      "type": "object"
+    },
+    "TransformationDerive": {
+      "description": "Derive a new field from a SQL expression.\n\n``sql`` is the default/Spark expression.  When running on a different\nengine you can supply an engine-specific override:\n\n* ``sql_duckdb`` \u2014 used by the Polars and DuckDB adapters.\n* ``sql_spark`` \u2014 explicit Spark override (falls back to ``sql``).",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "sql": {
+          "title": "Sql",
+          "type": "string"
+        },
+        "sql_duckdb": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sql Duckdb"
+        },
+        "sql_spark": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sql Spark"
+        }
+      },
+      "required": [
+        "field",
+        "sql"
+      ],
+      "title": "TransformationDerive",
+      "type": "object"
+    },
+    "TransformationDrop": {
+      "description": "Drop columns by name.",
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "TransformationDrop",
+      "type": "object"
+    },
+    "TransformationExplode": {
+      "description": "Explode an array field into multiple rows.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        }
+      },
+      "required": [
+        "field"
+      ],
+      "title": "TransformationExplode",
+      "type": "object"
+    },
+    "TransformationFilter": {
+      "description": "Row-level filter expressed in SQL.",
+      "properties": {
+        "sql": {
+          "title": "Sql",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sql"
+      ],
+      "title": "TransformationFilter",
+      "type": "object"
+    },
+    "TransformationJoin": {
+      "description": "Join a reference table to enrich multiple fields.",
+      "properties": {
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "on": {
+          "title": "On",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "type": {
+          "default": "left",
+          "title": "Type",
+          "type": "string"
+        },
+        "prefix": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prefix"
+        },
+        "defaults": {
+          "additionalProperties": true,
+          "title": "Defaults",
+          "type": "object"
+        }
+      },
+      "required": [
+        "reference",
+        "on",
+        "key",
+        "fields"
+      ],
+      "title": "TransformationJoin",
+      "type": "object"
+    },
+    "TransformationJsonExtract": {
+      "description": "Extract a scalar value from a JSON string column.\n\nEngine-agnostic: Polars uses str.json_path_match, DuckDB uses ->> operator,\nSpark uses get_json_object.\n\nYAML example::\n\n    - phase: post\n      json_extract:\n        field: location_latitude\n        source: location_coordinates\n        path: \"$.latitude\"\n        cast: float",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "cast": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cast"
+        }
+      },
+      "required": [
+        "field",
+        "source",
+        "path"
+      ],
+      "title": "TransformationJsonExtract",
+      "type": "object"
+    },
+    "TransformationLookup": {
+      "description": "Lookup/join enrichment configuration.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "on": {
+          "title": "On",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "default_value": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default Value"
+        }
+      },
+      "required": [
+        "field",
+        "reference",
+        "on",
+        "key",
+        "value"
+      ],
+      "title": "TransformationLookup",
+      "type": "object"
+    },
+    "TransformationLower": {
+      "description": "Lower-case string fields.",
+      "properties": {
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "title": "TransformationLower",
+      "type": "object"
+    },
+    "TransformationMapValues": {
+      "description": "Map input values to output values.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "mapping": {
+          "additionalProperties": true,
+          "title": "Mapping",
+          "type": "object"
+        },
+        "default": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        }
+      },
+      "required": [
+        "field",
+        "mapping"
+      ],
+      "title": "TransformationMapValues",
+      "type": "object"
+    },
+    "TransformationPivot": {
+      "additionalProperties": true,
+      "description": "Pivot rows into columns using conditional aggregation.",
+      "properties": {
+        "id_vars": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Id Vars",
+          "type": "array"
+        },
+        "pivot_col": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pivot Col"
+        },
+        "pivot_cols": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pivot Cols"
+        },
+        "value_col": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Col"
+        },
+        "value_cols": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Cols"
+        },
+        "values": {
+          "items": {},
+          "title": "Values",
+          "type": "array"
+        },
+        "pivot_values": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pivot Values"
+        },
+        "agg": {
+          "default": "first",
+          "title": "Agg",
+          "type": "string"
+        },
+        "aggs": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Aggs",
+          "type": "object"
+        },
+        "fill_value": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill Value"
+        },
+        "separator": {
+          "default": "_",
+          "title": "Separator",
+          "type": "string"
+        },
+        "name_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name Template"
+        },
+        "value_aliases": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Value Aliases",
+          "type": "object"
+        }
+      },
+      "title": "TransformationPivot",
+      "type": "object"
+    },
+    "TransformationRename": {
+      "additionalProperties": true,
+      "description": "Rename a column prior to validation.",
+      "properties": {
+        "from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From"
+        },
+        "to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "To"
+        },
+        "mappings": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mappings"
+        }
+      },
+      "title": "TransformationRename",
+      "type": "object"
+    },
+    "TransformationRollup": {
+      "description": "Aggregate data and retain rollup lineage keys.",
+      "properties": {
+        "group_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Group By",
+          "type": "array"
+        },
+        "aggregations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Aggregations",
+          "type": "object"
+        },
+        "keys": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Keys"
+        },
+        "key_expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key Expr"
+        },
+        "rollup_keys_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "_lakelogic_rollup_keys",
+          "title": "Rollup Keys Column"
+        },
+        "rollup_keys_count_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "_lakelogic_rollup_keys_count",
+          "title": "Rollup Keys Count Column"
+        },
+        "upstream_run_id_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "_upstream_lakelogic_run_id",
+          "title": "Upstream Run Id Column"
+        },
+        "upstream_run_ids_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "_upstream_lakelogic_run_ids",
+          "title": "Upstream Run Ids Column"
+        },
+        "distinct": {
+          "default": true,
+          "title": "Distinct",
+          "type": "boolean"
+        }
+      },
+      "title": "TransformationRollup",
+      "type": "object"
+    },
+    "TransformationSelect": {
+      "description": "Select a subset of columns.",
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "TransformationSelect",
+      "type": "object"
+    },
+    "TransformationSplit": {
+      "description": "Split a string field into an array.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "delimiter": {
+          "default": ",",
+          "title": "Delimiter",
+          "type": "string"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        }
+      },
+      "required": [
+        "field"
+      ],
+      "title": "TransformationSplit",
+      "type": "object"
+    },
+    "TransformationTrim": {
+      "description": "Trim whitespace from fields.",
+      "properties": {
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "side": {
+          "default": "both",
+          "title": "Side",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "title": "TransformationTrim",
+      "type": "object"
+    },
+    "TransformationUnpivot": {
+      "additionalProperties": true,
+      "description": "Unpivot columns into rows.",
+      "properties": {
+        "id_vars": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Id Vars",
+          "type": "array"
+        },
+        "value_vars": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Value Vars",
+          "type": "array"
+        },
+        "value_cols": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Cols"
+        },
+        "key_field": {
+          "default": "key",
+          "title": "Key Field",
+          "type": "string"
+        },
+        "value_field": {
+          "default": "value",
+          "title": "Value Field",
+          "type": "string"
+        },
+        "include_nulls": {
+          "default": false,
+          "title": "Include Nulls",
+          "type": "boolean"
+        },
+        "value_aliases": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Value Aliases",
+          "type": "object"
+        }
+      },
+      "title": "TransformationUnpivot",
+      "type": "object"
+    },
+    "TransformationUpper": {
+      "description": "Upper-case string fields.",
+      "properties": {
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "title": "TransformationUpper",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "description": "Finalized SQL-First Data Contract Model.\nSupports ODCS-style metadata and consolidated 'sql' keywords.",
+  "properties": {
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "info": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Info"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "server": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Server"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SourceConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "environments": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Environment"
+      },
+      "title": "Environments",
+      "type": "object"
+    },
+    "links": {
+      "items": {
+        "$ref": "#/$defs/Link"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "dataset": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dataset"
+    },
+    "primary_key": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Primary Key",
+      "type": "array"
+    },
+    "natural_key": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Natural Key",
+      "type": "array"
+    },
+    "lineage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LineageConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "materialization": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Materialization"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "logic": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Logic"
+    },
+    "external_logic": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExternalLogic"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "observatory": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observatory"
+    },
+    "extraction": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExtractionConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "upstream": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Upstream",
+      "type": "array"
+    },
+    "downstream": {
+      "items": {
+        "$ref": "#/$defs/DownstreamConsumer"
+      },
+      "title": "Downstream",
+      "type": "array"
+    },
+    "schedule": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Schedule"
+    },
+    "schema_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SchemaPolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "model": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Model"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "quality": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Quality"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "transformations": {
+      "items": {
+        "$ref": "#/$defs/Transformation"
+      },
+      "title": "Transformations",
+      "type": "array"
+    },
+    "service_levels": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ServiceLevel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "quarantine": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Quarantine"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "compliance": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Compliance"
+    },
+    "tier": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tier"
+    },
+    "contract_file_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contract File Name"
+    }
+  },
+  "required": [
+    "version"
+  ],
+  "title": "Open Lakehouse Contract",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lakelogic.org/open-lakehouse-contract/v1/schema.json"
+}

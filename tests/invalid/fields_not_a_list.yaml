@@ -1,0 +1,6 @@
+version: 1.0.0
+info:
+  title: Broken
+  table_name: broken
+model:
+  fields: "id, name"

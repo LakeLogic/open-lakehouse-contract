@@ -1,0 +1,56 @@
+# Open Lakehouse Contract — a minimal, illustrative example.
+#
+# One human-readable file that both DESCRIBES and (in a conforming runtime) EXECUTES a
+# data product: schema, quality, PII handling, lineage, and materialization. The same
+# contract is portable across engines (Spark / DuckDB / Polars), table formats
+# (Delta / Iceberg / DuckLake), and platforms (Databricks / Snowflake / Fabric /
+# BigQuery / AWS / MotherDuck).
+version: 1.0.0
+
+info:
+  title: Orders
+  description: Cleaned, validated orders ready for analytics.
+  table_name: orders
+  target_layer: silver
+  owner: data-team@example.com
+
+# The declared shape of the data. Field-level PII + masking travel WITH the schema.
+model:
+  fields:
+    - name: order_id
+      type: integer
+      required: true
+      description: Primary key.
+    - name: customer_email
+      type: string
+      required: true
+      pii: true
+      masking: partial
+    - name: amount
+      type: float
+      required: true
+    - name: status
+      type: string
+
+primary_key: [order_id]
+
+# Executable data-quality rules. Rows that fail are quarantined WITH the rule + reason.
+quality:
+  row_rules:
+    - name: positive_amount
+      sql: "amount > 0"
+    - name: valid_email
+      sql: "customer_email LIKE '%@%.%'"
+  dataset_rules:
+    - name: order_id_unique
+      unique: order_id
+
+# Provenance columns injected on every row.
+lineage:
+  enabled: true
+
+# Where + how the result is written. Format/engine are backend choices — the contract
+# is the invariant.
+materialization:
+  strategy: merge
+  format: iceberg
