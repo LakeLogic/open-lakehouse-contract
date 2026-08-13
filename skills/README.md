@@ -12,11 +12,15 @@ LakeLogic Cloud, only the schema + the `olc` CLI.
 skills/
   claude/     commands/olc/*.md + skills/olc/SKILL.md  -> .claude/   (slash commands + Agent Skill)
   codex/      prompts/olc-*.md                          -> .codex/prompts/       (custom prompts)
+  gemini/     root/GEMINI.md + commands/olc/*.toml       -> GEMINI.md + .gemini/commands/  (context + TOML slash commands)
   cursor/     rules/*.mdc                                -> .cursor/rules/        (project rule)
   copilot/    copilot-instructions.md                   -> .github/              (repo instructions)
-  gemini/     root/GEMINI.md + commands/olc/*.toml       -> GEMINI.md + .gemini/commands/  (context + TOML slash commands)
   windsurf/   rules/*.md                                 -> .windsurf/rules/      (rule)
   cline/      *.md                                       -> .clinerules/          (rule)
+  amazonq/    rules/*.md                                 -> .amazonq/rules/       (rule)
+  roo/        rules/*.md                                 -> .roo/rules/           (rule)
+  kilocode/   rules/*.md                                 -> .kilocode/rules/      (rule)
+  agents/     AGENTS.md                                  -> AGENTS.md             (shared standard: OpenCode, Zed, Jules, …)
 ```
 
 ## Install

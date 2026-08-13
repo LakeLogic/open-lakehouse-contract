@@ -37,6 +37,18 @@ INSTALLERS: dict[str, list[tuple[str, str]]] = {
     "cline": [
         ("cline", ".clinerules"),                   # .clinerules/*.md
     ],
+    "agents": [
+        ("agents", "."),                            # AGENTS.md (shared standard: OpenCode, Q, Jules, Zed, …)
+    ],
+    "amazonq": [
+        ("amazonq/rules", ".amazonq/rules"),        # Amazon Q Developer rule
+    ],
+    "roo": [
+        ("roo/rules", ".roo/rules"),                # Roo Code rule
+    ],
+    "kilocode": [
+        ("kilocode/rules", ".kilocode/rules"),      # Kilo Code rule
+    ],
 }
 
 

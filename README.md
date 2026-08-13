@@ -83,11 +83,11 @@ pip install -e .          # the `olc` CLI (validate + init)
 olc init --tools all      # install integrations for every supported assistant
 ```
 
-**Seven assistants ship today** — Claude Code, Codex (ChatGPT), Cursor, GitHub Copilot, Gemini CLI, Windsurf, Cline — each in its native format (slash commands, prompts, or rules):
+**Eleven assistants ship today** — Claude Code, Codex (ChatGPT), Gemini CLI, Cursor, GitHub Copilot, Windsurf, Cline, Amazon Q, Roo Code, Kilo Code, and the shared [`AGENTS.md`](https://agents.md) standard (OpenCode, Zed, Jules, …) — each in its native format:
 
 - **Claude Code / Gemini CLI** — `/olc:validate` (schema check, works now) · `/olc:contract "<intent>"` · `/olc:review` (breaking-change merge gate) · `/olc:discover` · `/olc:impact`.
 - **ChatGPT** — the same verbs as [Codex](https://github.com/openai/codex) prompts, or a Custom GPT with the schema as knowledge for the web.
-- **Cursor / Copilot / Windsurf / Cline** — the OLC rules load automatically for `*.olc.yaml`.
+- **Cursor / Copilot / Windsurf / Cline / Amazon Q / Roo / Kilo** — the OLC rules load automatically for `*.olc.yaml`.
 
 Verbs are data-native — **discover → contract → review → validate → impact** — and the integration layer is open (no cloud). See [`skills/`](skills/) and the [Agent Workflow](docs/concepts/agent-workflow.md).
 

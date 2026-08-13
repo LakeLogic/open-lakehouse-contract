@@ -167,13 +167,17 @@ That copies the per-assistant wrappers into their native locations:
 |---|---|---|
 | **Claude Code** | `.claude/commands/olc/*.md` + `.claude/skills/olc/SKILL.md` | slash commands + Agent Skill |
 | **Codex** (ChatGPT) | `.codex/prompts/olc-*.md` | custom prompts |
+| **Gemini CLI** | `GEMINI.md` + `.gemini/commands/olc/*.toml` | context + TOML slash commands |
 | **Cursor** | `.cursor/rules/*.mdc` | project rule |
 | **GitHub Copilot** | `.github/copilot-instructions.md` | repo instructions |
-| **Gemini CLI** | `GEMINI.md` + `.gemini/commands/olc/*.toml` | context + TOML slash commands |
 | **Windsurf** | `.windsurf/rules/*.md` | rule |
 | **Cline** | `.clinerules/*.md` | rule |
+| **Amazon Q** | `.amazonq/rules/*.md` | rule |
+| **Roo Code** | `.roo/rules/*.md` | rule |
+| **Kilo Code** | `.kilocode/rules/*.md` | rule |
+| **AGENTS.md** (OpenCode, Zed, Jules, …) | `AGENTS.md` | shared standard |
 
-The verbs stay identical; only the wrapper differs — **all seven ship today** (see [`skills/`](https://github.com/LakeLogic/open-lakehouse-contract/tree/main/skills)). Slash-command tools (Claude, Codex, Gemini) expose the verbs explicitly; rules-based tools (Cursor, Copilot, Windsurf, Cline) load the OLC guidance automatically for `*.olc.yaml`.
+The verbs stay identical; only the wrapper differs — **all eleven ship today** (see [`skills/`](https://github.com/LakeLogic/open-lakehouse-contract/tree/main/skills)). Slash-command tools (Claude, Codex, Gemini) expose the verbs explicitly; rules-based tools load the OLC guidance automatically for `*.olc.yaml`. The [`AGENTS.md`](https://agents.md) file covers any assistant that reads that emerging cross-tool standard.
 
 > **Test it in Claude Code:** in a repo with `*.olc.yaml`, run `/olc:validate` (validates against the schema — works now), `/olc:contract "<intent>"`, or `/olc:review` (the merge gate). **In ChatGPT:** the same verbs run as Codex prompts, or use a Custom GPT with the schema as knowledge for the web.
 
@@ -183,7 +187,7 @@ The verbs stay identical; only the wrapper differs — **all seven ship today** 
 ## What's real today vs. proposed
 
 !!! info "Honest status"
-    **Shipping today:** the `olc` CLI (`olc validate` + `olc init`), agent integrations for **seven assistants** (Claude Code, Codex, Cursor, GitHub Copilot, Gemini, Windsurf, Cline) exposing the verbs `discover / contract / review / validate / impact`, schema-only validation with no runtime, and schema-constrained generation. **Provided by the reference runtime (LakeLogic):** the *execution* half — **contract-driven synthetic data generation** (`lakelogic generate`, so validation needs no real data), the dry-run (quarantine %, SLO status), and `apply` (materialize) that `/olc:validate` and `/olc:review` deepen into when a runtime is present. **On the roadmap:** the `olc/` change-folder convention and (not yet published) the `open-lakehouse-contract` package on PyPI.
+    **Shipping today:** the `olc` CLI (`olc validate` + `olc init`), agent integrations for **eleven assistants** (Claude Code, Codex, Gemini, Cursor, GitHub Copilot, Windsurf, Cline, Amazon Q, Roo Code, Kilo Code, and the shared `AGENTS.md`) exposing the verbs `discover / contract / review / validate / impact`, schema-only validation with no runtime, and schema-constrained generation. **Provided by the reference runtime (LakeLogic):** the *execution* half — **contract-driven synthetic data generation** (`lakelogic generate`, so validation needs no real data), the dry-run (quarantine %, SLO status), and `apply` (materialize) that `/olc:validate` and `/olc:review` deepen into when a runtime is present. **On the roadmap:** the `olc/` change-folder convention and (not yet published) the `open-lakehouse-contract` package on PyPI.
 
 ## Related
 
