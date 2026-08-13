@@ -2,6 +2,8 @@
 
 <img src="assets/banner.svg" alt="Open Lakehouse Contract — a portable, executable, SQL-native contract for the lakehouse" width="100%">
 
+<sub>**Engines** · [Spark](https://spark.apache.org) · [DuckDB](https://duckdb.org) · [Polars](https://pola.rs) &nbsp;&nbsp;|&nbsp;&nbsp; **Formats** · [Delta](https://delta.io) · [Iceberg](https://iceberg.apache.org) · [DuckLake](https://ducklake.select)</sub>
+
 ![License](https://img.shields.io/badge/license-Apache%202.0-2965b3?style=flat-square)
 ![Engines](https://img.shields.io/badge/engines-Spark%20%7C%20DuckDB%20%7C%20Polars-2e7d32?style=flat-square)
 ![Formats](https://img.shields.io/badge/formats-Delta%20%7C%20Iceberg%20%7C%20DuckLake-6f42c1?style=flat-square)
