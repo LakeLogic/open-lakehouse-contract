@@ -65,7 +65,16 @@ nav:
       - Microsoft Fabric: providers/fabric.md
       - AWS (Glue): providers/aws.md
   - Reference:
-      - Field Reference: reference/schema.md
+      - Overview & Libraries: reference/schema.md
+      - Ingestion & Sources: reference/ingestion.md
+      - Post-Ingestion Lifecycle: reference/lifecycle.md
+      - Validation & Quality: reference/quality.md
+      - Security & PII: reference/security.md
+      - Transformation: reference/transformation.md
+      - Materialization & Storage: reference/materialization.md
+      - SLOs & Lineage: reference/slo.md
+      - Notifications: reference/notifications.md
+      - Unstructured (LLM Extraction): reference/extraction.md
       - Conformance Suite: reference/conformance.md
   - Contributing: contributing.md
 

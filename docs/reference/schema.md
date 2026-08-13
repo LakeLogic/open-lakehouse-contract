@@ -4,6 +4,43 @@ The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contra
 
 The schema is the source of truth — regenerate it any time with `python scripts/generate_schema.py` (see [Why Pydantic](../concepts/why-pydantic.md)). Below the fields are grouped by concern rather than listed flat.
 
+## Deep reference, by lifecycle stage
+
+Each stage of a data product has a dedicated page enumerating every option, with examples:
+
+<div class="grid cards" markdown>
+
+- :material-database-import: **[Ingestion & Sources](ingestion.md)** — files, databases, APIs (dlt), streaming, CDC, micro-batch, load modes, partitioning.
+- :material-broom: **[Post-Ingestion Lifecycle](lifecycle.md)** — delete / archive / retain consumed input, watermark, retry.
+- :material-check-decagram: **[Validation & Quality](quality.md)** — row & dataset rules, severities, quarantine.
+- :material-shield-lock: **[Security & PII](security.md)** — pii / phi / sensitive, masking, vault, security groups.
+- :material-function-variant: **[Transformation](transformation.md)** — 20+ declarative ops + SQL escape hatch.
+- :material-content-save: **[Materialization & Storage](materialization.md)** — strategy, format, SCD2, facts, soft-delete, schema evolution.
+- :material-gauge: **[SLOs & Lineage](slo.md)** — freshness / availability / row-count objectives + provenance capture.
+- :material-bell: **[Notifications](notifications.md)** — channels, events, templating.
+- :material-file-document-outline: **[Unstructured / LLM Extraction](extraction.md)** — documents / audio / images → governed columns.
+
+</div>
+
+## Engines & libraries
+
+The contract is portable because each concern is implemented by a well-known library, swapped per backend — the contract never mentions any of them:
+
+| Concern | Library / engine |
+|---|---|
+| Contract models + validation | **Pydantic** (JSON Schema via `model_json_schema()`); **jsonschema** for language-neutral validation |
+| Spark engine | **PySpark** (structured streaming for micro-batch) |
+| DuckDB engine | **duckdb** (+ the `ducklake` extension) |
+| Polars engine | **polars** / **pyarrow** |
+| Delta format | **deltalake** (delta-rs) / **delta-spark** |
+| Iceberg format | **pyiceberg** (+ Glue catalog) / Iceberg Spark runtime |
+| DuckLake format | DuckDB **`ducklake`** extension |
+| Cloud object storage | DuckDB **httpfs** / **azure**; **s3fs** / **gcsfs** / **adlfs** (fsspec) |
+| API ingestion | **dlt** (dlthub) |
+| YAML parsing | **PyYAML** |
+| LLM extraction | provider SDKs (**anthropic** / **openai**); **spaCy**, OCR (**tesseract**), **whisper** for preprocessing |
+| Notifications | SMTP + webhook `POST` (**requests**), template rendering |
+
 ## Identity
 
 | Field | Purpose |
