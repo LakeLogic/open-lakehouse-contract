@@ -9,8 +9,17 @@ import argparse
 import shutil
 from pathlib import Path
 
-PKG_ROOT = Path(__file__).resolve().parents[1]
-SKILLS = PKG_ROOT / "skills"
+def _skills_root() -> Path:
+    """Locate the skill templates whether installed as a wheel (bundled under
+    olc/_bundled/) or run from a source checkout (skills/ at the repo root)."""
+    here = Path(__file__).resolve()
+    for cand in (here.parent / "_bundled" / "skills", here.parents[1] / "skills"):
+        if cand.is_dir():
+            return cand
+    return here.parents[1] / "skills"
+
+
+SKILLS = _skills_root()
 
 # tool -> [(source under skills/, destination under the project root)]
 INSTALLERS: dict[str, list[tuple[str, str]]] = {

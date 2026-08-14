@@ -14,8 +14,20 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft202012Validator
 
-PKG_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SCHEMA = PKG_ROOT / "schema" / "open-lakehouse-contract.schema.json"
+def _default_schema() -> Path:
+    """Locate the schema whether installed as a wheel (bundled under olc/_bundled/)
+    or run from a source checkout (schema/ at the repo root)."""
+    here = Path(__file__).resolve()
+    for cand in (
+        here.parent / "_bundled" / "schema" / "open-lakehouse-contract.schema.json",  # wheel
+        here.parents[1] / "schema" / "open-lakehouse-contract.schema.json",           # editable / checkout
+    ):
+        if cand.is_file():
+            return cand
+    return here.parents[1] / "schema" / "open-lakehouse-contract.schema.json"
+
+
+DEFAULT_SCHEMA = _default_schema()
 
 
 def load_schema(ref: str) -> dict:

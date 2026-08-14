@@ -15,3 +15,9 @@ venv/
 
 # local mkdocs serve log
 .mkdocs-serve.log
+
+# vendored at build time by setup.py (single source: schema/ + skills/ at repo root)
+olc/_bundled/
+build/
+dist/
+*.egg-info/

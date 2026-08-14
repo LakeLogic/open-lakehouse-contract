@@ -22,10 +22,9 @@ olc = "olc.cli:main"
 
 [tool.setuptools]
 packages = ["olc"]
-# The specification, schema, and agent-integration templates ship with the package so
-# `olc validate` (schema) and `olc init` (skills) work after install.
-[tool.setuptools.package-data]
-"*" = []
 
-[tool.setuptools.data-files]
-# (roadmap) bundle schema/ + skills/ as package data for non-editable installs.
+# schema/ + skills/ are vendored into olc/_bundled/ at build time (see setup.py) so
+# `olc validate` (schema) and `olc init` (skill templates) work from a plain
+# `pip install`, not just an editable checkout.
+[tool.setuptools.package-data]
+olc = ["_bundled/**/*"]

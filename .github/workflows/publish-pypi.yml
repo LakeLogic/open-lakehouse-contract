@@ -1,0 +1,81 @@
+name: Publish to PyPI
+
+# Publishes ONLY when you cut a GitHub Release. workflow_dispatch builds + smoke-tests
+# without publishing (safe to run any time). Nothing reaches PyPI until a Release is
+# published AND the PyPI trusted-publisher is configured (see notes at the bottom).
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & smoke-test the wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build sdist + wheel
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+
+      - name: Smoke-test the wheel is self-contained (no repo on PYTHONPATH)
+        run: |
+          python -m venv /tmp/v
+          /tmp/v/bin/python -m pip install --upgrade pip
+          /tmp/v/bin/python -m pip install dist/*.whl jsonschema pyyaml
+          # run OUTSIDE the checkout so the BUNDLED schema/skills are the only source
+          mkdir -p /tmp/work && cd /tmp/work
+          cp "$GITHUB_WORKSPACE/examples/orders.olc.yaml" my.olc.yaml
+          /tmp/v/bin/olc validate my.olc.yaml                       # bundled schema
+          /tmp/v/bin/olc init --tools all                           # bundled skills
+          test -f .claude/commands/olc/validate.md
+          test -f AGENTS.md
+          echo "wheel is self-contained ✓"
+
+      - name: Conformance corpus
+        run: |
+          python -m pip install jsonschema pyyaml
+          python tests/conformance.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish to PyPI (Trusted Publishing)
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/open-lakehouse-contract
+    permissions:
+      id-token: write          # OIDC — PyPI trusted publishing, no API token/secret
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+# ── One-time setup before the first release ──────────────────────────────────
+# 1. On PyPI: Account → Publishing → add a *pending* trusted publisher:
+#      Project name:  open-lakehouse-contract
+#      Owner:         LakeLogic
+#      Repository:    open-lakehouse-contract
+#      Workflow:      publish-pypi.yml
+#      Environment:   pypi
+#    (The first publish registers the project; no API token required.)
+# 2. In this repo: Settings → Environments → create `pypi` (optionally require review).
+# 3. Bump `version` in pyproject.toml, then cut a GitHub Release → this workflow ships it.
