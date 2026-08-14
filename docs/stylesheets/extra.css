@@ -862,8 +862,8 @@
 .ll-footer__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem 2rem;
-  padding: 2.5rem 1rem;
+  gap: 0.25rem 2rem;
+  padding: 1.35rem 1rem;
   max-width: 960px;
   margin: 0 auto;
 }
@@ -882,7 +882,7 @@
   font-weight: 500;
   color: var(--ll-text-secondary) !important;
   text-decoration: none !important;
-  padding: 0.4rem 0;
+  padding: 0.2rem 0;
   transition: color 0.15s;
 }
 
@@ -901,7 +901,7 @@
 
 .ll-footer__bottom {
   border-top: 1px solid var(--ll-border);
-  padding: 1rem;
+  padding: 0.7rem 1rem;
   text-align: center;
   background: var(--ll-bg);
 }
@@ -1299,13 +1299,13 @@ html {
   max-width: none;
 }
 
-/* Airier typography/spacing (Snowflake: 48px/700 h1, ~96px section gaps, 16/1.6 body) */
-.md-typeset { font-size: 0.95rem; line-height: 1.65; }
-.md-typeset h1 { font-size: 2.55rem; font-weight: 720; line-height: 1.12; letter-spacing: -0.025em; margin: 0 0 1.3rem; }
-.md-content .md-typeset h1.hero-title { font-size: 1.7rem; line-height: 1.14; margin: 0 0 1.1rem; }   /* hero: 2 clean lines (root is 24px here) */
-.md-typeset h2 { font-size: 1.65rem; font-weight: 680; margin: 3.2rem 0 1rem; letter-spacing: -0.015em; }
-.md-typeset h3 { font-size: 1.2rem; font-weight: 640; margin: 2.2rem 0 0.7rem; }
-.md-typeset p { margin: 0 0 1.05rem; }
+/* Compact, dense typography (DuckLake-docs-like: ~15px body, tighter headings & gaps) */
+.md-typeset { font-size: 0.78rem; line-height: 1.6; }
+.md-typeset h1 { font-size: 1.85rem; font-weight: 720; line-height: 1.12; letter-spacing: -0.025em; margin: 0 0 1rem; }
+.md-content .md-typeset h1.hero-title { font-size: 1.55rem; line-height: 1.14; margin: 0 0 1rem; }   /* hero: 2 clean lines (root is 24px here) */
+.md-typeset h2 { font-size: 1.3rem; font-weight: 680; margin: 2.3rem 0 0.8rem; letter-spacing: -0.015em; }
+.md-typeset h3 { font-size: 1.05rem; font-weight: 640; margin: 1.7rem 0 0.55rem; }
+.md-typeset p { margin: 0 0 0.9rem; }
 
 /* Premium hairline dividers between top-level sidebar groups (Snowflake-style) */
 .md-sidebar--primary .md-nav--primary > .md-nav__list > .md-nav__item + .md-nav__item {

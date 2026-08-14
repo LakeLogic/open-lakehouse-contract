@@ -9,11 +9,11 @@
 ![Formats](https://img.shields.io/badge/formats-Delta%20%7C%20Iceberg%20%7C%20DuckLake-6f42c1?style=flat-square)
 [![Reference runtime](https://img.shields.io/badge/reference%20runtime-LakeLogic-e36209?style=flat-square)](https://github.com/LakeLogic/LakeLogic)
 
-**Designed to complement, not replace, data-contract standards like [ODCS](https://github.com/bitol-io/open-data-contract-standard).** OLC adds portable execution and lakehouse engineering semantics; the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference runtime consumes both. → *ODCS standardises the agreement · OLC standardises the execution · LakeLogic runs both.*
+**Designed to complement, not replace, data-contract standards like [ODCS](https://github.com/bitol-io/open-data-contract-standard).** OLC adds portable execution and lakehouse engineering semantics on top. → *ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference runtime runs both.*
 
 </div>
 
-An Open Lakehouse Contract is one YAML file that defines a data product — its **schema, quality, PII, lineage, materialization, and SLOs** — and a conforming runtime executes that definition, unchanged, across **Spark / DuckDB / Polars → Delta / Iceberg / DuckLake** on Databricks, Snowflake, Fabric, BigQuery, AWS, or MotherDuck. The contract is the invariant; the runtime and backend are pluggable. **[Read the docs →](https://lakelogic.github.io/open-lakehouse-contract/)**
+An Open Lakehouse Contract is one YAML file that defines a data product — its **source, ingestion, schema, quality, PII, lineage, transformation, materialization, and SLOs** — and a conforming runtime executes that definition, unchanged, across **Spark / DuckDB / Polars → Delta / Iceberg / DuckLake** on Databricks, Snowflake, Fabric, BigQuery, AWS, or MotherDuck. The contract is the invariant; the runtime and backend are pluggable. **[Read the docs →](https://lakelogic.github.io/open-lakehouse-contract/)**
 
 **Our philosophy:**
 

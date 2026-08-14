@@ -118,7 +118,7 @@ markdown_extensions:
   - tables
 
 extra_css:
-  - stylesheets/extra.css?v=3
+  - stylesheets/extra.css?v=4
 
 extra_javascript:
   - javascripts/theme-switcher.js
