@@ -45,15 +45,16 @@ The *same* contract runs unchanged across:
 version: 1.0.0
 info: { title: Orders, domain: sales, system: orders, table_name: silver_orders, target_layer: silver }
 
-# where it comes from — read the sales-domain bronze table incrementally
-source: { type: table, path: "table:lakehouse.sales.bronze_orders", load_mode: incremental }
+# where it comes from — read the sales-domain bronze table incrementally (by ordered_at)
+source: { type: table, path: "table:lakehouse.sales.bronze_orders", load_mode: incremental, watermark_field: ordered_at }
 
 model:
   fields:
-    - { name: order_id,       type: integer, required: true }
-    - { name: customer_email, type: string,  pii: true, masking: partial }
-    - { name: amount,         type: float,   required: true }
-    - { name: order_total,    type: float }            # derived below
+    - { name: order_id,       type: integer,   required: true }
+    - { name: customer_email, type: string,    pii: true, masking: partial }
+    - { name: amount,         type: float,     required: true }
+    - { name: order_total,    type: float }              # derived below
+    - { name: ordered_at,     type: timestamp, required: true }
 primary_key: [order_id]
 
 # one declared step between source and target
@@ -62,13 +63,17 @@ transformations:
     derive: { field: order_total, sql: "amount + shipping_fee" }
 
 quality:
+  enforce_required: true                                     # completeness: required fields present
   row_rules:
-    - { name: positive_amount, sql: "amount > 0" }
+    - { name: positive_amount, sql: "amount > 0" }           # correctness
+  dataset_rules:
+    - { name: order_id_unique, unique: order_id }            # completeness: no duplicate keys
+    - null_ratio: { field: customer_email, max: 0.02, category: completeness }   # threshold: ≤2% nulls
 
-# freshness + volume the runtime checks each run
+# freshness + volume the runtime checks each run (delivery SLOs)
 service_levels:
-  freshness: { threshold: "1h" }
-  row_count: { min_rows: 1 }
+  freshness: { threshold: "1h", field: ordered_at }   # timeliness — measured against ordered_at
+  row_count: { min_rows: 1 }                           # volume
 
 # where it lands — converge the silver Iceberg table in the sales domain
 materialization: { strategy: merge, format: iceberg, location: "s3://lakehouse/sales/orders/silver" }
@@ -81,8 +86,8 @@ The whole path, one file — each block answers one question:
 | `source` | where the data comes from (bronze) |
 | `model` · `primary_key` | what it *is* — schema + keys |
 | `transformations` | how it's shaped |
-| `quality` | the rules it must pass |
-| `service_levels` | how fresh it must stay |
+| `quality` | the rules it must pass — **correctness + completeness** (row rules, uniqueness, null-ratio thresholds) |
+| `service_levels` | the delivery SLOs — **freshness + volume** (availability too) |
 | `materialization` | where it lands (silver Iceberg) |
 
 One runtime reads this file and does the rest — ingest → transform → validate → quarantine → mask → materialize → check SLOs. No spec-vs-code drift.
@@ -109,6 +114,18 @@ You: /olc:apply --provider duckdb
 AI:  Materialized silver.revenue_daily (merge, DuckLake) — 4,812 rows.
      Same contract runs unchanged on Spark/Delta, Snowflake, or BigQuery — just change --provider.
 ```
+
+**That dry-run needs no real data.** `/olc:validate` generates **synthetic rows from the contract's own schema**, seeded with edge cases the gates should catch — so you prove the rules *before* wiring a live source:
+
+| Injected edge case | Caught by |
+|---|---|
+| `test` / staging rows | the drop-test-rows rule |
+| negative `fare` | `positive_amount` — **correctness** |
+| nulls above 2% | `null_ratio` — **completeness** |
+| duplicate keys | `order_id_unique` — **completeness** |
+| stale timestamps | `freshness` SLO |
+
+`lakelogic generate` synthesizes type-, range-, and rule-aware rows with a tunable invalid ratio; the agent reads the quarantine breakdown and self-corrects. Same dry-run, either way — **greenfield** (pure synthetic, zero data) or **brownfield** (a real sample from your source).
 
 > [!NOTE]
 > The contract never named an engine — `--provider` chose it at apply. The `/olc:*` verbs **ship today** for Claude Code and Codex (see below); the *execute-against-real-data* half comes from the reference runtime.
