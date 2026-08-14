@@ -34,7 +34,7 @@ The published schema can't describe something the reference framework can't run,
 
 ```mermaid
 flowchart TB
-    subgraph Reference framework (LakeLogic)
+    subgraph ref["Reference framework (LakeLogic)"]
       M[Pydantic DataContract models]
     end
     M -->|model_json_schema()| S[open-lakehouse-contract.schema.json]

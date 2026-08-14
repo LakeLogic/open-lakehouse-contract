@@ -60,6 +60,17 @@ The core idea in one sentence: **the contract is the invariant; the backend is s
 
 Change the three lines under the fold; the contract above never moves. That's the promise the [Providers](../providers/index.md) matrix demonstrates end-to-end.
 
+### Engines even compose on one platform
+
+The engine isn't locked one-per-platform — **several can share the same table.** On Databricks or Fabric, **Spark** registers a Delta table in the catalog (Unity Catalog / OneLake), and lighter engines — **Polars** or **DuckDB** — then read and update that *same* table:
+
+```
+   OLC contract ──register (Spark)──▶  Delta table  ◀──update (DuckDB / Polars)──
+                        Unity Catalog / OneLake · one table, many engines
+```
+
+Heavy Spark for the big registration and compaction; DuckDB or Polars for fast, cheap incremental writes — no cluster spun up. The contract doesn't care which engine touched the table: it declares the desired shape and quality, and any conforming engine converges the table toward it.
+
 ## The contract is independent of the framework
 
 Crucially, OLC sits *above* any particular framework. The contract is portable intent; a **conforming framework** carries it out, and that runtime is itself swappable. [LakeLogic](https://lakelogic.org) is the reference framework — but the specification does not depend on it, and a second framework in another language could implement the same contract.
