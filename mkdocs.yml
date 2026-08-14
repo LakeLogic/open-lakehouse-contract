@@ -1,8 +1,8 @@
 site_name: Open Lakehouse Contract
 site_description: >
-  One human-readable contract that both describes and executes a data product —
-  portable across engines, table formats, and platforms. The open, executable,
-  agent-native contract for the lakehouse.
+  One executable contract for a data product — ingest from any source, govern it,
+  land it in an open lakehouse, publish it anywhere. Portable, SQL-native,
+  engine-agnostic; the open, executable, agent-native contract for lakehouse data products.
 site_url: https://lakelogic.github.io/open-lakehouse-contract/
 site_author: LakeLogic
 repo_name: LakeLogic/open-lakehouse-contract

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/banner.svg" alt="Open Lakehouse Contract — a portable, executable, SQL-native contract for the lakehouse" width="100%">
+<img src="assets/banner.svg" alt="Open Lakehouse Contract — one executable contract for a data product: ingest from any source, govern it, land it in an open lakehouse, publish it anywhere" width="100%">
 
 <sub>**Engines** · [Spark](https://spark.apache.org) · [DuckDB](https://duckdb.org) · [Polars](https://pola.rs) &nbsp;&nbsp;|&nbsp;&nbsp; **Formats** · [Delta](https://delta.io) · [Iceberg](https://iceberg.apache.org) · [DuckLake](https://ducklake.select)</sub>
 
@@ -13,11 +13,22 @@
 
 </div>
 
-An Open Lakehouse Contract is one YAML file that defines a data product — its **source, ingestion, schema, quality, PII, lineage, transformation, materialization, and SLOs** — and a conforming runtime executes that definition, unchanged, across **Spark / DuckDB / Polars → Delta / Iceberg / DuckLake** on Databricks, Snowflake, Fabric, BigQuery, AWS, or MotherDuck. The contract is the invariant; the runtime and backend are pluggable. **[Read the docs →](https://lakelogic.github.io/open-lakehouse-contract/)**
+**One executable contract for a data product — ingest from any source, govern it, land it in an open lakehouse, publish it anywhere. Portable · SQL-native · engine-agnostic.**
+
+The *same* contract runs unchanged across:
+
+| | |
+|---|---|
+| **Engines** | Spark · DuckDB · Polars |
+| **Table formats** | Delta · Iceberg · DuckLake |
+| **Platforms** | Databricks · Snowflake · Fabric · BigQuery · AWS · MotherDuck |
+
+*One file governs the whole path — source, schema, quality, PII, lineage, transformation, materialization, SLOs. The contract is the invariant; the runtime and backend are pluggable.* **[Read the docs →](https://lakelogic.github.io/open-lakehouse-contract/)**
 
 **Our philosophy:**
 
 ```
+→ simple by design — plain YAML + SQL, nothing new to learn
 → executable, not just descriptive
 → SQL-native, not framework-specific
 → intent in the contract, engine as a flag
@@ -32,20 +43,49 @@ An Open Lakehouse Contract is one YAML file that defines a data product — its 
 
 ```yaml
 version: 1.0.0
-info: { title: Orders, table_name: orders, target_layer: silver }
+info: { title: Orders, domain: sales, system: orders, table_name: silver_orders, target_layer: silver }
+
+# where it comes from — read the sales-domain bronze table incrementally
+source: { type: table, path: "table:lakehouse.sales.bronze_orders", load_mode: incremental }
+
 model:
   fields:
-    - { name: order_id, type: integer, required: true }
-    - { name: customer_email, type: string, pii: true, masking: partial }
-    - { name: amount, type: float, required: true }
+    - { name: order_id,       type: integer, required: true }
+    - { name: customer_email, type: string,  pii: true, masking: partial }
+    - { name: amount,         type: float,   required: true }
+    - { name: order_total,    type: float }            # derived below
 primary_key: [order_id]
+
+# one declared step between source and target
+transformations:
+  - phase: pre
+    derive: { field: order_total, sql: "amount + shipping_fee" }
+
 quality:
   row_rules:
     - { name: positive_amount, sql: "amount > 0" }
-materialization: { strategy: merge, format: iceberg }
+
+# freshness + volume the runtime checks each run
+service_levels:
+  freshness: { threshold: "1h" }
+  row_count: { min_rows: 1 }
+
+# where it lands — converge the silver Iceberg table in the sales domain
+materialization: { strategy: merge, format: iceberg, location: "s3://lakehouse/sales/orders/silver" }
 ```
 
-That's the whole thing: what the data *is*, the rules it must pass, how it's written. A conforming runtime validates, quarantines, masks, and materializes straight from this file — so the standard and the implementation can't drift.
+The whole path, one file — each block answers one question:
+
+| Block | Answers |
+|---|---|
+| `source` | where the data comes from (bronze) |
+| `model` · `primary_key` | what it *is* — schema + keys |
+| `transformations` | how it's shaped |
+| `quality` | the rules it must pass |
+| `service_levels` | how fresh it must stay |
+| `materialization` | where it lands (silver Iceberg) |
+
+One runtime reads this file and does the rest — ingest → transform → validate → quarantine → mask → materialize → check SLOs. No spec-vs-code drift.
 
 ## See it in action
 
@@ -92,7 +132,7 @@ Verbs are data-native — **discover → contract → review → validate → im
 
 ## SQL-native
 
-**If you know SQL, you already know how to transform data in OLC.** Logic is SQL — the universal data language — not Python, not Spark code, not notebooks. The contract carries the SQL; the runtime runs it, unchanged, on whichever engine you point it at.
+**Know SQL? You already know OLC.** Logic is SQL — not Python, not Spark code, not notebooks. The contract carries the SQL; the runtime runs it unchanged on whichever engine you choose.
 
 ```yaml
 transformations:
@@ -115,7 +155,7 @@ The shorthand ops (`rename`, `filter`, `cast`, `join`, `rollup`, …) are conven
 
 ## Providers — one contract, every lakehouse
 
-The [providers matrix](docs/providers/index.md) runs the **same** RideFlow contract set across seven backends — each page shows the identical contract, the runtime invocation, and what it materialized (honest ✅ Live / ◑ Static-validated labels). Think of it as the OLC equivalent of a Terraform provider registry: one universal contract, many backends.
+The [providers matrix](docs/providers/index.md) runs the **same** contract set across seven backends — each page shows the identical contract, its invocation, and what it materialized (honest ✅ Live / ◑ Static-validated). Like a Terraform provider registry: one contract, many backends.
 
 | DuckDB/DuckLake | MotherDuck | Databricks | Snowflake | BigQuery | Fabric | AWS/Glue |
 |---|---|---|---|---|---|---|
@@ -164,7 +204,7 @@ OLC is deliberately **three separable layers**, so the standard never collapses 
 - **JSON Schema** (`schema/open-lakehouse-contract.schema.json`) — the machine-readable *structural* form. Validate an OLC file in any language.
 - **Reference implementation** — [LakeLogic](https://github.com/LakeLogic/LakeLogic)'s **Pydantic** models + Core, which *execute* the intent. The JSON Schema is generated from these models, so it can't drift from a working runtime.
 
-The Pydantic models are the **reference implementation, not the specification itself** — a second runtime, in any language, is free to implement the same spec. Regenerate the schema whenever the reference models change:
+The Pydantic models are the **reference implementation, not the spec** — any second runtime, in any language, may implement the same spec. Regenerate the schema when the models change:
 
 ```bash
 pip install lakelogic
@@ -173,7 +213,7 @@ python scripts/generate_schema.py     # schema/ ← the reference DataContract m
 
 ## Complements ODCS
 
-OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bitol-io/open-data-contract-standard)** — it doesn't compete with it. ODCS is the excellent, widely-adopted standard for the *business + semantic agreement* about a data product; OLC adds the *engineering + runtime* contract that executes it.
+OLC **complements [ODCS](https://github.com/bitol-io/open-data-contract-standard)**, it doesn't compete. ODCS is the standard for the *business + semantic agreement*; OLC adds the *engineering + runtime* contract that executes it.
 
 |  | ODCS | Open Lakehouse Contract |
 |---|---|---|
@@ -184,11 +224,11 @@ OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bi
 | Materialization (merge/append, Delta/Iceberg/DuckLake) | — | ✅ |
 | Engine execution (Spark/DuckDB/Polars) · runtime portability | not its role | ✅ **core objective** |
 
-**ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference runtime runs both.** It imports ODCS and exports back (field names accepted as aliases), so **import ODCS → run as OLC → export ODCS** loses nothing either direction — and (proposed) an OLC file can *reference* an ODCS document rather than duplicate it. See [OLC & ODCS](docs/concepts/vs-odcs.md).
+**ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference runtime runs both.** It imports and exports ODCS losslessly — **import ODCS → run as OLC → export ODCS**. See [OLC & ODCS](docs/concepts/vs-odcs.md).
 
 ## Part of a spec-driven movement
 
-OLC is spec-driven development for the **data plane**: humans and AI agree on a precise, machine-checkable contract, then agents generate, validate against, and execute it. Same conviction behind **[OpenSpec](https://github.com/Fission-AI/openspec)** (spec-driven development for AI *coding* assistants) and **ODCS** (the descriptive data-contract standard) — *a precise, executable spec is the best interface between humans and AI.* See [Agent-Native](docs/concepts/agent-native.md) and the [Agent Workflow](docs/concepts/agent-workflow.md).
+Spec-driven development for the **data plane**: humans and AI agree on a precise, machine-checkable contract, then agents generate, validate, and execute it — the same conviction behind **[OpenSpec](https://github.com/Fission-AI/openspec)** (for AI coding) and **ODCS** (descriptive data contracts). See [Agent-Native](docs/concepts/agent-native.md) · [Agent Workflow](docs/concepts/agent-workflow.md).
 
 ## What's in this repo
 
@@ -213,7 +253,7 @@ Concepts (what/why/agent-native/agent-workflow/ODCS) · **[Providers matrix](doc
 
 ## Status
 
-Draft `v1`. The schema is generated from the reference implementation and covers **28 top-level fields** across schema, quality, materialization, lineage, PII/masking, SLOs, sources/links, environments, and more. Governance, formal versioning, and a language-neutral test corpus are on the roadmap — contributions welcome.
+Draft **v1**. Schema generated from the reference implementation — **28 top-level fields** (schema, quality, materialization, lineage, PII/masking, SLOs, sources/links, environments…). Governance, formal versioning, and a language-neutral corpus are on the roadmap — contributions welcome.
 
 ## License
 
