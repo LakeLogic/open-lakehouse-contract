@@ -76,7 +76,7 @@ service_levels:
   row_count: { min_rows: 1 }                           # volume
 
 # where it lands — converge the silver Iceberg table in the sales domain
-materialization: { strategy: merge, format: iceberg, location: "s3://lakehouse/sales/orders/silver" }
+materialization: { strategy: merge, format: iceberg, location: "s3://lakehouse/sales/silver_orders" }
 ```
 
 **SQL-first, with business shorthands.** Any rule can be raw `sql: "…"` (like `positive_amount`); the shorthands — `unique`, `null_ratio`, `enforce_required` — are readable wrappers that **compile to the same SQL**. Reach for whichever reads clearer; the runtime runs SQL either way.
