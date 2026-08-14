@@ -1,26 +1,26 @@
 # Providers
 
-This is the OLC equivalent of the Terraform Registry: **one canonical contract, rendered across a matrix of backends.** The RideFlow data mesh — the *same* contracts throughout — has been run on each platform below. Every provider page shows the identical contract, the runtime invocation for that backend, and what it materialized.
+This is the OLC equivalent of the Terraform Registry: **one canonical contract, rendered across a matrix of backends.** The RideFlow data mesh — the *same* contracts throughout — has been run on each platform below. Every provider page shows the identical contract, the framework invocation for that backend, and what it materialized.
 
 !!! info "What's RideFlow?"
-    **RideFlow** is the running example used throughout OLC: a realistic, fictional ride-hailing company's data mesh — **6 domains** (marketplace, payments, operations, marketing, reference, shared) across **11 source systems** (Stripe, Twilio, Zendesk, Checkr, Google Ads, HubSpot, and more), ~60 governed tables through a bronze → silver → gold medallion. It exists as one set of OLC contracts; each provider page runs *those exact contracts* on a different lakehouse. Think of it as the "hello world" that's big enough to be real — nothing here is platform-specific to any one backend.
+    **RideFlow** is the running example used throughout OLC: a realistic, **fictional ride-hailing company (like Uber)** — its data mesh spans **6 domains** (marketplace, payments, operations, marketing, reference, shared) across **11 source systems** (Stripe, Twilio, Zendesk, Checkr, Google Ads, HubSpot, and more), ~60 governed tables through a bronze → silver → gold medallion. It exists as one set of OLC contracts; each provider page runs *those exact contracts* on a different lakehouse. Think of it as the "hello world" that's big enough to be real — nothing here is platform-specific to any one backend.
 
 The contract never changes between these pages. Only the `engine`, the `format`, and where the data lands do.
 
 ## The matrix
 
-| Platform | Engine(s) | Table format | Catalog / storage | Status |
-|---|---|---|---|---|
-| **[DuckDB / DuckLake](duckdb-ducklake.md)** | DuckDB | DuckLake | Local files, or S3 / GCS / ADLS | ✅ Live — full 6-domain mesh, ~59 tables |
-| **[MotherDuck](motherduck.md)** | DuckDB | DuckLake | MotherDuck-hosted catalog | ✅ Live — marketplace, 18 tables + snapshots |
-| **[Databricks](databricks.md)** | Spark, Polars, DuckDB | Delta | Unity Catalog (managed + external ADLS) | ✅ Live — UC bootstrap; external ADLS Delta proven |
-| **[Snowflake](snowflake.md)** | Snowflake SQL | Native tables | Snowflake database + Task DAG | ✅ Live — full mesh green on trial |
-| **[BigQuery (GCP)](bigquery.md)** | BigQuery, Spark | BigQuery native, Iceberg | BigQuery datasets; Iceberg on GCS | ✅ Live — 11/11 systems; Dataproc Iceberg |
-| **[Microsoft Fabric](fabric.md)** | Spark | Delta | OneLake (schema-enabled Lakehouse) | ◑ Static-validated — no capacity to live-run yet |
-| **[AWS (Glue)](aws.md)** | Spark | Iceberg | Glue Data Catalog + S3 | ✅ Live — reference + marketplace; one job parked |
+| Platform | Engine(s) | Table format | Catalog / storage |
+|---|---|---|---|
+| **[DuckDB / DuckLake](duckdb-ducklake.md)** | DuckDB | DuckLake | Local files, or S3 / GCS / ADLS |
+| **[MotherDuck](motherduck.md)** | DuckDB | DuckLake | MotherDuck-hosted catalog |
+| **[Databricks](databricks.md)** | Spark, Polars, DuckDB | Delta | Unity Catalog (managed + external ADLS) |
+| **[Snowflake](snowflake.md)** | Snowflake SQL | Native tables | Snowflake database + Task DAG |
+| **[BigQuery (GCP)](bigquery.md)** | BigQuery, Spark | BigQuery native, Iceberg | BigQuery datasets; Iceberg on GCS |
+| **[Microsoft Fabric](fabric.md)** | Spark | Delta | OneLake (schema-enabled Lakehouse) |
+| **[AWS (Glue)](aws.md)** | Spark | Iceberg | Glue Data Catalog + S3 |
 
-!!! note "Honest status labels"
-    ✅ **Live** = the contracts have been executed on that platform and materialized real tables. ◑ **Static-validated** = the contracts and deploy path are validated, but a live run is pending (e.g. no provisioned capacity). Where a specific job is parked, the platform page says so — no silent gaps.
+!!! note "Honest by default"
+    Most platforms above have been **run live** — contracts executed, real tables materialized. **Microsoft Fabric** is currently **static-validated** (contracts and deploy path validated, live run pending capacity). Each platform page states exactly what ran, and flags any parked job — no silent gaps.
 
 ## What "same contract" means here
 
@@ -57,7 +57,7 @@ flowchart TB
 
 ## Special configurations
 
-Like Terraform's per-provider "special configuration" notes, each backend has a small number of real quirks the runtime handles for you. The short version:
+Like Terraform's per-provider "special configuration" notes, each backend has a small number of real quirks the framework handles for you. The short version:
 
 | Platform | Notable per-backend handling |
 |---|---|

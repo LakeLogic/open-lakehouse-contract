@@ -27,7 +27,7 @@ Reference repo: **`lakelogic-motherduck-data-mesh-lakehouse`** — a deliberatel
 
 ## What it materializes
 
-An 18-table `rideflow_lake` DuckLake database on MotherDuck (the `marketplace` domain: bronze → silver → gold, SCD2 dims + facts), with DuckLake snapshots recorded per write. Inspect it in the MotherDuck UI or any DuckDB client:
+An 18-table `rideflow_lake` DuckLake database — RideFlow, a fictional ride-hailing company (like Uber) — on MotherDuck (the `marketplace` domain: bronze → silver → gold, SCD2 dims + facts), with DuckLake snapshots recorded per write. Inspect it in the MotherDuck UI or any DuckDB client:
 
 ```sql
 USE rideflow_lake;
@@ -38,5 +38,5 @@ SELECT * FROM rideflow_lake.snapshots();      -- time-travel, hosted
 
 ## Special configuration
 
-- **Native DuckLake database, not ATTACH.** MotherDuck "workspace mode" rejects `ATTACH 'ducklake:md:…'`. The runtime instead connects to `md:` and issues `CREATE DATABASE IF NOT EXISTS "<catalog>" (TYPE DUCKLAKE)`, then writes into it. The reference runtime detects the MotherDuck backend automatically from an `md:` metadata path.
+- **Native DuckLake database, not ATTACH.** MotherDuck "workspace mode" rejects `ATTACH 'ducklake:md:…'`. The framework instead connects to `md:` and issues `CREATE DATABASE IF NOT EXISTS "<catalog>" (TYPE DUCKLAKE)`, then writes into it. The reference framework detects the MotherDuck backend automatically from an `md:` metadata path.
 - **Token handling.** The `motherduck_token` env var (or `md_token.txt`) is the only credential; it is gitignored and never committed.

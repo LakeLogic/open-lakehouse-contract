@@ -1,6 +1,6 @@
 # Conformance Suite
 
-A contract *conforms* to OLC if it validates against the published JSON Schema. The repo ships a small conformance suite so both authors and alternative runtimes can check themselves against the same corpus.
+A contract *conforms* to OLC if it validates against the published JSON Schema. The repo ships a small conformance suite so both authors and alternative frameworks can check themselves against the same corpus.
 
 ## Run it
 
@@ -39,6 +39,6 @@ A schema that accepts everything is useless. The `tests/invalid/` fixtures pin d
 
 Add a fixture whenever you want to lock in a rule (valid *or* invalid) — it becomes an executable assertion about the spec.
 
-## For alternative runtimes
+## For alternative frameworks
 
-Because the spec is a language-neutral JSON Schema, a runtime written in any language can validate OLC files without Python. The conformance corpus is the shared reference: point your own validator at `schema/` and the `tests/` fixtures to prove your implementation agrees with the spec. A language-neutral test corpus (beyond the Python runner) is [on the roadmap](../contributing.md).
+Because the spec is a language-neutral JSON Schema, a framework written in any language can validate OLC files without Python. The conformance corpus is the shared reference: point your own validator at `schema/` and the `tests/` fixtures to prove your implementation agrees with the spec. A language-neutral test corpus (beyond the Python runner) is [on the roadmap](../contributing.md).

@@ -11,7 +11,7 @@ source:
 `type` selects the *kind* of source; the remaining fields are the knobs that kind uses. The sections below group them by kind, then by cross-cutting concern (load modes, partitioning, CDC, post-ingestion).
 
 !!! abstract "Powered by"
-    The `source` block is a **Pydantic** model, so every field here is type-validated on load. The reference runtime reads each kind with the appropriate library: file/object-store reads via **polars** / **pyarrow** (and DuckDB's `httpfs` / `azure` extensions, or **s3fs** / **gcsfs** / **adlfs** for cloud paths); databases via their DB-API/JDBC driver; REST APIs via **[dlt](https://dlthub.com)**; streaming micro-batches via **PySpark** structured streaming (or the engine's incremental reader).
+    The `source` block is a **Pydantic** model, so every field here is type-validated on load. The reference framework reads each kind with the appropriate library: file/object-store reads via **polars** / **pyarrow** (and DuckDB's `httpfs` / `azure` extensions, or **s3fs** / **gcsfs** / **adlfs** for cloud paths); databases via their DB-API/JDBC driver; REST APIs via **[dlt](https://dlthub.com)**; streaming micro-batches via **PySpark** structured streaming (or the engine's incremental reader).
 
 ---
 
@@ -99,7 +99,7 @@ source:
 
 ### Streaming / micro-batch
 
-A streaming source is a table/file source read in **micro-batches** driven by a watermark. The contract stays the same; the runtime reads incrementally each trigger. Combine `load_mode: incremental` with a `watermark_field` and (optionally) a streaming engine on the runtime side.
+A streaming source is a table/file source read in **micro-batches** driven by a watermark. The contract stays the same; the framework reads incrementally each trigger. Combine `load_mode: incremental` with a `watermark_field` and (optionally) a streaming engine on the framework side.
 
 ```yaml
 source:
@@ -111,7 +111,7 @@ source:
   watermark_strategy: append          # how the watermark advances per batch
 ```
 
-> The same governance (schema, quality, quarantine, PII, lineage) applies to every micro-batch. See the reference runtime's `StreamSink` for the native structured-streaming path.
+> The same governance (schema, quality, quarantine, PII, lineage) applies to every micro-batch. See the reference framework's `StreamSink` for the native structured-streaming path.
 
 ---
 

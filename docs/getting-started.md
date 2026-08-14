@@ -1,6 +1,6 @@
 # Getting Started
 
-An Open Lakehouse Contract is just a YAML file plus a JSON Schema to validate it against. You can start using OLC with nothing but a schema validator — and run it with the reference runtime when you're ready.
+An Open Lakehouse Contract is just a YAML file plus a JSON Schema to validate it against. You can start using OLC with nothing but a schema validator — and run it with the reference framework when you're ready.
 
 ## 1. Validate a contract against the spec
 
@@ -58,9 +58,9 @@ materialization:
 
 The full vocabulary is in the [Field Reference](reference/schema.md); a complete annotated example is [`examples/orders.olc.yaml`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/examples/orders.olc.yaml).
 
-## 3. Execute it with the reference runtime
+## 3. Execute it with the reference framework
 
-The contract becomes *executable* through a conforming runtime. [LakeLogic](https://lakelogic.org) is the reference implementation:
+The contract becomes *executable* through a conforming framework. [LakeLogic](https://lakelogic.org) is the reference implementation:
 
 ```bash
 pip install lakelogic
@@ -78,7 +78,7 @@ The *same* contract runs unchanged on another engine, table format, or platform 
 
 ## 4. Keep the schema honest
 
-The JSON Schema is **generated** from the reference runtime's typed models — never hand-edited — so the standard tracks a working implementation instead of rotting:
+The JSON Schema is **generated** from the reference framework's typed models — never hand-edited — so the standard tracks a working implementation instead of rotting:
 
 ```bash
 pip install lakelogic

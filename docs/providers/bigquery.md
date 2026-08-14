@@ -4,7 +4,7 @@
 
 ## The same contract
 
-No change from the [canonical RideFlow contract](index.md#what-same-contract-means-here). Backend choices:
+No change from the [canonical RideFlow contract](index.md#what-same-contract-means-here) — RideFlow being the fictional ride-hailing company (like Uber) used throughout. Backend choices:
 
 ```yaml
 materialization:
@@ -27,7 +27,7 @@ The full six-domain mesh as BigQuery native tables (Cloud Run / Pipelines path),
 
 ## Special configuration
 
-The BigQuery engine carries a handful of real dialect fixes (all on the reference runtime):
+The BigQuery engine carries a handful of real dialect fixes (all on the reference framework):
 
 - **Backtick-quoted identifiers** and **case-insensitive column** resolution.
 - **Client location** pinned so datasets and jobs co-locate.

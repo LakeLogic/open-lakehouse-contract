@@ -5,7 +5,7 @@ Quality is where an OLC earns "executable" — and, like transformations, it's *
 > If you can write a SQL `WHERE` clause, you can write a quality rule. No Python, no custom code — just SQL.
 
 !!! abstract "Powered by"
-    Quality rules are **Pydantic** models; each rule's `sql` predicate is executed by the active engine — **PySpark** on Spark, **duckdb** on DuckDB, **polars** SQL on Polars — so a rule written once runs natively on every backend (the runtime rewrites dialect functions like `regexp_matches`). Failing rows route to the [quarantine](#quarantine).
+    Quality rules are **Pydantic** models; each rule's `sql` predicate is executed by the active engine — **PySpark** on Spark, **duckdb** on DuckDB, **polars** SQL on Polars — so a rule written once runs natively on every backend (the framework rewrites dialect functions like `regexp_matches`). Failing rows route to the [quarantine](#quarantine).
 
 ## The shape
 
@@ -297,7 +297,7 @@ Both guard aggregate quality — they differ in **when**:
 `row_count` and freshness appear in both by design: the **dataset rule is the hard gate**, the **SLO is the watched target**. Author the gate to protect this run; author the SLO to hold the product accountable over time.
 
 !!! note "Rules that reference injected columns"
-    A dataset rule may reference a column that materialization injects later (a surrogate key, SCD2 audit columns). At validation time that column doesn't exist yet and such keys are unique by construction — the runtime treats a "column not found" bind as *not-evaluated-here* (enforced at materialization), not an error.
+    A dataset rule may reference a column that materialization injects later (a surrogate key, SCD2 audit columns). At validation time that column doesn't exist yet and such keys are unique by construction — the framework treats a "column not found" bind as *not-evaluated-here* (enforced at materialization), not an error.
 
 ---
 

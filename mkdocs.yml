@@ -10,7 +10,7 @@ repo_url: https://github.com/LakeLogic/open-lakehouse-contract
 edit_uri: edit/main/docs/
 copyright: >
   Copyright &copy; 2026 — the Open Lakehouse Contract is vendor-neutral ·
-  Reference runtime: <a href="https://lakelogic.org" target="_blank">LakeLogic</a>
+  Reference framework: <a href="https://lakelogic.org" target="_blank">LakeLogic</a>
 
 use_directory_urls: false
 dev_addr: 127.0.0.1:8011
@@ -79,6 +79,7 @@ nav:
       - AWS (Glue): providers/aws.md
   - Reference:
       - Overview & Libraries: reference/schema.md
+      - Anatomy of a Contract (all options): reference/anatomy.md
       - Execution Order (pre & post): reference/execution-order.md
       - Ingestion & Sources: reference/ingestion.md
       - Post-Ingestion Lifecycle: reference/lifecycle.md
@@ -130,5 +131,5 @@ extra:
       name: OLC on GitHub
     - icon: fontawesome/solid/globe
       link: https://lakelogic.org
-      name: LakeLogic — reference runtime
+      name: LakeLogic — reference framework
   generator: false

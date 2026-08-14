@@ -4,7 +4,7 @@
 
 Three properties make this work, and they're the whole point of OLC:
 
-- **Intent is separated from engine.** The contract declares *what* the data product is — schema, quality, PII, SLOs. *Where* it runs (Spark / DuckDB / Polars → Delta / Iceberg / DuckLake on any platform) is a flag chosen at apply time, never baked into the contract. The agent reasons about intent; the runtime handles the engine.
+- **Intent is separated from engine.** The contract declares *what* the data product is — schema, quality, PII, SLOs. *Where* it runs (Spark / DuckDB / Polars → Delta / Iceberg / DuckLake on any platform) is a flag chosen at apply time, never baked into the contract. The agent reasons about intent; the framework handles the engine.
 - **One artifact, two readers.** The same YAML is human-readable (an analyst can review a `MERGE` strategy or a PII flag) and machine-readable (the agent generates and validates it against a JSON Schema). No translation layer, no drift between "the plan" and "the pipeline."
 - **Persistent intent.** The contract lives *in the repository*, beside the data product — not in a chat log. Tell one agent "`customer_id` must never be null and this table must refresh every 2 hours" and it holds for this conversation; write it into the contract and it holds forever, for the next engineer and the next agent. **The AI tool changes, the model changes, the data platform changes — the contract remains.**
 
@@ -41,7 +41,7 @@ OLC deliberately uses **data-engineering verbs**, not a generic software-spec wo
 Not `propose → apply` (a generic software-spec workflow) — `discover → contract → review → validate → impact`. That's what makes OLC feel like a data-engineering standard rather than OpenSpec with different nouns.
 
 !!! tip "No real data? Validate against synthetic data"
-    The dry-run **doesn't need production data**. The reference runtime generates synthetic data *from the contract itself* — `lakelogic generate --contract <file> --rows N` produces rows that respect the declared types, nullability, `accepted_values`, and ranges (Faker-semantic, so `customer_email` looks like an email). So an agent can validate a contract the moment it writes it — **greenfield, in CI, before a single real row exists**. And it can prove the gates *fire*: `--invalid-ratio 0.1` deliberately injects bad rows so the agent confirms the quality rules and quarantine actually catch them. Real data, when it exists, just deepens the same check.
+    The dry-run **doesn't need production data**. The reference framework generates synthetic data *from the contract itself* — `lakelogic generate --contract <file> --rows N` produces rows that respect the declared types, nullability, `accepted_values`, and ranges (Faker-semantic, so `customer_email` looks like an email). So an agent can validate a contract the moment it writes it — **greenfield, in CI, before a single real row exists**. And it can prove the gates *fire*: `--invalid-ratio 0.1` deliberately injects bad rows so the agent confirms the quality rules and quarantine actually catch them. Real data, when it exists, just deepens the same check.
 
 ## Greenfield and brownfield
 
@@ -115,13 +115,13 @@ Notice the contract never mentioned DuckDB, Spark, or a bucket. Intent was fixed
 
 ## The contract as a merge gate
 
-The same properties make OLC a natural fit for **code review and CI**. A change — whether a human or an agent authored it — arrives as a git PR. The contract is the *expected state*; a conforming runtime validates and tests the change against it; the PR passes or fails on that result, and a human reviews with the outcome in hand. This is the OLC analogue of an AI code-review gate — but the reviewer is checking *data behaviour*, not just code.
+The same properties make OLC a natural fit for **code review and CI**. A change — whether a human or an agent authored it — arrives as a git PR. The contract is the *expected state*; a conforming framework validates and tests the change against it; the PR passes or fails on that result, and a human reviews with the outcome in hand. This is the OLC analogue of an AI code-review gate — but the reviewer is checking *data behaviour*, not just code.
 
 ```mermaid
 flowchart TD
     C[Human / AI authors a change] --> PR[Git pull request]
     PR --> OLC[Open Lakehouse Contract<br/><b>expected state</b>]
-    OLC --> RT[Conforming runtime<br/>validate + dry-run test]
+    OLC --> RT[Conforming framework<br/>validate + dry-run test]
     RT --> V{PASS / FAIL}
     V -- fail --> C
     V -- pass --> H[Human review<br/>with evidence]
@@ -130,7 +130,7 @@ flowchart TD
 
 Because the contract declares `primary_key`, `quality`, `materialization`, and SLOs, a reviewer (or an automated check) can see exactly **what must be preserved** when the implementation changes — a `merge` strategy that silently became `append`, a dropped `not_null` rule, a widened PII field all surface as a *diff of intent*, not a buried code change. The contract turns "did this PR break the data product?" into a checkable, PASS/FAIL question.
 
-Note the complementarity with OpenSpec: a code-spec workflow answers *"did the agent build what I asked?"* An OLC contract + a conforming runtime answers the harder, data-specific question — *"does the resulting data product actually satisfy the engineering contract?"* — by executing the rules against real data, not just reading them.
+Note the complementarity with OpenSpec: a code-spec workflow answers *"did the agent build what I asked?"* An OLC contract + a conforming framework answers the harder, data-specific question — *"does the resulting data product actually satisfy the engineering contract?"* — by executing the rules against real data, not just reading them.
 
 ## Portable across every AI agent
 
@@ -150,7 +150,7 @@ flowchart TD
     Cp --> K
     G --> K
     W --> K
-    K --> RT[LakeLogic Core · reference runtime]
+    K --> RT[LakeLogic Core · reference framework]
     RT --> E[Spark / DuckDB / Polars]
 ```
 
@@ -182,12 +182,12 @@ The verbs stay identical; only the wrapper differs — **all eleven ship today**
 > **Test it in Claude Code:** in a repo with `*.olc.yaml`, run `/olc:validate` (validates against the schema — works now), `/olc:contract "<intent>"`, or `/olc:review` (the merge gate). **In ChatGPT:** the same verbs run as Codex prompts, or use a Custom GPT with the schema as knowledge for the web.
 
 !!! note "Where the line sits (open vs. enterprise)"
-    The AI integration, the CLI, the skills, and the reference runtime (**LakeLogic Core**) are **open** — no cloud dependency. **LakeLogic Cloud** is the enterprise layer *around* the standard: estate-wide context, telemetry history, Jira/organisational graph, policy & trust, collaboration, managed agents. The open standard is the entry point; the cloud is the enterprise convenience — never a gate on adoption.
+    The AI integration, the CLI, the skills, and the reference framework (**LakeLogic Core**) are **open** — no cloud dependency. **LakeLogic Cloud** is the enterprise layer *around* the standard: estate-wide context, telemetry history, Jira/organisational graph, policy & trust, collaboration, managed agents. The open standard is the entry point; the cloud is the enterprise convenience — never a gate on adoption.
 
 ## What's real today vs. proposed
 
 !!! info "Honest status"
-    **Shipping today:** the `olc` CLI (`olc validate` + `olc init`), agent integrations for **eleven assistants** (Claude Code, Codex, Gemini, Cursor, GitHub Copilot, Windsurf, Cline, Amazon Q, Roo Code, Kilo Code, and the shared `AGENTS.md`) exposing the verbs `discover / contract / review / validate / impact`, schema-only validation with no runtime, and schema-constrained generation. **Provided by the reference runtime (LakeLogic):** the *execution* half — **contract-driven synthetic data generation** (`lakelogic generate`, so validation needs no real data), the dry-run (quarantine %, SLO status), and `apply` (materialize) that `/olc:validate` and `/olc:review` deepen into when a runtime is present. **On the roadmap:** the `olc/` change-folder convention and (not yet published) the `open-lakehouse-contract` package on PyPI.
+    **Shipping today:** the `olc` CLI (`olc validate` + `olc init`), agent integrations for **eleven assistants** (Claude Code, Codex, Gemini, Cursor, GitHub Copilot, Windsurf, Cline, Amazon Q, Roo Code, Kilo Code, and the shared `AGENTS.md`) exposing the verbs `discover / contract / review / validate / impact`, schema-only validation with no framework, and schema-constrained generation. **Provided by the reference framework (LakeLogic):** the *execution* half — **contract-driven synthetic data generation** (`lakelogic generate`, so validation needs no real data), the dry-run (quarantine %, SLO status), and `apply` (materialize) that `/olc:validate` and `/olc:review` deepen into when a framework is present. **On the roadmap:** the `olc/` change-folder convention and (not yet published) the `open-lakehouse-contract` package on PyPI.
 
 ## Related
 

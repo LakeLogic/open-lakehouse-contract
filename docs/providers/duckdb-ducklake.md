@@ -1,6 +1,6 @@
 # DuckDB / DuckLake
 
-**Engine:** DuckDB · **Format:** DuckLake · **Storage:** local files, or S3 / GCS / Azure ADLS · **Status:** ✅ Live — full 6-domain RideFlow mesh, ~59 governed tables, zero infrastructure.
+**Engine:** DuckDB · **Format:** DuckLake · **Storage:** local files, or S3 / GCS / Azure ADLS · **Status:** ✅ Live — full 6-domain RideFlow (like Uber) mesh, ~59 governed tables, zero infrastructure.
 
 [DuckLake](https://ducklake.select) is DuckDB's open lakehouse format — a SQL-catalog (SQLite/DuckDB/Postgres) plus Parquet data, with snapshots and time-travel. It gives you a real ACID lakehouse with **nothing to run**.
 
@@ -62,5 +62,5 @@ Credentials come from each provider's default chain / standard env vars (AWS def
 ## Special configuration
 
 - **Attach:** `ATTACH 'ducklake:<meta>.ducklake' AS <catalog> (DATA_PATH '<data>')`.
-- **Reads are single-use views:** the runtime materializes cross-domain links as real tables before a fact scans them twice (otherwise a second scan reads zero rows).
+- **Reads are single-use views:** the framework materializes cross-domain links as real tables before a fact scans them twice (otherwise a second scan reads zero rows).
 - **Identifier quoting:** contracts authored Databricks-style (backtick-quoted) are de-quoted on resolve so cross-domain marts bind on DuckDB.

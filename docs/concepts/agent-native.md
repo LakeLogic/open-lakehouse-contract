@@ -19,7 +19,7 @@ An Open Lakehouse Contract is an unusually good substrate for **AI data agents**
 flowchart LR
     G[Generate contract<br/>schema-constrained] --> V{Valid?}
     V -- no, structured error --> G
-    V -- yes --> X[Execute on a runtime]
+    V -- yes --> X[Execute on a framework]
     X --> O[Observe: quarantine %, rule failures, SLO breach]
     O --> R{Meets intent?}
     R -- no --> G
@@ -42,7 +42,7 @@ Without execution, each of those is speculation. With OLC, each is an observatio
 
 - **Generation:** feed `schema/open-lakehouse-contract.schema.json` to the model as a response-format / tool schema. You get a syntactically valid OLC every time.
 - **Repair:** on a validation failure, hand the structured error back. Pydantic-derived errors are specific enough to fix a single field.
-- **Grounding:** run via the reference runtime (`DataProcessor.run` → `materialize`) and feed the returned metadata (rows written, quarantine counts, failed rules) back to the agent as the reward/critique signal.
+- **Grounding:** run via the reference framework (`DataProcessor.run` → `materialize`) and feed the returned metadata (rows written, quarantine counts, failed rules) back to the agent as the reward/critique signal.
 - **Portability:** none of the above changes when you swap `engine:` or `format:`. The agent's competence transfers across the whole [providers matrix](../providers/index.md).
 
 !!! note "Naming"

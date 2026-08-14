@@ -3,7 +3,7 @@
 When something the contract cares about happens — rows quarantined, an SLO breached, a schema change, a run failure — OLC can emit a notification. Notifications (`Notification`) are declared inline wherever an event originates: on `quarantine`, and alongside SLOs.
 
 !!! abstract "Powered by"
-    `Notification` is a **Pydantic** model. The reference runtime delivers to each channel with the appropriate transport — SMTP for email, an incoming-webhook `POST` (via **requests**) for Slack/Teams/webhooks. Message bodies are rendered from templates (Jinja-style) with a per-event context.
+    `Notification` is a **Pydantic** model. The reference framework delivers to each channel with the appropriate transport — SMTP for email, an incoming-webhook `POST` (via **requests**) for Slack/Teams/webhooks. Message bodies are rendered from templates (Jinja-style) with a per-event context.
 
 ## Shape
 
@@ -67,7 +67,7 @@ notifications:
 
 - **Quarantine** — `quarantine.notifications[]`, gated by `notifications_enabled` and `strict_notifications`. See [Validation & Quality](quality.md#quarantine).
 - **SLOs** — a breach of any [service level](slo.md) can raise a notification.
-- **Control plane** — in the [LakeLogic](https://lakelogic.org) runtime, these same events also drive incidents, dashboards, and Zeus (agentic diagnosis) — the contract declares *what* to alert on; the platform decides *how far* to escalate.
+- **Control plane** — in the [LakeLogic](https://lakelogic.org) framework, these same events also drive incidents, dashboards, and Zeus (agentic diagnosis) — the contract declares *what* to alert on; the platform decides *how far* to escalate.
 
 !!! tip "Keep secrets out of the contract"
-    Webhook URLs and SMTP credentials are environment configuration, not contract content. Reference them via env/secret settings on the runtime; the contract only names the *channel* and *event*, so it stays safe to commit and share.
+    Webhook URLs and SMTP credentials are environment configuration, not contract content. Reference them via env/secret settings on the framework; the contract only names the *channel* and *event*, so it stays safe to commit and share.

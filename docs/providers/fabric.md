@@ -3,7 +3,7 @@
 **Engine:** Spark · **Format:** Delta · **Storage:** OneLake (schema-enabled Lakehouse) · **Status:** ◑ Static-validated — the contracts and the OneLake deploy path are validated, but a live run is pending (no Fabric capacity provisioned to execute against yet).
 
 !!! warning "Honest status"
-    Unlike the other ✅ Live providers, Fabric has **not been executed end-to-end on a live capacity**. The RideFlow contracts were ported verbatim and statically validated, and the deploy mechanics (OneLake + REST) are wired — but there was no Fabric capacity available to do a real run. This page describes the intended path; treat it as validated-but-not-yet-run until a capacity is attached.
+    Unlike the other ✅ Live providers, Fabric has **not been executed end-to-end on a live capacity**. The RideFlow (like Uber) contracts were ported verbatim and statically validated, and the deploy mechanics (OneLake + REST) are wired — but there was no Fabric capacity available to do a real run. This page describes the intended path; treat it as validated-but-not-yet-run until a capacity is attached.
 
 ## The same contract
 

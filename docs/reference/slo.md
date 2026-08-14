@@ -47,7 +47,7 @@ Volume expectations, with reprocess-awareness:
 | `skip_reprocess_days` | Don't alarm on recent days still being backfilled. |
 | `description` | Human explanation. |
 
-SLO breaches integrate with the control plane (incidents, dashboards) — the contract is where the target is *declared*; the runtime and platform are where it's *watched*. A downstream consumer's expectation of this product is captured on the [lineage graph](lineage.md#2-contract-level-lineage-graph) (`downstream[].sla`).
+SLO breaches integrate with the control plane (incidents, dashboards) — the contract is where the target is *declared*; the framework and platform are where it's *watched*. A downstream consumer's expectation of this product is captured on the [lineage graph](lineage.md#2-contract-level-lineage-graph) (`downstream[].sla`).
 
 ## Related
 

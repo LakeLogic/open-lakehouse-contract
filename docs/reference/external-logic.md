@@ -3,7 +3,7 @@
 OLC is [SQL-first](transformation.md), and it expresses far more than one SQL statement — ordered multi-step SQL, window functions, joins, SCD2, and 20+ declarative ops. So **a lot of "complex" processing can simply be rewritten in OLC** — and usually should be, because declarative/SQL logic stays portable, reviewable, and diff-able. It's a **spectrum keyed on complexity**: express it in OLC where you can; reference external compute (`external_logic`) only when the logic genuinely exceeds SQL, or when you want to reuse an existing Spark job / notebook / stored proc rather than port it. Either way, the contract keeps governing the result.
 
 !!! abstract "Powered by"
-    `logic` (inline) and `external_logic` (referenced) are **Pydantic** models. The reference runtime executes external `python` in a sandboxed subprocess (restricted builtins + timeout) and `notebook` via a Jupyter kernel. A PySpark job is just `type: python` that uses **PySpark**.
+    `logic` (inline) and `external_logic` (referenced) are **Pydantic** models. The reference framework executes external `python` in a sandboxed subprocess (restricted builtins + timeout) and `notebook` via a Jupyter kernel. A PySpark job is just `type: python` that uses **PySpark**.
 
 ## Rewrite in OLC, or reference it?
 
@@ -67,7 +67,7 @@ A Spark job is just `type: python` — a script that uses Spark. It receives the
 external_logic: { type: python, path: jobs/spark_sessionize.py, entrypoint: run }
 ```
 
-The runtime calls the entrypoint after validation as `run(good_df, contract=…, engine=…, **args)`; return a dataframe (OLC materializes it) or a path/None. **Worked example:** [`examples/external-logic/`](https://github.com/LakeLogic/open-lakehouse-contract/tree/main/examples/external-logic) — a `silver_trips` contract whose transform is a reusable PySpark sessionization job, schema-valid and ready to validate against synthetic data.
+The framework calls the entrypoint after validation as `run(good_df, contract=…, engine=…, **args)`; return a dataframe (OLC materializes it) or a path/None. **Worked example:** [`examples/external-logic/`](https://github.com/LakeLogic/open-lakehouse-contract/tree/main/examples/external-logic) — a `silver_trips` contract whose transform is a reusable PySpark sessionization job, schema-valid and ready to validate against synthetic data.
 
 ### A notebook
 
@@ -93,7 +93,7 @@ The compute is pluggable; the governance is the invariant.
 
 ## Scope & safety (honest)
 
-- The reference runtime executes **`python`** and **`notebook`** external logic today. SQL stored-procedures and dbt are handled by wrapping them in a python entrypoint, or by governing their output; first-class `sql` / `dbt` types are on the roadmap.
+- The reference framework executes **`python`** and **`notebook`** external logic today. SQL stored-procedures and dbt are handled by wrapping them in a python entrypoint, or by governing their output; first-class `sql` / `dbt` types are on the roadmap.
 - Python external logic runs in a **restricted sandbox** (blocks `subprocess` / `exec` / `eval` / `socket`) with a timeout — it's for *transformation* code, not arbitrary orchestration or shell-out. That's deliberate: per [scope & non-goals](../concepts/what-is-olc.md#scope-and-non-goals), OLC governs the data product; it doesn't try to be your orchestrator or compute platform. `external_logic` is the **seam** where your compute plugs into a governed contract.
 
 ## Related

@@ -4,7 +4,7 @@
 
 ## The same contract
 
-No change from the [canonical RideFlow contract](index.md#what-same-contract-means-here). Backend choices:
+No change from the [canonical RideFlow contract](index.md#what-same-contract-means-here) — RideFlow being the fictional ride-hailing company (like Uber) used throughout. Backend choices:
 
 ```yaml
 materialization:
@@ -34,5 +34,5 @@ The same contracts have been proven writing **Spark-registered Unity Catalog *ex
 ## Special configuration
 
 - **Serverless-friendly:** the bootstrap uses serverless compute and a UC Volume for landing, so it runs with no long-lived cluster.
-- **External tables:** for the Polars/DuckDB external-Delta path, the runtime writes Delta to `abfss://…` and the table is registered in UC as EXTERNAL. Running the deploy CLI as the workspace service principal (with the right grants) is required.
+- **External tables:** for the Polars/DuckDB external-Delta path, the framework writes Delta to `abfss://…` and the table is registered in UC as EXTERNAL. Running the deploy CLI as the workspace service principal (with the right grants) is required.
 - **`.py` vs `.ipynb` in bundles:** Databricks Asset Bundles treat notebook source formats distinctly — keep the job source format consistent to avoid a sync-snapshot mismatch.

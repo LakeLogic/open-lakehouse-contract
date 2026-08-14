@@ -1,9 +1,9 @@
 # Materialization & Storage
 
-Materialization is **declarative convergence**: the contract declares the desired state of the target table, and the runtime converges the actual table toward it. The `materialization` block (`Materialization`, 18 fields) chooses the write strategy, table format, partitioning, history handling, and delete semantics.
+Materialization is **declarative convergence**: the contract declares the desired state of the target table, and the framework converges the actual table toward it. The `materialization` block (`Materialization`, 18 fields) chooses the write strategy, table format, partitioning, history handling, and delete semantics.
 
 !!! abstract "Powered by"
-    `Materialization` is a **Pydantic** model. The write goes through the format's library: **Delta** via **deltalake** (delta-rs) on DuckDB/Polars or **delta-spark** on **PySpark**; **Iceberg** via **pyiceberg** (+ a catalog such as Glue) or the Iceberg Spark runtime; **DuckLake** via DuckDB's **`ducklake`** extension; plain Parquet via **pyarrow**.
+    `Materialization` is a **Pydantic** model. The write goes through the format's library: **Delta** via **deltalake** (delta-rs) on DuckDB/Polars or **delta-spark** on **PySpark**; **Iceberg** via **pyiceberg** (+ a catalog such as Glue) or the Iceberg Spark framework; **DuckLake** via DuckDB's **`ducklake`** extension; plain Parquet via **pyarrow**.
 
 ## Shape
 
@@ -52,7 +52,7 @@ materialization:
     hash_columns: [name, tier, address]   # change detection
 ```
 
-The runtime injects the surrogate key + audit columns; [quality rules that reference them](quality.md#dataset-rules) are enforced at materialization, not validation.
+The framework injects the surrogate key + audit columns; [quality rules that reference them](quality.md#dataset-rules) are enforced at materialization, not validation.
 
 ## Facts & dimensions
 

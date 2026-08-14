@@ -63,6 +63,6 @@ When a masked field flows into a downstream dataset, the masking follows it. A d
 
 ## Access & audit
 
-- `security_groups` on a field expresses **who may see it unmasked** — the runtime and the SaaS control plane enforce this as column-level access.
+- `security_groups` on a field expresses **who may see it unmasked** — the framework and the SaaS control plane enforce this as column-level access.
 - `classification` (field-level) and `info.classification` (contract-level) drive catalog-wide policy and audit.
 - Every masking/quarantine decision is captured in lineage + audit, so "who could see this, and was it masked" is answerable after the fact.

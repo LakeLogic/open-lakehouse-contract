@@ -6,7 +6,7 @@ The Open Lakehouse Contract is intentionally vendor-neutral. Contributions are w
 
 ```
 schema/     the spec — open-lakehouse-contract.schema.json (generated, do not hand-edit)
-scripts/    generate_schema.py — regenerates the schema from the reference runtime
+scripts/    generate_schema.py — regenerates the schema from the reference framework
 examples/   illustrative valid contracts
 tests/      conformance suite: valid/ (must pass), invalid/ (must fail) + conformance.py
 docs/       this site (mkdocs-material)
@@ -14,14 +14,14 @@ docs/       this site (mkdocs-material)
 
 ## The schema is generated, never hand-edited
 
-The JSON Schema is derived from the reference runtime's Pydantic models. **Don't edit `schema/` by hand** — change the reference model and regenerate:
+The JSON Schema is derived from the reference framework's Pydantic models. **Don't edit `schema/` by hand** — change the reference model and regenerate:
 
 ```bash
 pip install lakelogic
 python scripts/generate_schema.py
 ```
 
-This keeps the spec provably in sync with a working implementation (see [Why Pydantic](concepts/why-pydantic.md)). A PR that edits the schema directly will drift from the runtime and be rejected.
+This keeps the spec provably in sync with a working implementation (see [Why Pydantic](concepts/why-pydantic.md)). A PR that edits the schema directly will drift from the framework and be rejected.
 
 ## Adding a conformance fixture
 
@@ -47,7 +47,7 @@ mkdocs serve            # http://127.0.0.1:8011
 
 ## Principles
 
-- **Executable over descriptive.** A field earns its place if a runtime can *act* on it.
+- **Executable over descriptive.** A field earns its place if a framework can *act* on it.
 - **Lean native vocabulary.** Accept aliases (e.g. ODCS names) on import; keep the native surface small.
 - **Honest status.** Never label a provider ✅ Live unless the contracts actually ran and materialized tables there.
-- **The contract is the invariant.** Backend-specific behavior belongs in runtimes, not in the contract.
+- **The contract is the invariant.** Backend-specific behavior belongs in frameworks, not in the contract.

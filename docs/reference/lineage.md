@@ -11,7 +11,7 @@ Lineage answers three questions, and OLC captures each at a different level:
 Together they give end-to-end traceability — from the external system that produced a value, through every governed table, to the dashboard that reads it.
 
 !!! abstract "Powered by"
-    `LineageConfig`, `Link`, and `DownstreamConsumer` are **Pydantic** models. Row-provenance columns are injected into the output frame by the active engine (**PySpark** / **duckdb** / **polars**), so provenance is physically present in every table. The pipeline DAG (level 3) is compiled by the reference runtime into an **Airflow / Dagster / Cloud Composer** schedule.
+    `LineageConfig`, `Link`, and `DownstreamConsumer` are **Pydantic** models. Row-provenance columns are injected into the output frame by the active engine (**PySpark** / **duckdb** / **polars**), so provenance is physically present in every table. The pipeline DAG (level 3) is compiled by the reference framework into an **Airflow / Dagster / Cloud Composer** schedule.
 
 ---
 
@@ -101,7 +101,7 @@ downstream:
 
 ## 3. Pipeline dependencies (Airflow-style DAG)
 
-The execution order across a whole system is a **DAG**: each contract declares which other entities it `depends_on`, and the system declares its `external_sources` (the roots — the systems outside the mesh that feed it). The reference runtime turns this into an Airflow / Dagster / Cloud Composer schedule, running parents before children with maximum safe parallelism.
+The execution order across a whole system is a **DAG**: each contract declares which other entities it `depends_on`, and the system declares its `external_sources` (the roots — the systems outside the mesh that feed it). The reference framework turns this into an Airflow / Dagster / Cloud Composer schedule, running parents before children with maximum safe parallelism.
 
 ```yaml
 # _system.yaml — the mesh orchestration layer (one level up from a single contract)

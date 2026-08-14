@@ -36,7 +36,7 @@ The contract is portable because each concern is implemented by a well-known lib
 | DuckDB engine | **duckdb** (+ the `ducklake` extension) |
 | Polars engine | **polars** / **pyarrow** |
 | Delta format | **deltalake** (delta-rs) / **delta-spark** |
-| Iceberg format | **pyiceberg** (+ Glue catalog) / Iceberg Spark runtime |
+| Iceberg format | **pyiceberg** (+ Glue catalog) / Iceberg Spark framework |
 | DuckLake format | DuckDB **`ducklake`** extension |
 | Cloud object storage | DuckDB **httpfs** / **azure**; **s3fs** / **gcsfs** / **adlfs** (fsspec) |
 | API ingestion | **dlt** (dlthub) |

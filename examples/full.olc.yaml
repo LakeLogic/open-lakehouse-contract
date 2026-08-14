@@ -1,0 +1,120 @@
+# =============================================================================
+# Open Lakehouse Contract — the full anatomy, every section annotated.
+# One silver "orders" data product in the `sales` domain. Schema-valid.
+# Validate:  python scripts/validate.py
+# =============================================================================
+
+version: 1.0.0
+
+# ── IDENTITY ─────────────────────────────────────────────────────────────────
+info:
+  title: Orders                        # human-readable name
+  domain: sales                        # mesh domain (namespace)
+  system: orders                       # source system within the domain
+  table_name: silver_orders            # physical table name
+  target_layer: silver                 # bronze | silver | gold
+  version: 1.0.0                       # contract version
+  description: Cleaned, deduplicated orders — one row per order.
+  owner: data-platform@acme.com        # accountable team
+  contact: "#sales-data"               # where to reach them
+  status: active                       # draft | active | deprecated
+  classification: internal             # data classification
+
+# ── SOURCE — where it comes from (one primary source) ────────────────────────
+source:
+  type: table                          # table | landing | database | api | stream
+  path: "table:lakehouse.sales.bronze_orders"
+  load_mode: incremental               # full | incremental
+  watermark_field: ordered_at          # incremental cursor
+  empty_behavior: skip                 # skip | fail
+  # database:  type: database, query: "SELECT * FROM orders WHERE updated_at > :wm"
+  # api:       type: api, dlt: { source: rest_api, base_url: "https://api.example.com/v2/" }
+  # files:     type: landing, path: "s3://landing/sales/orders/", format: json
+
+# ── LINKS — additional sources to join (as many as you need) ─────────────────
+links:
+  - { name: customers, type: table, path: "table:lakehouse.sales.silver_customers", columns: [customer_id, region] }
+  - { name: fx_rates,  type: table, path: "table:lakehouse.reference.silver_fx_rates" }
+
+# ── MODEL — what it *is* (schema + keys) ─────────────────────────────────────
+model:
+  grain: "one row per order"
+  fields:
+    - { name: order_id,       type: integer,   required: true, description: "Primary key." }
+    - { name: customer_id,    type: integer,   required: true }
+    - { name: customer_email, type: string,    pii: true, masking: partial }   # masked at runtime
+    - { name: status,         type: string,    accepted_values: [placed, shipped, delivered, cancelled] }
+    - { name: amount,         type: float,     required: true, min: 0 }
+    - { name: order_total,    type: float }                    # derived below
+    - { name: region,         type: string }                  # enriched from the customers link
+    - { name: ordered_at,     type: timestamp, required: true }
+
+primary_key:  [order_id]               # uniqueness / merge key
+natural_key:  [order_id]               # business key (may differ from PK)
+
+# ── TRANSFORMATIONS — how it's shaped (SQL-first; shorthands compile to SQL) ──
+transformations:
+  # SQL variant — full control, joins the linked sources
+  - phase: pre
+    sql: |
+      SELECT o.*, c.region
+      FROM source o
+      LEFT JOIN customers c ON c.customer_id = o.customer_id
+  # shorthand ops — readable wrappers
+  - { phase: pre,  derive: { field: order_total, sql: "amount + shipping_fee" } }
+  - { phase: pre,  filter: { sql: "status <> 'test'" } }
+
+# ── QUALITY — the rules it must pass (correctness + completeness) ─────────────
+quality:
+  enforce_required: true               # completeness: required fields present
+  fail_pipeline_on_dataset_error: false
+  row_rules:
+    - { name: positive_amount, sql: "amount > 0" }             # correctness (raw SQL)
+    - { not_null: order_id }                                   # shorthand
+    - { accepted_values: { field: status, values: [placed, shipped, delivered, cancelled] } }
+    - { range: { field: amount, min: 0 } }
+  dataset_rules:
+    - { name: order_id_unique, unique: order_id }              # completeness: no dup keys
+    - null_ratio: { field: customer_email, max: 0.02, category: completeness }   # threshold: <=2% nulls
+
+# ── SERVICE LEVELS — delivery SLOs (freshness, availability, volume) ─────────
+service_levels:
+  freshness:    { threshold: "1h", field: ordered_at }         # timeliness vs a timestamp
+  availability: { threshold: 0.99 }                            # uptime target
+  row_count:    { min_rows: 1, max_rows: 10000000 }            # volume bounds
+
+# ── LINEAGE — provenance columns injected on every row ───────────────────────
+lineage:
+  enabled: true                        # inject _lakelogic_* provenance columns
+  capture_source_path: true
+  capture_run_id: true
+
+# ── MATERIALIZATION — where it lands ─────────────────────────────────────────
+materialization:
+  strategy: merge                      # append | overwrite | merge
+  format: iceberg                      # delta | iceberg | ducklake | parquet
+  location: "s3://lakehouse/sales/silver_orders"
+  partition_by: [region]               # physical partitioning
+  # scd2: { … }                        — slowly-changing dimension (type 2) history
+  # fact: { type: transaction }        — fact-table semantics
+
+# ── QUARANTINE — what happens to bad rows ────────────────────────────────────
+quarantine:
+  enabled: true
+  include_error_reason: true           # keep rule + reason on each bad row
+  fail_on_quarantine: false            # true = hard-fail the run on any bad row
+  write_mode: append
+
+# ── SCHEMA POLICY — how schema drift is handled ──────────────────────────────
+schema_policy:
+  evolution: compatible                # strict | append | merge | overwrite | compatible | allow
+  unknown_fields: quarantine           # quarantine | drop | allow
+
+# ── EDGES — mesh dependencies ────────────────────────────────────────────────
+upstream: ["sales.orders.bronze_orders"]
+downstream:
+  - { type: dashboard, name: "Sales Daily", platform: tableau, owner: analytics@acme.com }
+
+# ── OPERATIONS ───────────────────────────────────────────────────────────────
+tier: gold                             # criticality tier
+schedule: "0 * * * *"                  # cron — hourly

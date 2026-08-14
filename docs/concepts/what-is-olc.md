@@ -1,12 +1,12 @@
 # What is OLC?
 
-The Open Lakehouse Contract is **an executable contract for a data product**. One human-readable YAML file declares everything about a dataset — and a conforming runtime *runs* that declaration.
+The Open Lakehouse Contract is **an executable contract for a data product**. One human-readable YAML file declares everything about a dataset — and a conforming framework *runs* that declaration.
 
 ## Descriptive vs executable
 
 Most data-contract specs are **descriptive**: they document a dataset's shape so humans and tools can agree on it. That's useful, but it leaves a gap — the document and the pipeline that actually produces the data are two separate artifacts, and they drift.
 
-OLC closes the gap by being **executable**. The same file that says *"`amount` must be positive, `customer_email` is PII, materialize as a merge into Iceberg"* is the file a runtime reads to **enforce** those rules. There is no second implementation to keep in sync — the contract *is* the pipeline definition.
+OLC closes the gap by being **executable**. The same file that says *"`amount` must be positive, `customer_email` is PII, materialize as a merge into Iceberg"* is the file a framework reads to **enforce** those rules. There is no second implementation to keep in sync — the contract *is* the pipeline definition.
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ flowchart LR
 
 ## Declarative convergence
 
-OLC materialization is **declarative convergence**, the data-plane analogue of `terraform apply`: the contract declares the *desired* state of a table (its shape, keys, quality), and the runtime converges the *actual* table toward it.
+OLC materialization is **declarative convergence**, the data-plane analogue of `terraform apply`: the contract declares the *desired* state of a table (its shape, keys, quality), and the framework converges the *actual* table toward it.
 
 - `strategy: append` — add new rows.
 - `strategy: merge` — upsert by primary key; the table converges to "latest per key."
@@ -60,21 +60,21 @@ The core idea in one sentence: **the contract is the invariant; the backend is s
 
 Change the three lines under the fold; the contract above never moves. That's the promise the [Providers](../providers/index.md) matrix demonstrates end-to-end.
 
-## The contract is independent of the runtime
+## The contract is independent of the framework
 
-Crucially, OLC sits *above* any particular runtime. The contract is portable intent; a **conforming runtime** carries it out, and that runtime is itself swappable. [LakeLogic](https://lakelogic.org) is the reference runtime — but the specification does not depend on it, and a second runtime in another language could implement the same contract.
+Crucially, OLC sits *above* any particular framework. The contract is portable intent; a **conforming framework** carries it out, and that runtime is itself swappable. [LakeLogic](https://lakelogic.org) is the reference framework — but the specification does not depend on it, and a second framework in another language could implement the same contract.
 
 ```mermaid
 flowchart TD
-    OLC[Open Lakehouse Contract<br/><b>portable intent</b>] --> R1[LakeLogic<br/>reference runtime]
-    OLC -.-> R2[Future OLC runtime]
-    OLC -.-> R3[Future OLC runtime]
+    OLC[Open Lakehouse Contract<br/><b>portable intent</b>] --> R1[LakeLogic<br/>reference framework]
+    OLC -.-> R2[Future OLC framework]
+    OLC -.-> R3[Future OLC framework]
     R1 --> E1[Spark]
     R1 --> E2[DuckDB]
     R1 --> E3[Polars]
 ```
 
-Two levels of pluggability: the **runtime** that interprets the contract, and the **engine + format** it targets. The contract commits to neither — that's what keeps it an open standard rather than one vendor's config file.
+Two levels of pluggability: the **framework** that interprets the contract, and the **engine + format** it targets. The contract commits to neither — that's what keeps it an open standard rather than one vendor's config file.
 
 ## Scope — and non-goals
 

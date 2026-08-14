@@ -7,9 +7,9 @@
 ![License](https://img.shields.io/badge/license-Apache%202.0-2965b3?style=flat-square)
 ![Engines](https://img.shields.io/badge/engines-Spark%20%7C%20DuckDB%20%7C%20Polars-2e7d32?style=flat-square)
 ![Formats](https://img.shields.io/badge/formats-Delta%20%7C%20Iceberg%20%7C%20DuckLake-6f42c1?style=flat-square)
-[![Reference runtime](https://img.shields.io/badge/reference%20runtime-LakeLogic-e36209?style=flat-square)](https://github.com/LakeLogic/LakeLogic)
+[![Reference framework](https://img.shields.io/badge/reference%20framework-LakeLogic-e36209?style=flat-square)](https://github.com/LakeLogic/LakeLogic)
 
-**Designed to complement, not replace, data-contract standards like [ODCS](https://github.com/bitol-io/open-data-contract-standard).** OLC adds portable execution and lakehouse engineering semantics on top. → *ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference runtime runs both.*
+**Designed to complement, not replace, data-contract standards like [ODCS](https://github.com/bitol-io/open-data-contract-standard).** OLC adds portable execution and lakehouse engineering semantics on top. → *ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference framework runs both.*
 
 </div>
 
@@ -23,7 +23,7 @@ The *same* contract runs unchanged across:
 | **Table formats** | Delta · Iceberg · DuckLake |
 | **Platforms** | Databricks · Snowflake · Fabric · BigQuery · AWS · MotherDuck |
 
-*One file governs the whole path — source, schema, quality, PII, lineage, transformation, materialization, SLOs. The contract is the invariant; the runtime and backend are pluggable.* **[Read the docs →](https://lakelogic.github.io/open-lakehouse-contract/)**
+*One file governs the whole path — source, schema, quality, PII, lineage, transformation, materialization, SLOs. The contract is the invariant; the framework and backend are pluggable.* **[Read the docs →](https://lakelogic.github.io/open-lakehouse-contract/)**
 
 **Our philosophy:**
 
@@ -70,7 +70,7 @@ quality:
     - { name: order_id_unique, unique: order_id }            # completeness: no duplicate keys
     - null_ratio: { field: customer_email, max: 0.02, category: completeness }   # threshold: ≤2% nulls
 
-# freshness + volume the runtime checks each run (delivery SLOs)
+# freshness + volume the framework checks each run (delivery SLOs)
 service_levels:
   freshness: { threshold: "1h", field: ordered_at }   # timeliness — measured against ordered_at
   row_count: { min_rows: 1 }                           # volume
@@ -79,7 +79,7 @@ service_levels:
 materialization: { strategy: merge, format: iceberg, location: "s3://lakehouse/sales/silver_orders" }
 ```
 
-**SQL-first, with business shorthands.** Any rule can be raw `sql: "…"` (like `positive_amount`); the shorthands — `unique`, `null_ratio`, `enforce_required` — are readable wrappers that **compile to the same SQL**. Reach for whichever reads clearer; the runtime runs SQL either way.
+**SQL-first, with business shorthands.** Any rule can be raw `sql: "…"` (like `positive_amount`); the shorthands — `unique`, `null_ratio`, `enforce_required` — are readable wrappers that **compile to the same SQL**. Reach for whichever reads clearer; the framework runs SQL either way.
 
 The whole path, one file — each block answers one question:
 
@@ -94,7 +94,7 @@ The whole path, one file — each block answers one question:
 
 *Multi-source is first-class:* a contract reads one primary `source` and joins any number of additional sources via `links` — other tables, domains, or systems (e.g. enrich orders with a `customers` dim, or a `fx_rates` table for currency).
 
-One runtime reads this file and does the rest — ingest → transform → validate → quarantine → mask → materialize → check SLOs. No spec-vs-code drift.
+One framework reads this file and does the rest — ingest → transform → validate → quarantine → mask → materialize → check SLOs. No spec-vs-code drift.
 
 ## See it in action
 
@@ -132,7 +132,7 @@ AI:  Materialized silver.revenue_daily (merge, DuckLake) — 4,812 rows.
 `lakelogic generate` synthesizes type-, range-, and rule-aware rows with a tunable invalid ratio; the agent reads the quarantine breakdown and self-corrects. Same dry-run, either way — **greenfield** (pure synthetic, zero data) or **brownfield** (a real sample from your source).
 
 > [!NOTE]
-> The contract never named an engine — `--provider` chose it at apply. The `/olc:*` verbs **ship today** for Claude Code and Codex (see below); the *execute-against-real-data* half comes from the reference runtime.
+> The contract never named an engine — `--provider` chose it at apply. The `/olc:*` verbs **ship today** for Claude Code and Codex (see below); the *execute-against-real-data* half comes from the reference framework.
 
 ## Use it with your AI assistant
 
@@ -153,7 +153,7 @@ Verbs are data-native — **discover → contract → review → validate → im
 
 ## SQL-native
 
-**Know SQL? You already know OLC.** Logic is SQL — not Python, not Spark code, not notebooks. The contract carries the SQL; the runtime runs it unchanged on whichever engine you choose.
+**Know SQL? You already know OLC.** Logic is SQL — not Python, not Spark code, not notebooks. The contract carries the SQL; the framework runs it unchanged on whichever engine you choose.
 
 ```yaml
 transformations:
@@ -164,7 +164,7 @@ transformations:
     phase: post
 ```
 
-The shorthand ops (`rename`, `filter`, `cast`, `join`, `rollup`, …) are convenience wrappers that **compile to SQL** — each shows its SQL variant in the [Transformation reference](docs/reference/transformation.md). SQL is the portability invariant; the runtime rewrites dialect differences per engine (**PySpark** / **duckdb** / **polars**).
+The shorthand ops (`rename`, `filter`, `cast`, `join`, `rollup`, …) are convenience wrappers that **compile to SQL** — each shows its SQL variant in the [Transformation reference](docs/reference/transformation.md). SQL is the portability invariant; the framework rewrites dialect differences per engine (**PySpark** / **duckdb** / **polars**).
 
 ## Why OLC
 
@@ -184,7 +184,7 @@ The [providers matrix](docs/providers/index.md) runs the **same** contract set a
 
 ## Quickstart — validate a contract
 
-The spec is a single JSON Schema; validate any OLC file against it in any language — **no runtime required**. Keep `*.olc.yaml` contracts beside your SQL / dbt / PySpark and gate every PR on them:
+The spec is a single JSON Schema; validate any OLC file against it in any language — **no framework required**. Keep `*.olc.yaml` contracts beside your SQL / dbt / PySpark and gate every PR on them:
 
 ```bash
 pip install jsonschema pyyaml
@@ -194,7 +194,7 @@ python tests/conformance.py                   # (this repo) the spec's own confo
 
 A ready-to-use GitHub Action lives in [`.github/workflows/validate-olc.yml`](.github/workflows/validate-olc.yml) — drop it into any repo (point `--schema` at the published schema URL) and contracts are checked on every push.
 
-To *run* a contract, use the reference runtime:
+To *run* a contract, use the reference framework:
 
 ```bash
 pip install lakelogic
@@ -217,15 +217,15 @@ OLC is deliberately **three separable layers**, so the standard never collapses 
         ▼                       ▼
    JSON Schema           Pydantic reference models
    structural            executable behaviour, in the
-   validation,           reference runtime (LakeLogic)
+   validation,           reference framework (LakeLogic)
    any language
 ```
 
-- **Specification** — defines what `model`, `quality`, `primary_key`, `materialization`, `pii`, `service_levels`… *mean*. Language- and runtime-neutral; documented in the [field reference](docs/reference/schema.md).
+- **Specification** — defines what `model`, `quality`, `primary_key`, `materialization`, `pii`, `service_levels`… *mean*. Language- and framework-neutral; documented in the [field reference](docs/reference/schema.md).
 - **JSON Schema** (`schema/open-lakehouse-contract.schema.json`) — the machine-readable *structural* form. Validate an OLC file in any language.
-- **Reference implementation** — [LakeLogic](https://github.com/LakeLogic/LakeLogic)'s **Pydantic** models + Core, which *execute* the intent. The JSON Schema is generated from these models, so it can't drift from a working runtime.
+- **Reference implementation** — [LakeLogic](https://github.com/LakeLogic/LakeLogic)'s **Pydantic** models + Core, which *execute* the intent. The JSON Schema is generated from these models, so it can't drift from a working framework.
 
-The Pydantic models are the **reference implementation, not the spec** — any second runtime, in any language, may implement the same spec. Regenerate the schema when the models change:
+The Pydantic models are the **reference implementation, not the spec** — any second framework, in any language, may implement the same spec. Regenerate the schema when the models change:
 
 ```bash
 pip install lakelogic
@@ -234,7 +234,7 @@ python scripts/generate_schema.py     # schema/ ← the reference DataContract m
 
 ## Complements ODCS
 
-OLC **complements [ODCS](https://github.com/bitol-io/open-data-contract-standard)**, it doesn't compete. ODCS is the standard for the *business + semantic agreement*; OLC adds the *engineering + runtime* contract that executes it.
+OLC **complements [ODCS](https://github.com/bitol-io/open-data-contract-standard)**, it doesn't compete. ODCS is the standard for the *business + semantic agreement*; OLC adds the *engineering + execution* contract that executes it.
 
 |  | ODCS | Open Lakehouse Contract |
 |---|---|---|
@@ -243,9 +243,9 @@ OLC **complements [ODCS](https://github.com/bitol-io/open-data-contract-standard
 | PII classification | ✅ classifies | ✅ **masks at runtime** |
 | SQL rules | some representation | **core design principle** |
 | Materialization (merge/append, Delta/Iceberg/DuckLake) | — | ✅ |
-| Engine execution (Spark/DuckDB/Polars) · runtime portability | not its role | ✅ **core objective** |
+| Engine execution (Spark/DuckDB/Polars) · cross-engine portability | not its role | ✅ **core objective** |
 
-**ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference runtime runs both.** It imports and exports ODCS losslessly — **import ODCS → run as OLC → export ODCS**. See [OLC & ODCS](docs/concepts/vs-odcs.md).
+**ODCS standardises the agreement · OLC standardises the execution · the [LakeLogic](https://github.com/LakeLogic/LakeLogic) reference framework runs both.** It imports and exports ODCS losslessly — **import ODCS → run as OLC → export ODCS**. See [OLC & ODCS](docs/concepts/vs-odcs.md).
 
 ## Part of a spec-driven movement
 
@@ -256,7 +256,7 @@ Spec-driven development for the **data plane**: humans and AI agree on a precise
 | Path | What |
 |---|---|
 | `schema/open-lakehouse-contract.schema.json` | The **spec**: JSON Schema (Draft 2020-12), the language-neutral source of truth. |
-| `olc/` | The `olc` **CLI** — `olc validate` (schema-only, no runtime) + `olc init` (install agent integrations). |
+| `olc/` | The `olc` **CLI** — `olc validate` (schema-only, no framework) + `olc init` (install agent integrations). |
 | `skills/` | **Agent integrations** — for Claude Code, Codex, Cursor, GitHub Copilot, Gemini, Windsurf, and Cline (installed by `olc init`). |
 | `examples/` | Illustrative contracts. |
 | `tests/` | A **conformance suite** — `valid/` must pass, `invalid/` must fail. |
