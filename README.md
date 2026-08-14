@@ -79,16 +79,20 @@ service_levels:
 materialization: { strategy: merge, format: iceberg, location: "s3://lakehouse/sales/orders/silver" }
 ```
 
+**SQL-first, with business shorthands.** Any rule can be raw `sql: "…"` (like `positive_amount`); the shorthands — `unique`, `null_ratio`, `enforce_required` — are readable wrappers that **compile to the same SQL**. Reach for whichever reads clearer; the runtime runs SQL either way.
+
 The whole path, one file — each block answers one question:
 
 | Block | Answers |
 |---|---|
-| `source` | where the data comes from (bronze) |
+| `source` | where the data comes from — the **primary** source (here, bronze); join more via `links` |
 | `model` · `primary_key` | what it *is* — schema + keys |
 | `transformations` | how it's shaped |
 | `quality` | the rules it must pass — **correctness + completeness** (row rules, uniqueness, null-ratio thresholds) |
 | `service_levels` | the delivery SLOs — **freshness + volume** (availability too) |
 | `materialization` | where it lands (silver Iceberg) |
+
+*Multi-source is first-class:* a contract reads one primary `source` and joins any number of additional sources via `links` — other tables, domains, or systems (e.g. enrich orders with a `customers` dim, or a `fx_rates` table for currency).
 
 One runtime reads this file and does the rest — ingest → transform → validate → quarantine → mask → materialize → check SLOs. No spec-vs-code drift.
 
