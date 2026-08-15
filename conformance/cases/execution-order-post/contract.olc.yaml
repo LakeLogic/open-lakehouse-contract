@@ -1,0 +1,22 @@
+version: 1.0.0
+info:
+  title: Orders
+  table_name: orders
+model:
+  fields:
+  - name: id
+    type: int
+  - name: amount
+    type: float
+  - name: qty
+    type: int
+transformations:
+- phase: post
+  derive:
+    field: total
+    sql: amount * qty
+quality:
+  row_rules:
+  - name: total_cap
+    phase: post
+    sql: total <= 100

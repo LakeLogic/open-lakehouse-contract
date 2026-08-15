@@ -31,6 +31,21 @@ The highest-leverage contribution is a fixture that pins down a rule:
 2. Run `python tests/conformance.py` — it must stay green.
 3. Note in your PR what rule the fixture locks in.
 
+## Run the developer tests
+
+The standard-library test suite covers CLI dispatch, safe integration installation,
+recursive discovery, JSON output, duplicate YAML keys, schema failures, and strict
+schema invariants:
+
+```bash
+python -m unittest discover -s tests -p "test_*.py" -v
+python tests/conformance.py
+olc validate --root examples
+```
+
+Every pull request runs this suite on Python 3.9, 3.12, and 3.13, then builds and
+smoke-tests the installed wheel outside the repository checkout.
+
 ## Build the docs locally
 
 ```bash
@@ -38,9 +53,24 @@ pip install mkdocs-material
 mkdocs serve            # http://127.0.0.1:8011
 ```
 
+## CI & forked pull requests
+
+Every PR runs the full **public** gate with no secrets: unit/CLI tests, the JSON-Schema
+fixtures, the strict public model, and the **schema-drift gate** (the schema regenerates
+from `olc/models/` — no private dependency). Forks get all of this.
+
+**Executable conformance** runs the private LakeLogic engines, so its job needs an install
+token and only runs for **same-repository** pushes/PRs — a forked PR cannot receive
+secrets, so that job is skipped for forks.
+
+**Maintainer policy:** a forked PR that changes executable semantics — `conformance/cases/`,
+`olc/models/`, or anything affecting runtime behaviour — MUST have a maintainer run
+executable conformance before merge. Fetch the PR to a same-repo branch, or trigger the
+**"Validate OLC contracts" → Run workflow** dispatch with the PR's SHA in the `ref` input
+(the trusted context has the token). Do not merge such a change on structural checks alone.
+
 ## Roadmap
 
-- **Language-neutral test corpus** — conformance fixtures consumable by validators in any language, not just the Python runner.
 - **Formal versioning & governance** — a documented process for evolving the spec across `v1` → `v2`.
 - **More provider write-ups** — each backed by an actual run, with honest status labels (✅ Live / ◑ Static-validated).
 - **Round-trip fixtures** — ODCS ⇄ OLC conversion examples as executable tests.

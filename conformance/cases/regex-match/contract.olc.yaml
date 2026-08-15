@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: Names, table_name: names }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: name, type: string }
+quality:
+  row_rules:
+    - name: name_is_lower
+      regex_match: { field: name, pattern: "^[a-z]+$" }

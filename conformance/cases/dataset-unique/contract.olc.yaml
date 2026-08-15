@@ -1,0 +1,13 @@
+version: 1.0.0
+info:
+  title: Trips
+  table_name: trips
+model:
+  fields:
+  - name: trip_id
+    type: string
+    required: true
+quality:
+  dataset_rules:
+  - name: trip_unique
+    unique: trip_id

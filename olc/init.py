@@ -1,8 +1,4 @@
-"""`olc init` — install OLC agent integrations into a project.
-
-Mirrors OpenSpec's approach: one common set of verbs, per-assistant wrapper files
-installed into the tool's native location. Open and runtime-free — pure file copy.
-"""
+"""Install OLC agent integrations without destroying existing project files."""
 from __future__ import annotations
 
 import argparse
@@ -61,24 +57,61 @@ INSTALLERS: dict[str, list[tuple[str, str]]] = {
 }
 
 
-def _copy_tree(src: Path, dst: Path, log) -> int:
-    n = 0
-    for f in sorted(src.rglob("*")):
-        if f.is_file():
-            out = dst / f.relative_to(src)
-            out.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(f, out)
-            log(f"    + {out}")
-            n += 1
-    return n
+def _selected_tools(raw: str) -> tuple[list[str], list[str]]:
+    requested = list(dict.fromkeys(part.strip() for part in raw.split(",") if part.strip()))
+    if "all" in requested:
+        return list(INSTALLERS), []
+    return requested, [tool for tool in requested if tool not in INSTALLERS]
+
+
+def _plan_files(tools: list[str], dest: Path) -> tuple[list[tuple[Path, Path]], list[Path]]:
+    """Return a de-duplicated copy plan and any missing template roots."""
+    planned: dict[Path, Path] = {}
+    missing: list[Path] = []
+    for tool in tools:
+        for source_relative, destination_relative in INSTALLERS[tool]:
+            source_root = SKILLS / source_relative
+            if not source_root.is_dir():
+                missing.append(source_root)
+                continue
+            destination_root = dest / destination_relative
+            for source in sorted(path for path in source_root.rglob("*") if path.is_file()):
+                planned[destination_root / source.relative_to(source_root)] = source
+    return [(source, target) for target, source in sorted(planned.items())], missing
+
+
+def _has_symlink_component(target: Path, dest: Path) -> bool:
+    current = target
+    while current != dest:
+        if current.is_symlink():
+            return True
+        if current.parent == current:
+            return True
+        current = current.parent
+    return False
+
+
+def _state(source: Path, target: Path, dest: Path) -> str:
+    if _has_symlink_component(target, dest):
+        return "unsafe"
+    if not target.exists():
+        return "create"
+    if not target.is_file():
+        return "unsafe"
+    return "identical" if source.read_bytes() == target.read_bytes() else "conflict"
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(prog="olc init", description="Install OLC agent integrations.")
-    ap.add_argument("--tools", default="claude",
-                    help="comma-separated: claude,codex,cursor,copilot,gemini,windsurf,cline — or 'all'")
+    ap = argparse.ArgumentParser(prog="olc init", description="Install OLC agent integrations safely.")
+    ap.add_argument(
+        "--tools",
+        default="claude",
+        help=f"comma-separated integrations ({','.join(INSTALLERS)}) or 'all'",
+    )
     ap.add_argument("--dest", default=".", help="project root to install into (default: .)")
     ap.add_argument("--list", action="store_true", help="list available integrations and exit")
+    ap.add_argument("--dry-run", action="store_true", help="show changes without writing files")
+    ap.add_argument("--force", action="store_true", help="overwrite conflicting files")
     args = ap.parse_args(argv)
 
     if args.list:
@@ -88,32 +121,62 @@ def main(argv: list[str] | None = None) -> int:
         print("  (use --tools all to install every one)")
         return 0
 
-    dest = Path(args.dest).resolve()
-    tools = [t.strip() for t in args.tools.split(",") if t.strip()]
-    if "all" in tools:
-        tools = list(INSTALLERS)
-    total = 0
-    for tool in tools:
-        specs = INSTALLERS.get(tool)
-        if not specs:
-            print(f"[skip] {tool}: no template yet (available: {', '.join(INSTALLERS)}).")
-            continue
-        print(f"Installing OLC integration for '{tool}' -> {dest}")
-        for sub, ddst in specs:
-            src = SKILLS / sub
-            if src.exists():
-                total += _copy_tree(src, dest / ddst, print)
+    tools, unknown = _selected_tools(args.tools)
+    if unknown:
+        print(f"ERROR unknown integration(s): {', '.join(unknown)}")
+        print(f"Available: {', '.join(INSTALLERS)}")
+        return 2
+    if not tools:
+        print("ERROR no integrations selected")
+        return 2
 
-    if total:
-        print(f"\nOK - installed {total} file(s) for: {', '.join(tools)}.")
-        if "claude" in tools:
-            print("In Claude Code:  /olc:validate  |  /olc:contract \"<intent>\"  |  /olc:review")
-        if "gemini" in tools:
-            print("In Gemini CLI:   /olc:validate  |  /olc:contract \"<intent>\"  |  /olc:review")
-        if "codex" in tools:
-            print("In Codex, the same verbs are available as prompts (/olc-validate, ...).")
-        if {"cursor", "copilot", "windsurf", "cline"} & set(tools):
-            print("Cursor / Copilot / Windsurf / Cline: the OLC rules load automatically for *.olc.yaml.")
-    else:
-        print("Nothing installed.")
-    return 0
+    dest = Path(args.dest).resolve()
+    plan, missing = _plan_files(tools, dest)
+    if missing:
+        for path in missing:
+            print(f"ERROR missing bundled templates: {path}")
+        return 2
+
+    states = [(source, target, _state(source, target, dest)) for source, target in plan]
+    unsafe = [(source, target) for source, target, state in states if state == "unsafe"]
+    if unsafe:
+        print("ERROR unsafe destinations (directory or symbolic-link path); nothing was changed:")
+        for _, target in unsafe:
+            print(f"  ! {target}")
+        return 1
+
+    conflicts = [(source, target) for source, target, state in states if state == "conflict"]
+    if conflicts and not args.force and not args.dry_run:
+        print("ERROR existing files differ; nothing was changed:")
+        for _, target in conflicts:
+            print(f"  ! {target}")
+        print("Re-run with --force to overwrite, or move/merge the files yourself.")
+        return 1
+
+    created = overwritten = identical = conflict_count = 0
+    for source, target, state in states:
+        if state == "conflict" and not args.force:
+            action = "conflict"
+        else:
+            action = "overwrite" if state == "conflict" else state
+        print(f"{action.upper():9} {target}")
+        if state == "identical":
+            identical += 1
+            continue
+        if state == "conflict" and not args.force:
+            conflict_count += 1
+            continue
+        if not args.dry_run:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+        if state == "create":
+            created += 1
+        else:
+            overwritten += 1
+
+    mode = "DRY RUN" if args.dry_run else "OK"
+    print(
+        f"\n{mode} - {created} create, {overwritten} overwrite, "
+        f"{identical} unchanged, {conflict_count} conflict; integrations: {', '.join(tools)}"
+    )
+    return 1 if conflict_count else 0

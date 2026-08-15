@@ -1,0 +1,19 @@
+id: OLC-EO-001
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.pre
+description: A pre-transform derived column feeds a pre-quality rule (transform runs
+  before quality).
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+  failed_rules:
+    net_nonneg: 1
+comparison:
+  sort_by:
+  - id

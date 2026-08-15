@@ -1,0 +1,18 @@
+id: OLC-Q-001
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.row.sql
+description: Negative fare values are quarantined.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 2
+  rows_quarantined: 1
+  failed_rules:
+    fare_non_negative: 1
+comparison:
+  sort_by:
+  - trip_id

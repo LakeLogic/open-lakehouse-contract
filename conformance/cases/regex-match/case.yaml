@@ -1,0 +1,15 @@
+id: OLC-Q-003
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.row.regex
+description: A regex_match row rule quarantines non-matching values (regression for a Polars crash).
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+comparison:
+  sort_by: [id]

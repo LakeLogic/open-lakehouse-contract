@@ -1,0 +1,17 @@
+id: OLC-MERGE-001
+spec_version: 1.0.0
+level: materialization
+feature: materialization.merge
+description: Merge updates an existing key and inserts a new one.
+input: input.jsonl
+expected:
+  target: expected/target.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+comparison:
+  sort_by:
+  - id
+materialization:
+  format: delta
+  seed: seed.jsonl

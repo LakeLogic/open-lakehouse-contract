@@ -15,7 +15,7 @@ Think of it as **a data engineer that's an AI**. It can read your repository, wr
 You tell the agent: *"Give me daily revenue by city from our Stripe data, and it should never be more than 6 hours stale."*
 
 ```mermaid
-flowchart LR
+flowchart TD
     A[You describe<br/>what you want] --> B[Agent writes<br/>a contract]
     B --> C{Framework checks<br/>it against data}
     C -- fails --> B

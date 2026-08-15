@@ -152,6 +152,21 @@ materialization:
   # fact: { type: transaction }        — fact-table semantics
 ```
 
+## Server & output — `server`
+
+The target/output connection context — the warehouse/store a run binds to, and whether it runs as a **Quality Gate** (`validate`) or **Raw-to-Bronze** movement (`ingest`). → [Server & Output](server.md)
+
+```yaml
+server:
+  type: warehouse
+  path: "s3://lakehouse/sales/silver_orders"
+  mode: validate                       # validate — Quality Gate | ingest — Raw-to-Bronze
+  format: parquet
+  cast_to_string: false                # bronze: read every column as string
+  schema_policy: { evolution: allow, unknown_fields: allow }
+  post_ingestion: { action: retain }   # retain | delete | archive the consumed input
+```
+
 ## Quarantine — `quarantine`
 
 What happens to rows that fail `quality` — kept aside with the rule + reason, or made a hard failure. → [Validation & Quality](quality.md)
@@ -172,6 +187,18 @@ How schema drift is handled — evolution mode and what to do with unknown field
 schema_policy:
   evolution: compatible                # strict | append | merge | overwrite | compatible | allow
   unknown_fields: quarantine           # quarantine | drop | allow
+```
+
+## Compliance — `compliance`
+
+A **free-form** slot for classification & controls (regulations, residency, retention, approvals) — no fixed schema. It records the *why*; it's metadata, not a gate. → [Compliance](compliance.md)
+
+```yaml
+compliance:
+  regulations: [GDPR, CCPA]
+  data_residency: eu-west
+  retention: { period: 400d, basis: legal }
+  classification: confidential
 ```
 
 ## Edges — `upstream` / `downstream`
@@ -287,6 +314,15 @@ materialization:
   location: "s3://lakehouse/sales/silver_orders"
   partition_by: [region]
 
+# ── SERVER — target/output connection context ───────────────────────────────
+server:
+  type: warehouse
+  path: "s3://lakehouse/sales/silver_orders"
+  mode: validate
+  format: parquet
+  cast_to_string: false
+  post_ingestion: { action: retain }
+
 # ── QUARANTINE — what happens to bad rows ────────────────────────────────────
 quarantine:
   enabled: true
@@ -303,6 +339,13 @@ schema_policy:
 upstream: ["sales.orders.bronze_orders"]
 downstream:
   - { type: dashboard, name: "Sales Daily", platform: tableau, owner: analytics@acme.com }
+
+# ── COMPLIANCE — free-form classification & controls ─────────────────────────
+compliance:
+  regulations: [GDPR, CCPA]
+  data_residency: eu-west
+  retention: { period: 400d, basis: legal }
+  classification: confidential
 
 # ── OPERATIONS ───────────────────────────────────────────────────────────────
 tier: gold

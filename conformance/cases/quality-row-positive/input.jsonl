@@ -1,0 +1,3 @@
+{"trip_id": "a", "fare_amount": 10.0}
+{"trip_id": "b", "fare_amount": -5.0}
+{"trip_id": "c", "fare_amount": 20.0}

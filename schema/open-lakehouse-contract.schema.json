@@ -1,4 +1,7 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lakelogic.org/open-lakehouse-contract/v1/schema.json",
+  "title": "OLCContractV1",
   "$defs": {
     "ConfidenceConfig": {
       "description": "Configuration for HOW extraction confidence is scored.\n\nThe confidence THRESHOLD belongs in quality.row_rules, not here::\n\n    quality:\n      row_rules:\n        - name: confidence_gate\n          sql: \"_lakelogic_extraction_confidence >= 0.7\"\n          action: quarantine\n\nMethods:\n  - log_probs: use token-level log probabilities (OpenAI, etc.)\n  - self_assessment: ask the LLM to rate its own confidence\n  - consistency: run extraction N times, measure field-level agreement\n  - field_completeness: % of non-nullable fields that are present",
@@ -25,7 +28,8 @@
         }
       },
       "title": "ConfidenceConfig",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "DatasetRuleNullRatio": {
       "description": "Business-friendly null ratio rule.",
@@ -34,13 +38,20 @@
           "additionalProperties": true,
           "title": "Null Ratio",
           "type": "object"
+        },
+        "name": {
+          "title": "Name",
+          "description": "Stable human-readable identifier for the dataset rule.",
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [
         "null_ratio"
       ],
       "title": "DatasetRuleNullRatio",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "DatasetRuleRowCountBetween": {
       "description": "Business-friendly row count rule.",
@@ -49,13 +60,20 @@
           "additionalProperties": true,
           "title": "Row Count Between",
           "type": "object"
+        },
+        "name": {
+          "title": "Name",
+          "description": "Stable human-readable identifier for the dataset rule.",
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [
         "row_count_between"
       ],
       "title": "DatasetRuleRowCountBetween",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "DatasetRuleUnique": {
       "description": "Business-friendly unique rule.",
@@ -66,21 +84,34 @@
               "type": "string"
             },
             {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
               "additionalProperties": true,
               "type": "object"
             }
           ],
           "title": "Unique"
+        },
+        "name": {
+          "title": "Name",
+          "description": "Stable human-readable identifier for the dataset rule.",
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [
         "unique"
       ],
       "title": "DatasetRuleUnique",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "DltEndpointConfig": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Single REST API endpoint configuration for dlt.",
       "properties": {
         "name": {
@@ -117,7 +148,7 @@
       "type": "object"
     },
     "DltSourceConfig": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "DLT-specific source configuration, embedded in SourceConfig.\n\nSupports two modes:\n\nMode 1 \u2014 Verified Source::\n\n    source:\n      type: dlt\n      dlt:\n        source: stripe_analytics\n        resource: charges\n        credentials:\n          api_key: ${STRIPE_API_KEY}\n\nMode 2 \u2014 Declarative REST API::\n\n    source:\n      type: dlt\n      dlt:\n        base_url: https://api.example.com/v1/\n        credentials:\n          api_key: ${API_KEY}\n        endpoints:\n          - name: users\n            path: users\n            params:\n              limit: 100",
       "properties": {
         "source": {
@@ -193,7 +224,7 @@
       "type": "object"
     },
     "DownstreamConsumer": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "A downstream consumer of a contract's output.\n\nEnables end-to-end lineage tracking from source \u2192 gold \u2192 dashboard/report.\nDeclared on gold-layer contracts to capture what uses the data.\n\nExample YAML:\n    downstream:\n      - type: dashboard\n        name: Monthly Revenue Dashboard\n        platform: power_bi\n        url: https://app.powerbi.com/groups/.../dashboards/...\n        owner: analytics-team\n        refresh: \"daily 06:00 UTC\"\n\n      - type: report\n        name: Weekly Sales Report\n        platform: databricks_sql\n\n      - type: api\n        name: Customer Lookup API\n        platform: internal\n        url: https://api.internal.com/v1/customers\n\n      - type: ml_model\n        name: Churn Prediction\n        platform: mlflow\n        owner: data-science",
       "properties": {
         "type": {
@@ -282,6 +313,18 @@
           ],
           "default": null,
           "title": "Sla"
+        },
+        "managed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Managed"
         }
       },
       "required": [
@@ -315,7 +358,8 @@
         "path"
       ],
       "title": "Environment",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "ExternalLogic": {
       "description": "External logic hook for advanced processing.",
@@ -392,10 +436,11 @@
         "path"
       ],
       "title": "ExternalLogic",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "ExtractionConfig": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "LLM extraction configuration for unstructured data processing.\n\nTurns raw unstructured content (text, PDFs, images, audio, video)\ninto structured rows via LLM, governed by the data contract.\n\nExample YAML:\n    extraction:\n      provider: openai\n      model: gpt-4o-mini\n      temperature: 0.1\n      prompt_template: |\n        Extract the following from this support ticket:\n        {{ ticket_body }}\n      output_schema:\n        - name: sentiment\n          type: string\n          enum: [positive, neutral, negative]\n      source:\n        text_column: ticket_body\n      confidence:\n        min_threshold: 0.8",
       "properties": {
         "provider": {
@@ -599,7 +644,8 @@
         "type"
       ],
       "title": "FactConfig",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "FieldDefinition": {
       "description": "Schema field definition.",
@@ -813,7 +859,8 @@
         "type"
       ],
       "title": "FieldDefinition",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "ForeignKeyRef": {
       "description": "Declaration of a foreign-key relationship on a field.\n\nUsed in two places:\n  1. ``FieldDefinition.foreign_key`` \u2014 field-level documentation + generator hint.\n     The generator samples FK column values from the PK pool of the referenced contract.\n  2. ``RowRuleReferentialIntegrity.referential_integrity`` \u2014 quality-rule payload\n     that the DataProcessor evaluates at validation time.\n\nContract YAML example\n---------------------\n# Field-level (documentation + generator hint)\nschema:\n  columns:\n    - name: agent_id\n      type: BIGINT\n      foreign_key:\n        contract: silver_agents   # LakeLogic contract name\n        column:   agent_id        # PK column in that contract\n\n# Quality rule (validation)\nquality:\n  row_rules:\n    - referential_integrity:\n        field:    agent_id\n        contract: silver_agents\n        column:   agent_id\n        severity: critical\n\ndbt equivalent\n---------------\n- name: agent_id\n  tests:\n    - relationships:\n        to:    ref('agents')\n        field: agent_id",
@@ -837,7 +884,8 @@
         "column"
       ],
       "title": "ForeignKeyRef",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "Info": {
       "description": "Contract metadata such as title, version, and ownership.",
@@ -970,10 +1018,11 @@
         "title"
       ],
       "title": "Info",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "LineageConfig": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Lineage capture settings.",
       "properties": {
         "enabled": {
@@ -1147,10 +1196,11 @@
         "name"
       ],
       "title": "Link",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "Materialization": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Materialization settings for writing outputs.",
       "properties": {
         "strategy": {
@@ -1377,10 +1427,11 @@
         }
       },
       "title": "Model",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "Notification": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Notification channel configuration.\n\nMinimal usage \u2014 just ``target`` and ``on_events``::\n\n    notifications:\n      - target: \"env:TEAMS_WEBHOOK\"\n        on_events: [quarantine, failure]\n\nThe ``type`` field defaults to ``apprise`` which auto-detects the\nchannel from the target URL scheme (``mailto://``, ``slack://``,\n``msteams://``, etc.).  Set ``type`` explicitly only when using the\nlegacy built-in adapters (``smtp``, ``sendgrid``, ``slack``,\n``teams``, ``webhook``).",
       "properties": {
         "type": {
@@ -1498,6 +1549,42 @@
           "additionalProperties": true,
           "title": "Template Context",
           "type": "object"
+        },
+        "to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
         }
       },
       "title": "Notification",
@@ -1535,10 +1622,11 @@
         }
       },
       "title": "PostIngestionConfig",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "PreprocessingConfig": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Preprocessing pipeline for raw unstructured files before LLM extraction.\n\nBronze holds raw files (PDFs, images, videos, audio). Before the LLM\ncan extract structured data, we need to convert them to text.\n\nExample YAML:\n    preprocessing:\n      content_type: pdf\n      ocr:\n        enabled: true\n        engine: tesseract     # tesseract | azure_di | textract | google_vision\n        language: eng\n      chunking:\n        strategy: page        # page | paragraph | sentence | fixed_size\n        max_chunk_tokens: 4000\n        overlap_tokens: 200\n\nFor video:\n    preprocessing:\n      content_type: video\n      transcription:\n        engine: whisper       # whisper | azure_speech | google_speech\n        language: en\n      frame_extraction:\n        enabled: true\n        interval_seconds: 30\n        engine: gpt-4o        # vision model for frame analysis",
       "properties": {
         "content_type": {
@@ -1685,7 +1773,8 @@
         }
       },
       "title": "Quality",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "QualityRule": {
       "description": "Row-level or dataset-level quality rule.",
@@ -1770,10 +1859,11 @@
         "sql"
       ],
       "title": "QualityRule",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "Quarantine": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Quarantine settings and notification routing.",
       "properties": {
         "target": {
@@ -1885,7 +1975,8 @@
         }
       },
       "title": "RetryConfig",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "RowCountSLO": {
       "description": "Row count SLO for individual contracts.\n\nValidates that the output row count falls within expected bounds.\nChecked against the field specified by check_field (default: counts_good).\n\nWhen skip_reprocess_days is set and the reprocess date range exceeds that\nthreshold, SLO checks and counts_source computation are skipped entirely\nto avoid expensive Spark wide-transformation actions on large backfills.",
@@ -1938,7 +2029,8 @@
         }
       },
       "title": "RowCountSLO",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "RowRuleAcceptedValues": {
       "description": "Business-friendly accepted values rule.",
@@ -1953,7 +2045,8 @@
         "accepted_values"
       ],
       "title": "RowRuleAcceptedValues",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "RowRuleLifecycleWindow": {
       "description": "Business-friendly lifecycle window rule.",
@@ -1968,7 +2061,8 @@
         "lifecycle_window"
       ],
       "title": "RowRuleLifecycleWindow",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "RowRuleNotNull": {
       "description": "Business-friendly not-null rule.",
@@ -2004,7 +2098,8 @@
         "not_null"
       ],
       "title": "RowRuleNotNull",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "RowRuleRange": {
       "description": "Business-friendly range rule.",
@@ -2019,7 +2114,8 @@
         "range"
       ],
       "title": "RowRuleRange",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "RowRuleReferentialIntegrity": {
       "description": "Business-friendly referential integrity rule.",
@@ -2034,7 +2130,8 @@
         "referential_integrity"
       ],
       "title": "RowRuleReferentialIntegrity",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "RowRuleRegexMatch": {
       "description": "Business-friendly regex match rule.",
@@ -2049,7 +2146,8 @@
         "regex_match"
       ],
       "title": "RowRuleRegexMatch",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "SchemaPolicy": {
       "description": "Schema enforcement rules for unknown and evolving fields.",
@@ -2079,62 +2177,8 @@
         }
       },
       "title": "SchemaPolicy",
-      "type": "object"
-    },
-    "Server": {
-      "description": "Storage and ingestion settings for a contract.",
-      "properties": {
-        "type": {
-          "title": "Type",
-          "type": "string"
-        },
-        "format": {
-          "default": "parquet",
-          "title": "Format",
-          "type": "string"
-        },
-        "path": {
-          "title": "Path",
-          "type": "string"
-        },
-        "mode": {
-          "default": "validate",
-          "title": "Mode",
-          "type": "string"
-        },
-        "schema_policy": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/SchemaPolicy"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "cast_to_string": {
-          "default": false,
-          "title": "Cast To String",
-          "type": "boolean"
-        },
-        "post_ingestion": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/PostIngestionConfig"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "required": [
-        "type",
-        "path"
-      ],
-      "title": "Server",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "ServiceLevel": {
       "description": "Service-level settings for freshness, availability, and row counts.",
@@ -2182,7 +2226,8 @@
         }
       },
       "title": "ServiceLevel",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "ServiceLevelObjective": {
       "description": "Service-level objective definition.",
@@ -2228,10 +2273,11 @@
         }
       },
       "title": "ServiceLevelObjective",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "SourceConfig": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Source acquisition settings for landing/stream/table/dlt inputs.",
       "properties": {
         "type": {
@@ -2273,6 +2319,19 @@
           ],
           "default": null,
           "title": "Format"
+        },
+        "options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Options"
         },
         "load_mode": {
           "default": "full",
@@ -2528,7 +2587,7 @@
       "type": "object"
     },
     "SourcePartition": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Date-partitioned landing directory configuration.\n\nLimits file globbing to only the relevant date partitions instead\nof scanning the entire landing directory.\n\nExample YAML::\n\n    source:\n      path: \"{landing_root}/events\"\n      partition:\n        format: \"y_%Y/m_%m/d_%d\"   # strftime tokens\n        lookback_days: 3",
       "properties": {
         "format": {
@@ -2590,8 +2649,76 @@
       "title": "SourcePartition",
       "type": "object"
     },
+    "StrictServer": {
+      "additionalProperties": false,
+      "description": "The `server` block, strict \u2014 corrected `mode` enum, no unknown keys.\n\nEncodes the two real modes a runtime honours (``validate`` / ``ingest``) as a\n``Literal`` so the value set is enforced by the model, not by prose.",
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "format": {
+          "default": "parquet",
+          "title": "Format",
+          "type": "string"
+        },
+        "mode": {
+          "default": "validate",
+          "enum": [
+            "validate",
+            "ingest"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "cast_to_string": {
+          "default": false,
+          "title": "Cast To String",
+          "type": "boolean"
+        },
+        "schema_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SchemaPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "post_ingestion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PostIngestionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "StrictServer",
+      "type": "object"
+    },
     "Transformation": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Transformation step (SQL or structured).",
       "properties": {
         "rename": {
@@ -2642,6 +2769,17 @@
           "anyOf": [
             {
               "$ref": "#/$defs/TransformationDeduplicate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deduplicate_by_latest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDeduplicateByLatest"
             },
             {
               "type": "null"
@@ -2902,7 +3040,8 @@
         "source"
       ],
       "title": "TransformationBucket",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationBucketBin": {
       "description": "A single range/equality bin for TransformationBucket.",
@@ -2974,7 +3113,8 @@
         "label"
       ],
       "title": "TransformationBucketBin",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationCast": {
       "description": "Cast columns to specific types.",
@@ -2991,7 +3131,8 @@
         "columns"
       ],
       "title": "TransformationCast",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationCoalesce": {
       "description": "Coalesce multiple fields into a single output.",
@@ -3034,7 +3175,8 @@
         "field"
       ],
       "title": "TransformationCoalesce",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationDateDiff": {
       "description": "Compute the integer difference between two date/timestamp columns.\n\nThe YAML spec is engine-agnostic; each adapter emits the dialect-correct\nSQL (DATEDIFF, DATE_PART, etc.).\n\nYAML example::\n\n    - phase: post\n      date_diff:\n        field: listing_age_days\n        from_col: creation_date\n        to_col: event_date\n        unit: days",
@@ -3063,7 +3205,8 @@
         "to_col"
       ],
       "title": "TransformationDateDiff",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationDateRangeExplode": {
       "description": "Explode each row into one row per calendar day in [start_col, end_col].\n\nThe output column receives successive date values. If end_col is omitted\nor null the current date is used as the upper bound.\n\nEngine-agnostic: Polars uses pl.date_range + explode,\nDuckDB uses generate_series + unnest.\n\nYAML example::\n\n    - phase: post\n      date_range_explode:\n        output: snapshot_date\n        start_col: creation_date\n        end_col: deleted_at       # nullable \u2014 defaults to today when null",
@@ -3099,7 +3242,8 @@
         "start_col"
       ],
       "title": "TransformationDateRangeExplode",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationDeduplicate": {
       "description": "Deduplication rule configuration.",
@@ -3130,12 +3274,45 @@
           "default": "desc",
           "title": "Order",
           "type": "string"
+        },
+        "by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "On",
+          "type": "array"
         }
       },
-      "required": [
-        "on"
-      ],
+      "required": [],
       "title": "TransformationDeduplicate",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationDeduplicateByLatest": {
+      "additionalProperties": false,
+      "description": "Keep the latest row per key by a timestamp column (dedup shorthand).",
+      "properties": {
+        "key_columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Key Columns",
+          "type": "array"
+        },
+        "timestamp_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timestamp Column"
+        }
+      },
+      "title": "TransformationDeduplicateByLatest",
       "type": "object"
     },
     "TransformationDerive": {
@@ -3179,7 +3356,8 @@
         "sql"
       ],
       "title": "TransformationDerive",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationDrop": {
       "description": "Drop columns by name.",
@@ -3196,7 +3374,8 @@
         "columns"
       ],
       "title": "TransformationDrop",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationExplode": {
       "description": "Explode an array field into multiple rows.",
@@ -3222,7 +3401,8 @@
         "field"
       ],
       "title": "TransformationExplode",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationFilter": {
       "description": "Row-level filter expressed in SQL.",
@@ -3236,7 +3416,8 @@
         "sql"
       ],
       "title": "TransformationFilter",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationJoin": {
       "description": "Join a reference table to enrich multiple fields.",
@@ -3290,7 +3471,8 @@
         "fields"
       ],
       "title": "TransformationJoin",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationJsonExtract": {
       "description": "Extract a scalar value from a JSON string column.\n\nEngine-agnostic: Polars uses str.json_path_match, DuckDB uses ->> operator,\nSpark uses get_json_object.\n\nYAML example::\n\n    - phase: post\n      json_extract:\n        field: location_latitude\n        source: location_coordinates\n        path: \"$.latitude\"\n        cast: float",
@@ -3326,7 +3508,8 @@
         "path"
       ],
       "title": "TransformationJsonExtract",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationLookup": {
       "description": "Lookup/join enrichment configuration.",
@@ -3370,7 +3553,8 @@
         "value"
       ],
       "title": "TransformationLookup",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationLower": {
       "description": "Lower-case string fields.",
@@ -3387,7 +3571,8 @@
         "fields"
       ],
       "title": "TransformationLower",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationMapValues": {
       "description": "Map input values to output values.",
@@ -3429,10 +3614,11 @@
         "mapping"
       ],
       "title": "TransformationMapValues",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationPivot": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Pivot rows into columns using conditional aggregation.",
       "properties": {
         "id_vars": {
@@ -3565,7 +3751,7 @@
       "type": "object"
     },
     "TransformationRename": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Rename a column prior to validation.",
       "properties": {
         "from": {
@@ -3713,7 +3899,8 @@
         }
       },
       "title": "TransformationRollup",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationSelect": {
       "description": "Select a subset of columns.",
@@ -3730,7 +3917,8 @@
         "columns"
       ],
       "title": "TransformationSelect",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationSplit": {
       "description": "Split a string field into an array.",
@@ -3761,7 +3949,8 @@
         "field"
       ],
       "title": "TransformationSplit",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationTrim": {
       "description": "Trim whitespace from fields.",
@@ -3783,10 +3972,11 @@
         "fields"
       ],
       "title": "TransformationTrim",
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "TransformationUnpivot": {
-      "additionalProperties": true,
+      "additionalProperties": false,
       "description": "Unpivot columns into rows.",
       "properties": {
         "id_vars": {
@@ -3859,26 +4049,94 @@
         "fields"
       ],
       "title": "TransformationUpper",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "UpstreamContractRef": {
+      "additionalProperties": false,
+      "description": "A structured reference to an upstream contract this one depends on.\n\nRicher sibling of the plain ``upstream: List[str]`` \u2014 carries the upstream\ncontract's mesh coordinates (layer / domain / system) for end-to-end lineage.",
+      "properties": {
+        "contract": {
+          "title": "Contract",
+          "type": "string"
+        },
+        "layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Layer"
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain"
+        },
+        "system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "System"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "required": [
+        "contract"
+      ],
+      "title": "UpstreamContractRef",
       "type": "object"
     }
   },
-  "additionalProperties": true,
-  "description": "Finalized SQL-First Data Contract Model.\nSupports ODCS-style metadata and consolidated 'sql' keywords.",
+  "additionalProperties": false,
+  "description": "Strict canonical OLC contract \u2014 the public standard.\n\nThe strictness is encoded directly in the model, so the emitted JSON Schema\nis a faithful projection of it:\n  * root ``extra=\"forbid\"`` (no undeclared top-level keys),\n  * ``version`` must be SemVer,\n  * ``info`` and ``model`` are required,\n  * vendor extras go under a namespaced ``extensions`` map,\n  * ``server.mode`` is a real enum via :class:`StrictServer`.",
   "properties": {
     "version": {
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$",
       "title": "Version",
       "type": "string"
     },
     "info": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/Info"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
+      "$ref": "#/$defs/Info"
+    },
+    "model": {
+      "$ref": "#/$defs/Model"
+    },
+    "extensions": {
+      "title": "Extensions",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)+$"
+      },
+      "additionalProperties": true
     },
     "metadata": {
       "additionalProperties": true,
@@ -3888,7 +4146,7 @@
     "server": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Server"
+          "$ref": "#/$defs/StrictServer"
         },
         {
           "type": "null"
@@ -3955,7 +4213,8 @@
         {
           "type": "null"
         }
-      ]
+      ],
+      "default": null
     },
     "materialization": {
       "anyOf": [
@@ -3965,7 +4224,8 @@
         {
           "type": "null"
         }
-      ]
+      ],
+      "default": null
     },
     "logic": {
       "anyOf": [
@@ -4021,6 +4281,13 @@
       "title": "Upstream",
       "type": "array"
     },
+    "upstream_contracts": {
+      "items": {
+        "$ref": "#/$defs/UpstreamContractRef"
+      },
+      "title": "Upstream Contracts",
+      "type": "array"
+    },
     "downstream": {
       "items": {
         "$ref": "#/$defs/DownstreamConsumer"
@@ -4051,17 +4318,6 @@
       ],
       "default": null
     },
-    "model": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/Model"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
-    },
     "quality": {
       "anyOf": [
         {
@@ -4070,7 +4326,8 @@
         {
           "type": "null"
         }
-      ]
+      ],
+      "default": null
     },
     "transformations": {
       "items": {
@@ -4098,19 +4355,13 @@
         {
           "type": "null"
         }
-      ]
+      ],
+      "default": null
     },
     "compliance": {
-      "anyOf": [
-        {
-          "additionalProperties": true,
-          "type": "object"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Compliance"
+      "additionalProperties": true,
+      "title": "Compliance",
+      "type": "object"
     },
     "tier": {
       "anyOf": [
@@ -4138,10 +4389,9 @@
     }
   },
   "required": [
-    "version"
+    "version",
+    "info",
+    "model"
   ],
-  "title": "Open Lakehouse Contract",
-  "type": "object",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://lakelogic.org/open-lakehouse-contract/v1/schema.json"
+  "type": "object"
 }

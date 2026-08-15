@@ -13,6 +13,12 @@ authors = [{ name = "LakeLogic" }]
 keywords = ["data-contract", "lakehouse", "data-quality", "odcs", "spec-driven"]
 dependencies = ["jsonschema>=4.18", "pyyaml>=6.0"]
 
+# The `olc validate` CLI stays lightweight (jsonschema only). The strict Pydantic
+# model (olc.models) — the source the JSON Schema is generated from — needs pydantic;
+# install it with `pip install open-lakehouse-contract[models]`.
+[project.optional-dependencies]
+models = ["pydantic>=2"]
+
 [project.urls]
 Homepage = "https://lakelogic.org"
 Repository = "https://github.com/LakeLogic/open-lakehouse-contract"
@@ -21,7 +27,7 @@ Repository = "https://github.com/LakeLogic/open-lakehouse-contract"
 olc = "olc.cli:main"
 
 [tool.setuptools]
-packages = ["olc"]
+packages = ["olc", "olc.models"]
 
 # schema/ + skills/ are vendored into olc/_bundled/ at build time (see setup.py) so
 # `olc validate` (schema) and `olc init` (skill templates) work from a plain

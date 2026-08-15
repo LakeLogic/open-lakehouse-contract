@@ -7,9 +7,106 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Lets a maintainer run the private-runtime conformance job against an arbitrary
+  # ref (e.g. a forked PR's SHA, after review) from the trusted same-repo context
+  # that has the install secret. Interim guard until the runtime is publicly
+  # installable — see docs/contributing.md ("Forked pull requests").
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref/SHA to run executable conformance against (default: this branch)."
+        required: false
+        default: ""
 
 jobs:
-  validate:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install the CLI + the public model
+        # [models] pulls pydantic so the PUBLIC olc.models is importable and the
+        # schema-drift gate (tests/test_schema_drift.py, run below) executes with no
+        # private dependency — an external contributor can regenerate the open schema.
+        run: python -m pip install -e .[models]
+
+      - name: Unit + CLI + schema-drift tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Structural conformance (JSON-Schema fixtures)
+        run: python tests/conformance.py
+
+      - name: Validate all example contracts through the CLI
+        run: olc validate --root examples
+
+  runtime-conformance:
+    name: Executable conformance (real runtime)
+    runs-on: ubuntu-latest
+    # Behavioural conformance runs the actual private LakeLogic engines, so this job
+    # needs a pinned revision + install token. It therefore only runs for same-repo
+    # pushes/PRs; forked PRs (which cannot receive secrets) still get the full public
+    # gate — structural fixtures, the public strict model, and the schema-drift gate —
+    # in the `test` job above, none of which need any private dependency.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      # Pin the exact LakeLogic revision the engines are validated at (immutable SHA).
+      LAKELOGIC_REF: ${{ vars.LAKELOGIC_REF }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # On workflow_dispatch a maintainer may point this at a reviewed fork SHA;
+          # otherwise it checks out the triggering branch as usual.
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify the runtime pin is a full commit SHA
+        run: |
+          test -n "$LAKELOGIC_REF" || {
+            echo "::error::Repository variable LAKELOGIC_REF is not set. Executable conformance requires a pinned LakeLogic revision (a full 40-char commit SHA).";
+            exit 1;
+          }
+          echo "$LAKELOGIC_REF" | grep -Eq '^[0-9a-fA-F]{40}$' || {
+            echo "::error::LAKELOGIC_REF must be a full 40-character commit SHA (got '$LAKELOGIC_REF'). A branch or mutable tag is not reproducible — pin an immutable commit.";
+            exit 1;
+          }
+
+      - name: Install the pinned LakeLogic runtime + conformance dependencies
+        env:
+          TOKEN: ${{ secrets.LAKELOGIC_INSTALL_TOKEN }}
+        run: |
+          test -n "$TOKEN" || {
+            echo "::error::Secret LAKELOGIC_INSTALL_TOKEN is not set. It is needed to install the (private) LakeLogic runtime for the conformance job.";
+            exit 1;
+          }
+          python -m pip install --upgrade pip
+          python -m pip install "lakelogic @ git+https://${TOKEN}@github.com/LakeLogic/LakeLogic.git@${LAKELOGIC_REF}"
+          python -m pip install pytest "polars>=1.0" "duckdb>=1.0" "deltalake>=0.18"
+          python -m pip install -e .[models]
+
+      - name: Assert the runtime engines are importable
+        run: python -c "from lakelogic import DataProcessor; print('LakeLogic runtime available')"
+
+      - name: Executable conformance (strict — fails on skips or unsupported core cases)
+        env:
+          OLC_CONFORMANCE_REQUIRE: "1"
+        run: python -m pytest conformance -q
+
+  package:
+    name: Build and smoke-test package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,15 +115,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install a JSON-Schema validator
-        run: pip install jsonschema pyyaml
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install build
+          python -m build
 
-      # Validate every **/*.olc.yaml against the schema. In your own repo, point
-      # --schema at the published schema URL (or vendor the schema file):
-      #   python validate.py --schema https://…/open-lakehouse-contract.schema.json
-      - name: Validate contracts
-        run: python scripts/validate.py
-
-      # (This repo only) also run the spec conformance corpus.
-      - name: Conformance suite
-        run: python tests/conformance.py
+      - name: Test the installed wheel outside the checkout
+        run: |
+          python -m venv /tmp/olc-venv
+          /tmp/olc-venv/bin/python -m pip install dist/*.whl
+          mkdir -p /tmp/olc-smoke/nested
+          cp examples/orders.olc.yaml /tmp/olc-smoke/nested/orders.olc.yaml
+          cd /tmp/olc-smoke
+          /tmp/olc-venv/bin/olc --version
+          /tmp/olc-venv/bin/olc validate --root . --output json
+          /tmp/olc-venv/bin/olc init --tools agents
+          /tmp/olc-venv/bin/olc init --tools agents

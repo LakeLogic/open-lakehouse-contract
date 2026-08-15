@@ -1,6 +1,8 @@
 # Field Reference
 
-The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contract.schema.json`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/schema/open-lakehouse-contract.schema.json). It has **28 top-level fields** and **63 nested model definitions**. Only `version` is strictly required; everything else is opt-in, so the smallest valid contract is tiny and you add surface as you need it.
+The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contract.schema.json`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/schema/open-lakehouse-contract.schema.json). It has **30 top-level fields** and **65 nested model definitions**. A contract requires `version`, `info`, and `model`; other capabilities are opt-in.
+
+Typed OLC objects are strict: unknown keys fail validation instead of being silently ignored. Vendor-specific fields belong under the explicit `extensions` object and use a namespaced key such as `com.acme.retention`.
 
 The schema is the source of truth — regenerate it any time with `python scripts/generate_schema.py` (see [Why Pydantic](../concepts/why-pydantic.md)). Below the fields are grouped by concern rather than listed flat — each links to the page that documents its options in full.
 
@@ -49,7 +51,8 @@ The contract is portable because each concern is implemented by a well-known lib
 | Field | Purpose | Reference |
 |---|---|---|
 | `version` **(required)** | Contract version, e.g. `1.0.0`. | [Getting Started](../getting-started.md#2-write-your-first-contract) |
-| `info` | Title, description, `table_name`, `target_layer`, owner. | [Getting Started](../getting-started.md#2-write-your-first-contract) |
+| `info` **(required)** | Title, description, `table_name`, `target_layer`, owner. | [Getting Started](../getting-started.md#2-write-your-first-contract) |
+| `extensions` | Namespaced vendor or organisation extensions, e.g. `com.acme.retention`. | — |
 | `metadata` | Free-form metadata; also carries backend hints (e.g. DuckLake metadata/data paths). | [Providers → DuckDB/DuckLake](../providers/duckdb-ducklake.md) |
 | `tier` | Data product tier / criticality. | [Service Levels (SLOs)](slo.md) |
 | `contract_file_name` | Canonical file name for the contract. | — |
@@ -58,7 +61,7 @@ The contract is portable because each concern is implemented by a well-known lib
 
 | Field | Purpose | Reference |
 |---|---|---|
-| `model` | The declared shape — `model.fields[]` with `name`, `type`, `required`, `description`, and field-level `pii` / `masking`. | [Security & PII](security.md) · [Validation & Quality](quality.md#field-level-rules) |
+| `model` **(required)** | The declared shape — `model.fields[]` with `name`, `type`, `required`, `description`, and field-level `pii` / `masking`. | [Security & PII](security.md) · [Validation & Quality](quality.md#field-level-rules) |
 | `primary_key` | Column(s) that uniquely identify a row; drives merge/SCD2 convergence. | [Materialization](materialization.md#write-strategies) |
 | `natural_key` | Business key(s), distinct from a generated surrogate key. | [Materialization](materialization.md#scd2-history) |
 | `schema_policy` | How to react to schema drift (evolve / warn / fail). | [Materialization → Schema evolution](materialization.md#schema-evolution) |
@@ -105,6 +108,9 @@ The contract is portable because each concern is implemented by a well-known lib
 ```yaml
 version: 1.0.0
 info: { title: Orders, table_name: orders, target_layer: silver }
+model:
+  fields:
+    - { name: order_id, type: string }
 ```
 
 Everything else layers on top. See [`examples/orders.olc.yaml`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/examples/orders.olc.yaml) for a fuller annotated contract, and validate your own against the schema with the [Conformance Suite](conformance.md).

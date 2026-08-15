@@ -26,7 +26,7 @@ See the [Conformance Suite](reference/conformance.md) for how the corpus is stru
 
 ## 2. Write your first contract
 
-The smallest valid contract is a `version` plus an `info` block:
+The smallest valid contract declares its `version`, identity, and data model:
 
 ```yaml
 version: 1.0.0
@@ -86,3 +86,36 @@ python scripts/generate_schema.py     # schema/ ← the Pydantic DataContract mo
 ```
 
 Read why that matters in [Why Pydantic](concepts/why-pydantic.md).
+
+## CLI reference
+
+Install the standalone validator and agent-integration CLI:
+
+```bash
+pip install open-lakehouse-contract
+olc --version
+```
+
+Validate explicit files or recursively discover contracts under a directory:
+
+```bash
+olc validate contracts/orders.olc.yaml
+olc validate --root contracts
+olc validate --root contracts --output json
+```
+
+Discovery fails when no contracts are found, which prevents a misconfigured CI job
+from passing silently. Use `--allow-empty` only when an empty directory is expected.
+The YAML loader also rejects duplicate keys rather than silently keeping the last one.
+
+Install assistant integrations safely:
+
+```bash
+olc init --list
+olc init --tools claude,codex --dry-run
+olc init --tools claude,codex
+```
+
+Existing identical files are left untouched. If a destination file differs, the
+whole installation stops before writing anything. Review the conflict and merge it
+yourself, or use `--force` when replacement is intentional.

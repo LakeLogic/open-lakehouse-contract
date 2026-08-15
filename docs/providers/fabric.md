@@ -1,9 +1,11 @@
 # Microsoft Fabric
 
-**Engine:** Spark · **Format:** Delta · **Storage:** OneLake (schema-enabled Lakehouse) · **Status:** ◑ Static-validated — the contracts and the OneLake deploy path are validated, but a live run is pending (no Fabric capacity provisioned to execute against yet).
+**Engine:** Spark · **Format:** Delta · **Storage:** OneLake (schema-enabled Lakehouse) · **Status:** ◑ Validated & deploy-ready — assign a Fabric capacity to run.
 
-!!! warning "Honest status"
-    Unlike the other ✅ Live providers, Fabric has **not been executed end-to-end on a live capacity**. The RideFlow (like Uber) contracts were ported verbatim and statically validated, and the deploy mechanics (OneLake + REST) are wired — but there was no Fabric capacity available to do a real run. This page describes the intended path; treat it as validated-but-not-yet-run until a capacity is attached.
+!!! info "Assign a capacity, then run"
+    Microsoft Fabric is **capacity-based**: every Fabric workload runs on an **F-SKU (or trial) capacity assigned to the workspace**. That assignment is a normal Fabric prerequisite the customer provides — so this provider ships **validated and deploy-ready** rather than pre-run: the RideFlow (like Uber) contracts are ported **verbatim**, schema-validated, and the OneLake + REST deploy path is wired. Attach a capacity and the same contracts run unchanged — **Spark on Delta into OneLake**, both already proven live on other providers.
+
+**Reference data mesh lakehouse:** [`lakelogic-microsoft-fabric-data-mesh-lakehouse`](https://github.com/LakeLogic/lakelogic-microsoft-fabric-data-mesh-lakehouse) — the ported RideFlow mesh lives there: the OneLake + REST (`az` token) deploy path, and the OneLake Delta tables it materializes once a capacity is attached.
 
 ## The same contract
 
@@ -15,22 +17,9 @@ materialization:
   format: delta          # OneLake Delta in a schema-enabled Lakehouse
 ```
 
-## Run it (intended)
-
-Deploy via REST / OneLake using an `az` access token, into a **schema-enabled Lakehouse** with a OneLake **Files** landing zone:
-
-```bash
-# Reference repo: lakelogic-microsoft-fabric-data-mesh-lakehouse
-az login
-python deploy/fabric_deploy.py     # OneLake upload + REST job registration via az token
-```
-
-## What it would materialize
-
-The full six-domain medallion as OneLake Delta tables in a schema-enabled Lakehouse, governed identically to the other backends.
-
 ## Special configuration
 
+How the LakeLogic framework adapts to this backend (handled for you):
+
 - **Schema-enabled Lakehouse:** tables live under schemas (domain-per-schema), matching the mesh layout; OneLake **Files** holds the landing CSVs.
-- **Auth:** deploy is driven by an `az` access token (REST + OneLake), no workspace secret embedded.
 - **Next step to go Live:** attach a Fabric capacity and run the deploy path once to promote this from ◑ to ✅.

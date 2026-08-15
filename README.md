@@ -15,7 +15,7 @@
 
 **One executable contract for a data product — ingest from any source, govern it, land it in an open lakehouse, publish it anywhere. Portable · SQL-native · engine-agnostic.**
 
-The *same* contract runs unchanged across:
+Your **contract stays the same** across every backend below — only the **backend-owned execution settings** (engine, table format, catalog, storage) change:
 
 | | |
 |---|---|
@@ -139,8 +139,9 @@ AI:  Materialized silver.revenue_daily (merge, DuckLake) — 4,812 rows.
 The workflow is **portable across AI agents** — same verbs, each assistant's native mechanism, no cloud required:
 
 ```bash
-pip install -e .          # the `olc` CLI (validate + init)
-olc init --tools all      # install integrations for every supported assistant
+pip install -e .                    # the `olc` CLI (validate + init)
+olc init --tools all --dry-run      # preview every destination file
+olc init --tools all                # install; conflicts stop before any write
 ```
 
 **Eleven assistants ship today** — Claude Code, Codex (ChatGPT), Gemini CLI, Cursor, GitHub Copilot, Windsurf, Cline, Amazon Q, Roo Code, Kilo Code, and the shared [`AGENTS.md`](https://agents.md) standard (OpenCode, Zed, Jules, …) — each in its native format:
@@ -225,11 +226,11 @@ OLC is deliberately **three separable layers**, so the standard never collapses 
 - **JSON Schema** (`schema/open-lakehouse-contract.schema.json`) — the machine-readable *structural* form. Validate an OLC file in any language.
 - **Reference implementation** — [LakeLogic](https://github.com/LakeLogic/LakeLogic)'s **Pydantic** models + Core, which *execute* the intent. The JSON Schema is generated from these models, so it can't drift from a working framework.
 
-The Pydantic models are the **reference implementation, not the spec** — any second framework, in any language, may implement the same spec. Regenerate the schema when the models change:
+The strict Pydantic model (`olc/models/`) is the **canonical source the schema is generated from — and it lives in this public repo**, so anyone can regenerate the open schema with no private dependency. The model is a *reference shape*, not the spec itself — any framework, in any language, may implement the same spec. Regenerate when the model changes:
 
 ```bash
-pip install lakelogic
-python scripts/generate_schema.py     # schema/ ← the reference DataContract models
+pip install -e .[models]              # pulls pydantic; the CLI itself stays jsonschema-only
+python scripts/generate_schema.py     # schema/ ← generated from the strict OLCContractV1 model
 ```
 
 ## Complements ODCS
@@ -259,8 +260,9 @@ Spec-driven development for the **data plane**: humans and AI agree on a precise
 | `olc/` | The `olc` **CLI** — `olc validate` (schema-only, no framework) + `olc init` (install agent integrations). |
 | `skills/` | **Agent integrations** — for Claude Code, Codex, Cursor, GitHub Copilot, Gemini, Windsurf, and Cline (installed by `olc init`). |
 | `examples/` | Illustrative contracts. |
-| `tests/` | A **conformance suite** — `valid/` must pass, `invalid/` must fail. |
-| `scripts/` | `validate.py` (zero-install CI validator) + `generate_schema.py` (regenerate the schema). |
+| `tests/` | **Structural conformance** — JSON-Schema fixtures: `valid/` must pass, `invalid/` must fail. |
+| `conformance/` | **Executable conformance** — behavioural cases (contract + input → expected accepted/quarantined/materialised) run through DuckDB & Polars adapters to prove one contract behaves identically across engines. |
+| `scripts/` | `validate.py` (zero-install CI validator) + `generate_schema.py` (regenerate the schema from the reference model). |
 | `docs/` | The full documentation site (mkdocs-material) — concepts, providers, and a complete field reference. |
 
 ## Documentation

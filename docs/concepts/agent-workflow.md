@@ -8,12 +8,12 @@ Three properties make this work, and they're the whole point of OLC:
 - **One artifact, two readers.** The same YAML is human-readable (an analyst can review a `MERGE` strategy or a PII flag) and machine-readable (the agent generates and validates it against a JSON Schema). No translation layer, no drift between "the plan" and "the pipeline."
 - **Persistent intent.** The contract lives *in the repository*, beside the data product — not in a chat log. Tell one agent "`customer_id` must never be null and this table must refresh every 2 hours" and it holds for this conversation; write it into the contract and it holds forever, for the next engineer and the next agent. **The AI tool changes, the model changes, the data platform changes — the contract remains.**
 
-## Why a contract beats a code spec for agents
+## Why an executable contract fits agents
 
-OpenSpec's specs describe code an agent still has to write — and can't automatically verify. An **OLC contract is itself executable and self-checking**, so the loop closes on ground truth, not a guess:
+An **OLC contract is itself executable and self-checking** — the agent doesn't just describe the data product, it runs the contract and sees what actually happened. So the loop closes on ground truth, not a guess:
 
 ```mermaid
-flowchart LR
+flowchart TD
     I[Human intent<br/>plain language] --> P[Agent proposes<br/>contract.olc.yaml]
     P --> V{Validate}
     V -- schema error --> P
@@ -37,8 +37,6 @@ OLC deliberately uses **data-engineering verbs**, not a generic software-spec wo
 | **Review** | `/olc:review` | Compare the current changes against the applicable contracts and flag **breaking** schema / quality / SLO / PII / lineage / materialization changes (the merge gate). |
 | **Validate** | `/olc:validate` | JSON-Schema check **plus a dry-run on synthetic data generated from the contract** (no real data needed) → rows, quarantine %, failed rules, SLO status. The agent self-corrects on the errors. |
 | **Apply** | `/olc:apply --provider <x>` | Materialize for real (merge / SCD2 → Delta / Iceberg / DuckLake). **The engine is chosen here, not in the contract.** |
-
-Not `propose → apply` (a generic software-spec workflow) — `discover → contract → review → validate → impact`. That's what makes OLC feel like a data-engineering standard rather than OpenSpec with different nouns.
 
 !!! tip "No real data? Validate against synthetic data"
     The dry-run **doesn't need production data**. The reference framework generates synthetic data *from the contract itself* — `lakelogic generate --contract <file> --rows N` produces rows that respect the declared types, nullability, `accepted_values`, and ranges (Faker-semantic, so `customer_email` looks like an email). So an agent can validate a contract the moment it writes it — **greenfield, in CI, before a single real row exists**. And it can prove the gates *fire*: `--invalid-ratio 0.1` deliberately injects bad rows so the agent confirms the quality rules and quarantine actually catch them. Real data, when it exists, just deepens the same check.
@@ -130,7 +128,7 @@ flowchart TD
 
 Because the contract declares `primary_key`, `quality`, `materialization`, and SLOs, a reviewer (or an automated check) can see exactly **what must be preserved** when the implementation changes — a `merge` strategy that silently became `append`, a dropped `not_null` rule, a widened PII field all surface as a *diff of intent*, not a buried code change. The contract turns "did this PR break the data product?" into a checkable, PASS/FAIL question.
 
-Note the complementarity with OpenSpec: a code-spec workflow answers *"did the agent build what I asked?"* An OLC contract + a conforming framework answers the harder, data-specific question — *"does the resulting data product actually satisfy the engineering contract?"* — by executing the rules against real data, not just reading them.
+OLC is complementary to a code-spec workflow like OpenSpec: a code spec answers *"did the agent build what I asked?"*; an OLC contract + a conforming framework answers the **data-specific** question — *"does the resulting data product actually satisfy the engineering contract?"* — by executing the rules against real data, not just reading them.
 
 ## Portable across every AI agent
 

@@ -1,0 +1,8 @@
+version: 1.0.0
+info:
+  title: Misspelled nested key
+  table_name: nested_typo
+model:
+  fields:
+    - name: id
+      tpye: integer

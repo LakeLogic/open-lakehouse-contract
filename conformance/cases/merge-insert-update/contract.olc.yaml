@@ -1,0 +1,16 @@
+version: 1.0.0
+info:
+  title: Trips
+  table_name: trips
+model:
+  fields:
+  - name: id
+    type: int
+    required: true
+  - name: value
+    type: string
+primary_key:
+- id
+materialization:
+  strategy: merge
+  format: delta

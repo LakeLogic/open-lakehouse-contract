@@ -1,0 +1,19 @@
+id: OLC-Q-002
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.row.sql
+description: One row failing two rules is attributed to both.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+  failed_rules:
+    fare_nonneg: 1
+    pax_min: 1
+comparison:
+  sort_by:
+  - trip_id

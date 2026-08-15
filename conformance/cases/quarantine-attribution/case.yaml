@@ -1,0 +1,19 @@
+id: OLC-QT-001
+spec_version: 1.0.0
+level: core-runtime
+feature: quarantine.attribution
+description: Distinct rows are attributed to the distinct rule each failed.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 1
+  rows_quarantined: 2
+  failed_rules:
+    fare_nonneg: 1
+    pax_min: 1
+comparison:
+  sort_by:
+  - id

@@ -1,8 +1,10 @@
 # MotherDuck
 
-**Engine:** DuckDB · **Format:** DuckLake · **Storage:** MotherDuck-hosted catalog · **Status:** ✅ Live — marketplace domain, 18 governed tables + snapshots, on a real MotherDuck account.
+**Engine:** DuckDB · **Format:** DuckLake · **Storage:** MotherDuck-hosted catalog · **Status:** ✅ Live.
 
-[MotherDuck](https://motherduck.com) is cloud DuckDB. With DuckLake, your governed medallion runs from a laptop straight into a **MotherDuck-hosted lakehouse** — same contracts, no local files, no Spark.
+[MotherDuck](https://motherduck.com) is a **serverless analytics platform built on DuckDB** — more than hosted DuckDB. It adds **hybrid execution** (splitting a query between your laptop and the cloud), a managed cloud catalog with **zero-copy sharing**, a collaborative SQL UI, and elastic scale — all DuckDB-native. With DuckLake, your governed medallion runs from a laptop straight into a **MotherDuck-hosted lakehouse** — same contracts, no local files, no Spark.
+
+**Reference data mesh lakehouse:** [`lakelogic-motherduck-data-mesh-lakehouse`](https://github.com/LakeLogic/lakelogic-motherduck-data-mesh-lakehouse) — a deliberately thin, upload-and-run artifact: how to seed and build the mesh into MotherDuck, and every table it materializes.
 
 ## The same contract
 
@@ -14,29 +16,8 @@ materialization:
   format: ducklake        # metadata target points at MotherDuck ('md:')
 ```
 
-## Run it
-
-```bash
-pip install lakelogic duckdb polars pyyaml
-
-echo "YOUR_TOKEN" > md_token.txt      # app.motherduck.com → Settings → Access Tokens (gitignored)
-python run.py                         # seed locally, build the medallion in MotherDuck
-```
-
-Reference repo: **`lakelogic-motherduck-data-mesh-lakehouse`** — a deliberately thin co-marketing artifact.
-
-## What it materializes
-
-An 18-table `rideflow_lake` DuckLake database — RideFlow, a fictional ride-hailing company (like Uber) — on MotherDuck (the `marketplace` domain: bronze → silver → gold, SCD2 dims + facts), with DuckLake snapshots recorded per write. Inspect it in the MotherDuck UI or any DuckDB client:
-
-```sql
-USE rideflow_lake;
-SHOW TABLES;
-SELECT * FROM gold_rideflow_fact_trip_daily_kpis;
-SELECT * FROM rideflow_lake.snapshots();      -- time-travel, hosted
-```
-
 ## Special configuration
 
+How the LakeLogic framework adapts to this backend (handled for you):
+
 - **Native DuckLake database, not ATTACH.** MotherDuck "workspace mode" rejects `ATTACH 'ducklake:md:…'`. The framework instead connects to `md:` and issues `CREATE DATABASE IF NOT EXISTS "<catalog>" (TYPE DUCKLAKE)`, then writes into it. The reference framework detects the MotherDuck backend automatically from an `md:` metadata path.
-- **Token handling.** The `motherduck_token` env var (or `md_token.txt`) is the only credential; it is gitignored and never committed.

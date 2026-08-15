@@ -8,15 +8,9 @@ A single run executes these steps in order:
 
 ```mermaid
 flowchart TD
-    S[1. Source loaded<br/><i>raw data read from file / table / API</i>] --> PRE
-    PRE[2. Pre-transforms<br/><i>rename · filter · deduplicate · cast · trim · select · drop</i>] --> SE
-    SE[3. Schema enforcement<br/><i>cast columns to contract types</i>] --> PQ
-    PQ[4. Pre quality rules<br/><i>validate SOURCE columns</i>] --> SPLIT
-    SPLIT{5. Good / bad split<br/><i>failing rows → quarantine</i>} -->|good rows| POST
-    SPLIT -->|bad rows| Q[(Quarantine<br/>+ rule & reason)]
-    POST[6. Post-transforms<br/><i>derive · lookup · join · sql · rollup · pivot</i>] --> POQ
-    POQ[7. Post quality rules<br/><i>validate DERIVED columns</i>] --> M[8. Materialize<br/><i>merge / scd2 / append → Delta / Iceberg / DuckLake</i>]
-    M --> C[9. Post-ingestion cleanup<br/><i>delete / archive / retain source</i>]
+    S[1 · Source] --> PRE[2 · Pre-transforms] --> SE[3 · Schema] --> PQ[4 · Pre-quality] --> SPLIT{5 · Good / bad}
+    SPLIT -->|good rows| POST[6 · Post-transforms] --> POQ[7 · Post-quality] --> M[8 · Materialize] --> C[9 · Cleanup]
+    SPLIT -->|bad rows| Q[(Quarantine)]
 ```
 
 | Step | Stage | What happens |

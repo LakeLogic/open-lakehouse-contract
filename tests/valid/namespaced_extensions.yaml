@@ -1,0 +1,13 @@
+version: 1.0.0
+info:
+  title: Contract with extensions
+  table_name: extended_contract
+model:
+  fields:
+    - name: id
+      type: integer
+extensions:
+  com.acme.retention:
+    policy: seven_years
+  io.lakelogic.experimental:
+    enabled: true

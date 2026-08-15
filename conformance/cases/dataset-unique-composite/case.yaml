@@ -1,0 +1,15 @@
+id: OLC-D-002
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.dataset.unique
+description: A composite (multi-column) uniqueness rule detects a duplicate key tuple.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 3
+  rows_quarantined: 0
+  dataset_rules_failed: [order_id_line_no_unique]
+comparison:
+  sort_by: [order_id, line_no]

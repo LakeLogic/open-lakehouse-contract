@@ -1,6 +1,8 @@
 # Providers
 
-This is the OLC equivalent of the Terraform Registry: **one canonical contract, rendered across a matrix of backends.** The RideFlow data mesh — the *same* contracts throughout — has been run on each platform below. Every provider page shows the identical contract, the framework invocation for that backend, and what it materialized.
+**One executable contract model for every lakehouse — powered by LakeLogic and proven live across Databricks, Snowflake, BigQuery, AWS, DuckLake, and MotherDuck** (with Microsoft Fabric validated and deploy-ready).
+
+This is the OLC equivalent of the Terraform Registry: **one canonical contract, rendered across a matrix of backends.** The RideFlow data mesh — the *same* contract model throughout — has been run on each platform below; only the backend-owned execution settings (engine, format, catalog, storage) change. Every provider page shows the identical contract, the framework invocation for that backend, and what it materialized.
 
 !!! info "What's RideFlow?"
     **RideFlow** is the running example used throughout OLC: a realistic, **fictional ride-hailing company (like Uber)** — its data mesh spans **6 domains** (marketplace, payments, operations, marketing, reference, shared) across **11 source systems** (Stripe, Twilio, Zendesk, Checkr, Google Ads, HubSpot, and more), ~60 governed tables through a bronze → silver → gold medallion. It exists as one set of OLC contracts; each provider page runs *those exact contracts* on a different lakehouse. Think of it as the "hello world" that's big enough to be real — nothing here is platform-specific to any one backend.
@@ -9,18 +11,20 @@ The contract never changes between these pages. Only the `engine`, the `format`,
 
 ## The matrix
 
-| Platform | Engine(s) | Table format | Catalog / storage |
-|---|---|---|---|
-| **[DuckDB / DuckLake](duckdb-ducklake.md)** | DuckDB | DuckLake | Local files, or S3 / GCS / ADLS |
-| **[MotherDuck](motherduck.md)** | DuckDB | DuckLake | MotherDuck-hosted catalog |
-| **[Databricks](databricks.md)** | Spark, Polars, DuckDB | Delta | Unity Catalog (managed + external ADLS) |
-| **[Snowflake](snowflake.md)** | Snowflake SQL | Native tables | Snowflake database + Task DAG |
-| **[BigQuery (GCP)](bigquery.md)** | BigQuery, Spark | BigQuery native, Iceberg | BigQuery datasets; Iceberg on GCS |
-| **[Microsoft Fabric](fabric.md)** | Spark | Delta | OneLake (schema-enabled Lakehouse) |
-| **[AWS (Glue)](aws.md)** | Spark | Iceberg | Glue Data Catalog + S3 |
+| Platform | Engine(s) | Format | Scope & status | Reference repo |
+|---|---|---|---|---|
+| **[DuckDB / DuckLake](duckdb-ducklake.md)** | DuckDB | DuckLake | ✅ Live — full 6-domain mesh, ~59 tables | [GitHub ↗](https://github.com/LakeLogic/lakelogic-duckdb-ducklake-data-mesh-lakehouse) |
+| **[MotherDuck](motherduck.md)** | DuckDB | DuckLake | ✅ Live — marketplace domain, 18 tables + snapshots | [GitHub ↗](https://github.com/LakeLogic/lakelogic-motherduck-data-mesh-lakehouse) |
+| **[Databricks](databricks.md)** | Spark, Polars, DuckDB | Delta | ✅ Live — full mesh on UC; external ADLS Delta via Polars/DuckDB | [GitHub ↗](https://github.com/LakeLogic/lakelogic-databricks-data-mesh-lakehouse) |
+| **[Snowflake](snowflake.md)** | Snowflake SQL | Native tables | ✅ Live — full mesh on a trial, + native Project | [GitHub ↗](https://github.com/LakeLogic/lakelogic-snowflake-data-mesh-lakehouse) |
+| **[BigQuery (GCP)](bigquery.md)** | BigQuery, Spark | BigQuery native, Iceberg | ✅ Live — 11/11 systems; 18 Iceberg tables | [GitHub ↗](https://github.com/LakeLogic/lakelogic-gcp-data-mesh-lakehouse) |
+| **[AWS (Glue)](aws.md)** | Spark | Iceberg | ✅ Live — reference + marketplace; one Silver job on Spark 3.5 | [GitHub ↗](https://github.com/LakeLogic/lakelogic-aws-data-mesh-lakehouse) |
+| **[Microsoft Fabric](fabric.md)** | Spark | Delta | ◑ Validated & deploy-ready — assign a capacity | [GitHub ↗](https://github.com/LakeLogic/lakelogic-microsoft-fabric-data-mesh-lakehouse) |
 
-!!! note "Honest by default"
-    Most platforms above have been **run live** — contracts executed, real tables materialized. **Microsoft Fabric** is currently **static-validated** (contracts and deploy path validated, live run pending capacity). Each platform page states exactly what ran, and flags any parked job — no silent gaps.
+!!! note "How to read 'scope & status'"
+    ✅ **Live** = the contracts were executed on that platform and materialized real tables (scope stated per row). ◑ **Static preview** (Fabric) = validated and deploy-ready; Fabric is capacity-based, so a live run expects an **F-SKU (or trial) capacity assigned to the workspace** — a normal customer prerequisite. Each provider page states exactly what ran — no silent gaps.
+
+    *Each **reference repo** is the reproducibility artifact for that backend — the exact contracts, the framework invocation, and the run output. They are made public alongside the OLC release.*
 
 ## What "same contract" means here
 
@@ -45,14 +49,14 @@ materialization: { strategy: merge }     # format chosen per-platform
 The only per-platform choices are the ones a backend legitimately owns:
 
 ```mermaid
-flowchart TB
-    K[One RideFlow contract set] --> D[DuckDB · DuckLake · local/S3/GCS/ADLS]
-    K --> MD[DuckDB · DuckLake · MotherDuck]
-    K --> DB[Spark · Delta · Unity Catalog]
-    K --> SF[Snowflake · native · Task DAG]
-    K --> BQ[BigQuery · native + Iceberg · GCS]
-    K --> FB[Spark · Delta · OneLake]
-    K --> AW[Spark · Iceberg · Glue + S3]
+flowchart LR
+    K[One RideFlow contract set] --> D["DuckDB · DuckLake · local/S3/GCS/ADLS<br/>(DuckDB / DuckLake)"]
+    K --> MD["DuckDB · DuckLake · MotherDuck<br/>(MotherDuck)"]
+    K --> DB["Spark · Delta · Unity Catalog<br/>(Databricks)"]
+    K --> SF["Snowflake · native · Task DAG<br/>(Snowflake)"]
+    K --> BQ["BigQuery · native + Iceberg · GCS<br/>(BigQuery / GCP)"]
+    K --> FB["Spark · Delta · OneLake<br/>(Microsoft Fabric)"]
+    K --> AW["Spark · Iceberg · Glue + S3<br/>(AWS Glue)"]
 ```
 
 ## Special configurations

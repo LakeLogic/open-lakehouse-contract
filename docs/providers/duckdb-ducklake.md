@@ -1,8 +1,10 @@
 # DuckDB / DuckLake
 
-**Engine:** DuckDB · **Format:** DuckLake · **Storage:** local files, or S3 / GCS / Azure ADLS · **Status:** ✅ Live — full 6-domain RideFlow (like Uber) mesh, ~59 governed tables, zero infrastructure.
+**Engine:** DuckDB · **Format:** DuckLake · **Storage:** local files, or S3 / GCS / Azure ADLS · **Status:** ✅ Live.
 
-[DuckLake](https://ducklake.select) is DuckDB's open lakehouse format — a SQL-catalog (SQLite/DuckDB/Postgres) plus Parquet data, with snapshots and time-travel. It gives you a real ACID lakehouse with **nothing to run**.
+[DuckLake](https://ducklake.select) is DuckDB's open lakehouse format — a SQL-catalog (DuckDB / SQLite / Postgres) plus Parquet data. You get a real **ACID** lakehouse: snapshots & time-travel, schema evolution, hidden partitioning, data inlining for small tables, and concurrent writers (a Postgres catalog adds GRANT/REVOKE governance) — with **nothing to run**.
+
+**Reference data mesh lakehouse:** [`lakelogic-duckdb-ducklake-data-mesh-lakehouse`](https://github.com/LakeLogic/lakelogic-duckdb-ducklake-data-mesh-lakehouse) — the full runnable RideFlow mesh lives there: how to seed and build it, and every table it materializes.
 
 ## The same contract
 
@@ -12,39 +14,6 @@ No change from the [canonical RideFlow contract](index.md#what-same-contract-mea
 materialization:
   strategy: merge
   format: ducklake        # ← the only backend-specific line
-```
-
-## Run it
-
-```bash
-pip install lakelogic duckdb polars pyyaml
-python -m orchestration.run_mesh          # seed + build the whole mesh into DuckLake
-```
-
-Reference repo: **`lakelogic-duckdb-ducklake-data-mesh-lakehouse`**.
-
-## What it materializes
-
-```
-== DuckLake catalog summary ===================================
-  rideflow_lake.marketing       11 tables
-  rideflow_lake.marketplace     18 tables
-  rideflow_lake.operations       6 tables
-  rideflow_lake.payments         7 tables
-  rideflow_lake.reference       13 tables
-  rideflow_lake.shared           4 tables
-  TOTAL                         59 tables
-
-OK  11 systems - 59 tables - ~37s - DuckLake rideflow_lake
-```
-
-Inspect it with any DuckDB client — including DuckLake time-travel:
-
-```sql
-INSTALL ducklake; LOAD ducklake;
-ATTACH 'ducklake:lakehouse/rideflow_lake.ducklake' AS rideflow_lake (DATA_PATH 'lakehouse/ducklake_data');
-SELECT * FROM rideflow_lake.marketplace.gold_rideflow_fact_trip_daily_kpis LIMIT 20;
-SELECT * FROM rideflow_lake.snapshots();     -- every write is a snapshot
 ```
 
 ## Data on your cloud bucket
@@ -61,6 +30,7 @@ Credentials come from each provider's default chain / standard env vars (AWS def
 
 ## Special configuration
 
-- **Attach:** `ATTACH 'ducklake:<meta>.ducklake' AS <catalog> (DATA_PATH '<data>')`.
+How the LakeLogic framework adapts to this backend (handled for you):
+
 - **Reads are single-use views:** the framework materializes cross-domain links as real tables before a fact scans them twice (otherwise a second scan reads zero rows).
 - **Identifier quoting:** contracts authored Databricks-style (backtick-quoted) are de-quoted on resolve so cross-domain marts bind on DuckDB.

@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: Events, table_name: events }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: value, type: string }
+    - { name: ts, type: string }
+transformations:
+  - phase: post
+    deduplicate_by_latest: { key_columns: [id], timestamp_column: ts }

@@ -36,7 +36,7 @@ def _is_valid(doc: dict) -> tuple[bool, str]:
 def main() -> int:
     failures = 0
 
-    should_pass = sorted((ROOT / "examples").glob("*.yaml")) + sorted((ROOT / "tests" / "valid").glob("*.yaml"))
+    should_pass = sorted((ROOT / "examples").rglob("*.yaml")) + sorted((ROOT / "tests" / "valid").rglob("*.yaml"))
     for f in should_pass:
         ok, msg = _is_valid(_load(f))
         print(f"  {'PASS' if ok else 'FAIL'}  (expect valid)   {f.relative_to(ROOT)}")
@@ -44,7 +44,7 @@ def main() -> int:
             print(f"        -> {msg}")
             failures += 1
 
-    for f in sorted((ROOT / "tests" / "invalid").glob("*.yaml")):
+    for f in sorted((ROOT / "tests" / "invalid").rglob("*.yaml")):
         ok, _ = _is_valid(_load(f))
         print(f"  {'PASS' if not ok else 'FAIL'}  (expect invalid) {f.relative_to(ROOT)}")
         if ok:

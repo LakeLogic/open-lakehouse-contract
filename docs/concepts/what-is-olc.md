@@ -9,12 +9,12 @@ Most data-contract specs are **descriptive**: they document a dataset's shape so
 OLC closes the gap by being **executable**. The same file that says *"`amount` must be positive, `customer_email` is PII, materialize as a merge into Iceberg"* is the file a framework reads to **enforce** those rules. There is no second implementation to keep in sync — the contract *is* the pipeline definition.
 
 ```mermaid
-flowchart LR
+flowchart TD
     C[OLC contract] --> V[Validate schema + types]
-    V --> Q[Quality rules → quarantine bad rows]
+    V --> Q["Quality rules →<br/>quarantine bad rows"]
     Q --> P[PII masking]
     P --> L[Inject lineage]
-    L --> M[Materialize: merge / SCD2 → Delta / Iceberg / DuckLake]
+    L --> M["Materialize: merge / SCD2<br/>→ Delta / Iceberg / DuckLake"]
 ```
 
 ## The whole lakehouse surface
@@ -48,14 +48,12 @@ You describe the destination, not the steps. That's what makes the same contract
 
 The core idea in one sentence: **the contract is the invariant; the backend is swappable.**
 
-```
-          ┌─────────────────────────── OLC contract (the invariant) ──────────────────────────┐
-          │ schema · quality · quarantine · PII · lineage · materialization · SLOs · keys      │
-          └───────────────────────────────────────────────────────────────────────────────────┘
-                    │                         │                         │
-              engine: spark             engine: duckdb            engine: polars
-              format: delta             format: ducklake          format: iceberg
-              on: Databricks            on: MotherDuck            on: your laptop
+```mermaid
+flowchart TD
+    C["OLC contract (the invariant)<br/>schema · quality · quarantine<br/>PII · lineage · materialization<br/>SLOs · keys"]
+    C --> A["engine: spark<br/>format: delta<br/>on: Databricks"]
+    C --> B["engine: duckdb<br/>format: ducklake<br/>on: MotherDuck"]
+    C --> D["engine: polars<br/>format: iceberg<br/>on: your laptop"]
 ```
 
 Change the three lines under the fold; the contract above never moves. That's the promise the [Providers](../providers/index.md) matrix demonstrates end-to-end.

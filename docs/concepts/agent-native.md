@@ -16,14 +16,14 @@ An Open Lakehouse Contract is an unusually good substrate for **AI data agents**
 ## The closed loop
 
 ```mermaid
-flowchart LR
+flowchart TD
     G[Generate contract<br/>schema-constrained] --> V{Valid?}
     V -- no, structured error --> G
     V -- yes --> X[Execute on a framework]
-    X --> O[Observe: quarantine %, rule failures, SLO breach]
+    X --> O["Observe: quarantine %,<br/>rule failures, SLO breach"]
     O --> R{Meets intent?}
     R -- no --> G
-    R -- yes --> D[Done — a working data product]
+    R -- yes --> D["Done —<br/>a working data product"]
 ```
 
 Every arrow here is *checkable*. The agent is never asked to be right in one shot; it's asked to converge, and each step gives it a concrete signal to converge on. That's the difference between "an LLM that writes pipelines" and "an agent that produces a data product you can trust."

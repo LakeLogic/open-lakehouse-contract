@@ -1,0 +1,18 @@
+id: OLC-EO-002
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.post
+description: A post-transform derived column is checked by a post-quality rule.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+  failed_rules:
+    total_cap: 1
+comparison:
+  sort_by:
+  - id

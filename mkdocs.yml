@@ -85,9 +85,11 @@ nav:
       - Post-Ingestion Lifecycle: reference/lifecycle.md
       - Validation & Quality: reference/quality.md
       - Security & PII: reference/security.md
+      - Compliance: reference/compliance.md
       - Transformation: reference/transformation.md
       - External Logic (Spark / notebooks): reference/external-logic.md
       - Materialization & Storage: reference/materialization.md
+      - Server & Output: reference/server.md
       - Lineage: reference/lineage.md
       - Service Levels (SLOs): reference/slo.md
       - Notifications: reference/notifications.md

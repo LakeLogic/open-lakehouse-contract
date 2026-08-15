@@ -1,0 +1,21 @@
+spec_version: 1.0.0
+description: Open Lakehouse Contract executable-conformance specification.
+levels:
+  document: Contract validates against the JSON Schema.
+  core-runtime: Schema, quality and quarantine semantics behave correctly.
+  materialization: append/overwrite/merge/SCD2 produce the required state.
+  operational: lineage, SLOs, run metadata and failure semantics behave correctly.
+  provider: A real platform adapter passes the applicable behavioural suite.
+comparison_defaults:
+  row_order: ignore
+  column_order: ignore
+  numeric_tolerance: 1.0e-06
+  ignore_fields:
+  - run_id
+  - observed_at
+  - _lakelogic_run_id
+outcomes:
+  PASS: declared feature behaved correctly
+  FAIL: declared feature misbehaved
+  UNSUPPORTED: feature not declared by the adapter
+  SKIP: not applicable

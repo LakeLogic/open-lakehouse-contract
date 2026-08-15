@@ -1,0 +1,13 @@
+id: OLC-T-001
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.deduplicate_by_latest
+description: deduplicate_by_latest keeps the most-recent row per key by timestamp.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 2
+comparison:
+  sort_by: [id]

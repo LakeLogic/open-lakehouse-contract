@@ -1,0 +1,8 @@
+version: banana
+info:
+  title: Invalid version
+  table_name: invalid_version
+model:
+  fields:
+    - name: id
+      type: integer

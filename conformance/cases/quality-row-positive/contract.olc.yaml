@@ -1,0 +1,15 @@
+version: 1.0.0
+info:
+  title: Trips
+  table_name: trips
+model:
+  fields:
+  - name: trip_id
+    type: string
+    required: true
+  - name: fare_amount
+    type: float
+quality:
+  row_rules:
+  - name: fare_non_negative
+    sql: fare_amount >= 0

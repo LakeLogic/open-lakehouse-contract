@@ -1,0 +1,9 @@
+version: 1.0.0
+info: { title: Items, table_name: items }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: v, type: integer }
+transformations:
+  - phase: post
+    filter: { sql: "v > 0" }

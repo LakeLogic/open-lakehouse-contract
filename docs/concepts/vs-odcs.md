@@ -10,16 +10,16 @@ OLC **complements the [Open Data Contract Standard (ODCS)](https://github.com/bi
 They're not rivals — they stack. ODCS is the *business + semantic agreement*; OLC is the *engineering + execution* contract that carries it out:
 
 ```mermaid
-flowchart TD
-    DP[Data product] --> ODCS[Open Data Contract Standard<br/>business + semantic agreement<br/>ownership · semantics · terms · SLA]
-    ODCS --> OLC[Open Lakehouse Contract<br/>engineering + execution contract<br/>SQL rules · materialization · engine · incremental]
-    OLC --> RT[OLC-compatible framework]
-    RT --> E1[Spark]
-    RT --> E2[DuckDB]
-    RT --> E3[Polars]
-    E1 --> F[Delta / Iceberg / DuckLake]
-    E2 --> F
-    E3 --> F
+flowchart BT
+    ODCS[Open Data Contract Standard<br/>business + semantic agreement<br/>ownership · semantics · terms · SLA] --> DP[Data product]
+    OLC[Open Lakehouse Contract<br/>engineering + execution contract<br/>SQL rules · materialization · engine · incremental] --> DP
+    RT[OLC-compatible framework] --> OLC
+    E1[Spark] --> RT
+    E2[DuckDB] --> RT
+    E3[Polars] --> RT
+    F[Delta / Iceberg / DuckLake] --> E1
+    F --> E2
+    F --> E3
 ```
 
 ## By concern

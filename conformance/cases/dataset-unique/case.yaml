@@ -1,0 +1,17 @@
+id: OLC-D-001
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.dataset.unique
+description: A duplicate business key fails the dataset uniqueness rule.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 3
+  rows_quarantined: 0
+  dataset_rules_failed:
+  - trip_id_unique
+comparison:
+  sort_by:
+  - trip_id

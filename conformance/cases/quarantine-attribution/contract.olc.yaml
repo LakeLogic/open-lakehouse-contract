@@ -1,0 +1,19 @@
+version: 1.0.0
+info:
+  title: Trips
+  table_name: trips
+model:
+  fields:
+  - name: id
+    type: int
+    required: true
+  - name: fare
+    type: float
+  - name: pax
+    type: int
+quality:
+  row_rules:
+  - name: fare_nonneg
+    sql: fare >= 0
+  - name: pax_min
+    sql: pax >= 1
