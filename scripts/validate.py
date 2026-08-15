@@ -7,10 +7,13 @@ the ``olc`` package), so it's ideal for CI. It simply delegates to ``olc.validat
     python scripts/validate.py                     # discover **/*.olc.yaml
     python scripts/validate.py contracts/*.olc.yaml --schema https://…/schema.json
 """
+
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root → import olc without installing
+sys.path.insert(
+    0, str(Path(__file__).resolve().parents[1])
+)  # repo root → import olc without installing
 from olc.validate import main  # noqa: E402
 
 if __name__ == "__main__":

@@ -29,6 +29,7 @@ The one transform still applied post-emit is nested-object closing
 breaking migration), so their strictness cannot yet be expressed natively in the
 emitted schema. Once those models are flipped, this step becomes removable too.
 """
+
 from __future__ import annotations
 
 import inspect
@@ -42,7 +43,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from olc.models import OLCContractV1  # the canonical public standard  # noqa: E402
 from olc.models import _nested as _models  # noqa: E402
 
-OUT = Path(__file__).resolve().parents[1] / "schema" / "open-lakehouse-contract.schema.json"
+OUT = (
+    Path(__file__).resolve().parents[1]
+    / "schema"
+    / "open-lakehouse-contract.schema.json"
+)
 SCHEMA_URI = "https://json-schema.org/draft/2020-12/schema"
 ID = "https://lakelogic.org/open-lakehouse-contract/v1/schema.json"
 
@@ -94,7 +99,9 @@ def _declare_dataset_rule_names(schema: dict) -> None:
     declaring it; declare it so it survives ``_close_nested_objects``.
     """
     for definition_name, definition in schema.get("$defs", {}).items():
-        if definition_name.startswith("DatasetRule") and isinstance(definition.get("properties"), dict):
+        if definition_name.startswith("DatasetRule") and isinstance(
+            definition.get("properties"), dict
+        ):
             definition["properties"].setdefault(
                 "name",
                 {
@@ -142,8 +149,13 @@ def _mirror_validation_aliases(schema: dict) -> None:
                     props.setdefault(choice, base)
             # JSON Schema `required` can't say "one of these alias keys", so drop
             # the field from required; the model still enforces its presence.
-            if isinstance(definition.get("required"), list) and prop_key in definition["required"]:
-                definition["required"] = [r for r in definition["required"] if r != prop_key]
+            if (
+                isinstance(definition.get("required"), list)
+                and prop_key in definition["required"]
+            ):
+                definition["required"] = [
+                    r for r in definition["required"] if r != prop_key
+                ]
 
 
 def build_schema() -> dict:
@@ -155,7 +167,12 @@ def build_schema() -> dict:
     # Root strictness, SemVer `version`, required [version, info, model], and the
     # namespaced `extensions` map all come straight from OLCContractV1 now.
     schema = OLCContractV1.model_json_schema()
-    schema = {"$schema": SCHEMA_URI, "$id": ID, "title": "Open Lakehouse Contract", **schema}
+    schema = {
+        "$schema": SCHEMA_URI,
+        "$id": ID,
+        "title": "Open Lakehouse Contract",
+        **schema,
+    }
 
     # Nested strictness for the still-lenient shared models (mirror of the
     # model-side collect_unknown_nested_keys validator).
@@ -177,7 +194,9 @@ def main() -> None:
     print(f"  top-level fields : {len(schema.get('properties', {}))}")
     print(f"  nested models    : {len(schema.get('$defs', {}))}")
     print(f"  root required    : {schema.get('required')}")
-    print(f"  root closed      : additionalProperties={schema.get('additionalProperties')}")
+    print(
+        f"  root closed      : additionalProperties={schema.get('additionalProperties')}"
+    )
 
 
 if __name__ == "__main__":

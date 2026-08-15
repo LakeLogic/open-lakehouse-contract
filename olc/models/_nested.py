@@ -7,6 +7,7 @@ emitted JSON Schema. The schema-drift gate proves this port stays faithful.
 
 DO NOT hand-edit piecemeal: keep it a faithful projection of the reference shapes.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional, Union
@@ -16,9 +17,10 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 class Info(BaseModel):
     """Contract metadata such as title, version, and ownership."""
+
     title: str
     table_name: Optional[str] = None
-    version: str = '1.0.0'
+    version: str = "1.0.0"
     description: Optional[str] = None
     owner: Optional[str] = None
     contact: Optional[Union[str, Dict[str, str]]] = None
@@ -31,8 +33,11 @@ class Info(BaseModel):
 
 class SchemaPolicy(BaseModel):
     """Schema enforcement rules for unknown and evolving fields."""
-    evolution: Literal['strict', 'append', 'merge', 'overwrite', 'compatible', 'allow'] = 'allow'
-    unknown_fields: Literal['quarantine', 'drop', 'allow'] = 'allow'
+
+    evolution: Literal[
+        "strict", "append", "merge", "overwrite", "compatible", "allow"
+    ] = "allow"
+    unknown_fields: Literal["quarantine", "drop", "allow"] = "allow"
 
 
 class PostIngestionConfig(BaseModel):
@@ -65,13 +70,15 @@ class PostIngestionConfig(BaseModel):
             action: archive
             archive_path: "/archive/crm/customers"
     """
-    action: Literal['delete', 'archive', 'retain'] = 'retain'
+
+    action: Literal["delete", "archive", "retain"] = "retain"
     cleanup_is_blocking: bool = False
     archive_path: Optional[str] = None
 
 
 class Environment(BaseModel):
     """Environment-specific path/format overrides."""
+
     path: str
     format: Optional[str] = None
 
@@ -90,7 +97,8 @@ class SourcePartition(BaseModel):
             format: "y_%Y/m_%m/d_%d"   # strftime tokens
             lookback_days: 3
     """
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     format: str
     lookback_days: Optional[int] = None
     start_date: Optional[str] = None
@@ -100,7 +108,8 @@ class SourcePartition(BaseModel):
 
 class DltEndpointConfig(BaseModel):
     """Single REST API endpoint configuration for dlt."""
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     name: str
     path: str
     params: Dict[str, Any] = Field(default_factory=dict)
@@ -136,25 +145,27 @@ class DltSourceConfig(BaseModel):
                 params:
                   limit: 100
     """
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     source: Optional[str] = None
     resource: Optional[str] = None
     base_url: Optional[str] = None
     endpoints: Optional[List[DltEndpointConfig]] = None
     credentials: Dict[str, str] = Field(default_factory=dict)
-    write_disposition: str = 'replace'
+    write_disposition: str = "replace"
     max_table_nesting: int = 1
 
 
 class SourceConfig(BaseModel):
     """Source acquisition settings for landing/stream/table/dlt inputs."""
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     type: str
     query: Optional[str] = None
     path: Optional[str] = None
     format: Optional[str] = None
     options: Optional[Dict[str, Any]] = None
-    load_mode: str = 'full'
+    load_mode: str = "full"
     pattern: Optional[str] = None
     watermark_field: Optional[str] = None
     cdc_op_field: Optional[str] = None
@@ -162,8 +173,8 @@ class SourceConfig(BaseModel):
     cdc_timestamp_field: Optional[str] = None
     dlt: Optional[DltSourceConfig] = None
     partition: Optional[SourcePartition] = None
-    empty_behavior: Optional[Literal['skip', 'fail']] = None
-    watermark_strategy: Optional[str] = 'max_target'
+    empty_behavior: Optional[Literal["skip", "fail"]] = None
+    watermark_strategy: Optional[str] = "max_target"
     target_path: Optional[str] = None
     lookback: Optional[str] = None
     from_date: Optional[str] = None
@@ -175,24 +186,65 @@ class SourceConfig(BaseModel):
     partition_filters: Dict[str, Any] = Field(default_factory=dict)
     flatten_nested: Union[bool, List[str]] = False
     post_ingestion: Optional[PostIngestionConfig] = None
-    _SOURCE_KNOWN_KEYS: set = {'type', 'query', 'path', 'format', 'load_mode', 'pattern', 'watermark_field', 'cdc_op_field', 'cdc_delete_values', 'cdc_timestamp_field', 'partition', 'options', 'watermark_strategy', 'target_path', 'lookback', 'from_date', 'to_date', 'pipeline_log_table', 'pipeline_name', 'manifest_path', 'watermark_date_parts', 'partition_filters', 'flatten_nested', 'dlt', 'post_ingestion'}
+    _SOURCE_KNOWN_KEYS: set = {
+        "type",
+        "query",
+        "path",
+        "format",
+        "load_mode",
+        "pattern",
+        "watermark_field",
+        "cdc_op_field",
+        "cdc_delete_values",
+        "cdc_timestamp_field",
+        "partition",
+        "options",
+        "watermark_strategy",
+        "target_path",
+        "lookback",
+        "from_date",
+        "to_date",
+        "pipeline_log_table",
+        "pipeline_name",
+        "manifest_path",
+        "watermark_date_parts",
+        "partition_filters",
+        "flatten_nested",
+        "dlt",
+        "post_ingestion",
+    }
 
 
 class Link(BaseModel):
-    """Reference dataset link (file path or table name)."""
+    """Reference dataset link (file path or table name).
+
+    Load-time subsetting (link only a *portion* of the referenced data):
+      • ``columns`` — column projection (load only these columns).
+      • ``filter``  — a PORTABLE SQL boolean predicate (WHERE clause) applied at
+                      load time on every engine, e.g. ``status = 'active'``. Keeps
+                      "one contract, any engine" intact; composes with ``columns``.
+      • ``query``   — an ENGINE-SPECIFIC full ``SELECT`` escape hatch for the linked
+                      dataset (joins/aggregates/renames at load). Powerful but its
+                      SQL dialect may not port across engines — use ``filter`` when
+                      portability matters. ``{link}`` refers to the loaded dataset.
+    """
+
     name: str
     path: Optional[str] = None
-    type: str = 'parquet'
+    type: str = "parquet"
     table: Optional[str] = None
     broadcast: bool = False
     columns: List[str] = Field(default_factory=list)
+    filter: Optional[str] = None  # portable SQL WHERE predicate (subset rows at load)
+    query: Optional[str] = None  # engine-specific SELECT escape hatch (not portable)
 
 
 class TransformationRename(BaseModel):
     """Rename a column prior to validation."""
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    from_name: Optional[str] = Field(default=None, alias='from')
-    to_name: Optional[str] = Field(default=None, alias='to')
+
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
+    from_name: Optional[str] = Field(default=None, alias="from")
+    to_name: Optional[str] = Field(default=None, alias="to")
     mappings: Optional[Dict[str, str]] = None
 
 
@@ -205,6 +257,7 @@ class TransformationDerive(BaseModel):
     * ``sql_duckdb`` — used by the Polars and DuckDB adapters.
     * ``sql_spark`` — explicit Spark override (falls back to ``sql``).
     """
+
     field: str
     sql: str
     sql_duckdb: Optional[str] = None
@@ -213,6 +266,7 @@ class TransformationDerive(BaseModel):
 
 class TransformationLookup(BaseModel):
     """Lookup/join enrichment configuration."""
+
     field: str
     reference: str
     on: str
@@ -223,57 +277,67 @@ class TransformationLookup(BaseModel):
 
 class TransformationFilter(BaseModel):
     """Row-level filter expressed in SQL."""
+
     sql: str
 
 
 class TransformationDeduplicate(BaseModel):
     """Deduplication rule configuration."""
+
     model_config = ConfigDict(populate_by_name=True)
-    on: List[str] = Field(validation_alias=AliasChoices('on', 'by'))
+    on: List[str] = Field(validation_alias=AliasChoices("on", "by"))
     sort_by: Optional[List[str]] = None
-    order: str = 'desc'
+    order: str = "desc"
 
 
 class TransformationDeduplicateByLatest(BaseModel):
     """Keep the latest row per key by a timestamp column (dedup shorthand)."""
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     key_columns: List[str] = Field(default_factory=list)
     timestamp_column: Optional[str] = None
 
 
 class TransformationSelect(BaseModel):
     """Select a subset of columns."""
+
     columns: List[str]
 
 
 class TransformationDrop(BaseModel):
     """Drop columns by name."""
+
     columns: List[str]
 
 
 class TransformationCast(BaseModel):
     """Cast columns to specific types."""
+
     columns: Dict[str, str]
 
 
 class TransformationTrim(BaseModel):
     """Trim whitespace from fields."""
+
     fields: List[str]
-    side: str = 'both'
+    side: str = "both"
 
 
 class TransformationLower(BaseModel):
     """Lower-case string fields."""
+
     fields: List[str]
 
 
 class TransformationUpper(BaseModel):
     """Upper-case string fields."""
+
     fields: List[str]
 
 
 class TransformationCoalesce(BaseModel):
     """Coalesce multiple fields into a single output."""
+
     field: str
     sources: List[str] = Field(default_factory=list)
     default: Optional[Any] = None
@@ -282,19 +346,22 @@ class TransformationCoalesce(BaseModel):
 
 class TransformationSplit(BaseModel):
     """Split a string field into an array."""
+
     field: str
-    delimiter: str = ','
+    delimiter: str = ","
     output: Optional[str] = None
 
 
 class TransformationExplode(BaseModel):
     """Explode an array field into multiple rows."""
+
     field: str
     output: Optional[str] = None
 
 
 class TransformationMapValues(BaseModel):
     """Map input values to output values."""
+
     field: str
     mapping: Dict[str, Any]
     default: Optional[Any] = None
@@ -303,31 +370,34 @@ class TransformationMapValues(BaseModel):
 
 class TransformationRollup(BaseModel):
     """Aggregate data and retain rollup lineage keys."""
+
     group_by: List[str] = Field(default_factory=list)
     aggregations: Dict[str, str] = Field(default_factory=dict)
     keys: Optional[Union[str, List[str]]] = None
     key_expr: Optional[str] = None
-    rollup_keys_column: Optional[str] = '_lakelogic_rollup_keys'
-    rollup_keys_count_column: Optional[str] = '_lakelogic_rollup_keys_count'
-    upstream_run_id_column: Optional[str] = '_upstream_lakelogic_run_id'
-    upstream_run_ids_column: Optional[str] = '_upstream_lakelogic_run_ids'
+    rollup_keys_column: Optional[str] = "_lakelogic_rollup_keys"
+    rollup_keys_count_column: Optional[str] = "_lakelogic_rollup_keys_count"
+    upstream_run_id_column: Optional[str] = "_upstream_lakelogic_run_id"
+    upstream_run_ids_column: Optional[str] = "_upstream_lakelogic_run_ids"
     distinct: bool = True
 
 
 class TransformationJoin(BaseModel):
     """Join a reference table to enrich multiple fields."""
+
     reference: str
     on: str
     key: str
     fields: List[str]
-    type: str = 'left'
+    type: str = "left"
     prefix: Optional[str] = None
     defaults: Dict[str, Any] = Field(default_factory=dict)
 
 
 class TransformationPivot(BaseModel):
     """Pivot rows into columns using conditional aggregation."""
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     id_vars: List[str] = Field(default_factory=list)
     pivot_col: Optional[str] = None
     pivot_cols: Optional[List[str]] = None
@@ -335,28 +405,30 @@ class TransformationPivot(BaseModel):
     value_cols: Optional[List[str]] = None
     values: List[Any] = Field(default_factory=list)
     pivot_values: Optional[List[Any]] = None
-    agg: str = 'first'
+    agg: str = "first"
     aggs: Dict[str, str] = Field(default_factory=dict)
     fill_value: Optional[Any] = None
-    separator: str = '_'
+    separator: str = "_"
     name_template: Optional[str] = None
     value_aliases: Dict[str, str] = Field(default_factory=dict)
 
 
 class TransformationUnpivot(BaseModel):
     """Unpivot columns into rows."""
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     id_vars: List[str] = Field(default_factory=list)
     value_vars: List[str] = Field(default_factory=list)
     value_cols: Optional[List[str]] = None
-    key_field: str = 'key'
-    value_field: str = 'value'
+    key_field: str = "key"
+    value_field: str = "value"
     include_nulls: bool = False
     value_aliases: Dict[str, str] = Field(default_factory=dict)
 
 
 class TransformationBucketBin(BaseModel):
     """A single range/equality bin for TransformationBucket."""
+
     label: str
     lt: Optional[float] = None
     lte: Optional[float] = None
@@ -386,6 +458,7 @@ class TransformationBucket(BaseModel):
                 label: 500k_1m
             default: 1m_plus
     """
+
     field: str
     source: str
     bins: List[TransformationBucketBin] = Field(default_factory=list)
@@ -408,6 +481,7 @@ class TransformationJsonExtract(BaseModel):
             path: "$.latitude"
             cast: float
     """
+
     field: str
     source: str
     path: str
@@ -432,10 +506,11 @@ class TransformationDateRangeExplode(BaseModel):
             start_col: creation_date
             end_col: deleted_at       # nullable — defaults to today when null
     """
+
     output: str
     start_col: str
     end_col: Optional[str] = None
-    interval: str = '1d'
+    interval: str = "1d"
 
 
 class TransformationDateDiff(BaseModel):
@@ -454,15 +529,17 @@ class TransformationDateDiff(BaseModel):
             to_col: event_date
             unit: days
     """
+
     field: str
     from_col: str
     to_col: str
-    unit: str = 'days'
+    unit: str = "days"
 
 
 class Transformation(BaseModel):
     """Transformation step (SQL or structured)."""
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     rename: Optional[TransformationRename] = None
     derive: Optional[TransformationDerive] = None
     lookup: Optional[TransformationLookup] = None
@@ -488,26 +565,30 @@ class Transformation(BaseModel):
     bucket: Optional[TransformationBucket] = None
     date_diff: Optional[TransformationDateDiff] = None
     sql: Optional[str] = None
-    phase: str = 'post'
+    phase: str = "post"
 
 
 class RowRuleNotNull(BaseModel):
     """Business-friendly not-null rule."""
+
     not_null: Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]
 
 
 class RowRuleAcceptedValues(BaseModel):
     """Business-friendly accepted values rule."""
+
     accepted_values: Dict[str, Any]
 
 
 class RowRuleRegexMatch(BaseModel):
     """Business-friendly regex match rule."""
+
     regex_match: Dict[str, Any]
 
 
 class RowRuleRange(BaseModel):
     """Business-friendly range rule."""
+
     range: Dict[str, Any]
 
 
@@ -549,44 +630,51 @@ class ForeignKeyRef(BaseModel):
             to:    ref('agents')
             field: agent_id
     """
+
     contract: str
     column: str
-    severity: str = 'error'
+    severity: str = "error"
 
 
 class RowRuleReferentialIntegrity(BaseModel):
     """Business-friendly referential integrity rule."""
+
     referential_integrity: Dict[str, Any]
 
 
 class RowRuleLifecycleWindow(BaseModel):
     """Business-friendly lifecycle window rule."""
+
     lifecycle_window: Dict[str, Any]
 
 
 class DatasetRuleUnique(BaseModel):
     """Business-friendly unique rule."""
+
     unique: Union[str, List[str], Dict[str, Any]]
 
 
 class DatasetRuleNullRatio(BaseModel):
     """Business-friendly null ratio rule."""
+
     null_ratio: Dict[str, Any]
 
 
 class DatasetRuleRowCountBetween(BaseModel):
     """Business-friendly row count rule."""
+
     row_count_between: Dict[str, Any]
 
 
 class QualityRule(BaseModel):
     """Row-level or dataset-level quality rule."""
+
     name: str
     sql: str
-    category: str = 'correctness'
+    category: str = "correctness"
     description: Optional[str] = None
-    severity: str = 'error'
-    phase: str = 'pre'
+    severity: str = "error"
+    phase: str = "pre"
     must_be_between: Optional[List[float]] = None
     must_be_less_than: Optional[float] = None
     must_be_greater_than: Optional[float] = None
@@ -594,10 +682,28 @@ class QualityRule(BaseModel):
 
 class Quality(BaseModel):
     """Quality rule groups for row and dataset checks."""
+
     enforce_required: bool = True
     fail_pipeline_on_dataset_error: bool = False
-    row_rules: List[Union[QualityRule, RowRuleNotNull, RowRuleAcceptedValues, RowRuleRegexMatch, RowRuleRange, RowRuleReferentialIntegrity, RowRuleLifecycleWindow]] = Field(default_factory=list)
-    dataset_rules: List[Union[QualityRule, DatasetRuleUnique, DatasetRuleNullRatio, DatasetRuleRowCountBetween]] = Field(default_factory=list)
+    row_rules: List[
+        Union[
+            QualityRule,
+            RowRuleNotNull,
+            RowRuleAcceptedValues,
+            RowRuleRegexMatch,
+            RowRuleRange,
+            RowRuleReferentialIntegrity,
+            RowRuleLifecycleWindow,
+        ]
+    ] = Field(default_factory=list)
+    dataset_rules: List[
+        Union[
+            QualityRule,
+            DatasetRuleUnique,
+            DatasetRuleNullRatio,
+            DatasetRuleRowCountBetween,
+        ]
+    ] = Field(default_factory=list)
 
 
 class Notification(BaseModel):
@@ -616,11 +722,14 @@ class Notification(BaseModel):
     legacy built-in adapters (``smtp``, ``sendgrid``, ``slack``,
     ``teams``, ``webhook``).
     """
-    model_config = ConfigDict(populate_by_name=True, extra='allow')
-    type: str = 'apprise'
-    target: Optional[str] = Field(default=None, alias=AliasChoices('target', 'to', 'channel', 'url'))
+
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
+    type: str = "apprise"
+    target: Optional[str] = Field(
+        default=None, alias=AliasChoices("target", "to", "channel", "url")
+    )
     targets: Optional[List[str]] = None
-    on_events: List[str] = Field(default_factory=lambda: ['quarantine', 'failure'])
+    on_events: List[str] = Field(default_factory=lambda: ["quarantine", "failure"])
     subject_template: Optional[str] = None
     subject_template_file: Optional[str] = None
     message_template: Optional[str] = None
@@ -632,7 +741,8 @@ class Notification(BaseModel):
 
 class Quarantine(BaseModel):
     """Quarantine settings and notification routing."""
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     target: Optional[str] = None
     table: Optional[str] = None
     location: Optional[str] = None
@@ -642,12 +752,13 @@ class Quarantine(BaseModel):
     fail_on_quarantine: bool = False
     notifications_enabled: bool = True
     format: Optional[str] = None
-    write_mode: str = 'append'
+    write_mode: str = "append"
     notifications: List[Notification] = Field(default_factory=list)
 
 
 class ServiceLevelObjective(BaseModel):
     """Service-level objective definition."""
+
     description: Optional[str] = None
     threshold: Optional[Union[str, float]] = None
     field: Optional[str] = None
@@ -663,15 +774,17 @@ class RowCountSLO(BaseModel):
     threshold, SLO checks and counts_source computation are skipped entirely
     to avoid expensive Spark wide-transformation actions on large backfills.
     """
+
     min_rows: Optional[int] = None
     max_rows: Optional[int] = None
-    check_field: str = 'counts_good'
+    check_field: str = "counts_good"
     skip_reprocess_days: int = 3
     description: Optional[str] = None
 
 
 class ServiceLevel(BaseModel):
     """Service-level settings for freshness, availability, and row counts."""
+
     freshness: Optional[Union[str, ServiceLevelObjective]] = None
     availability: Optional[Union[float, ServiceLevelObjective]] = None
     row_count: Optional[RowCountSLO] = None
@@ -679,6 +792,7 @@ class ServiceLevel(BaseModel):
 
 class FieldDefinition(BaseModel):
     """Schema field definition."""
+
     name: str
     type: str
     required: bool = False
@@ -706,6 +820,7 @@ class FieldDefinition(BaseModel):
 
 class Model(BaseModel):
     """Schema model definition."""
+
     fields: List[FieldDefinition] = Field(default_factory=list)
     grain: Optional[str] = None
     grain_key: List[str] = Field(default_factory=list)
@@ -729,17 +844,19 @@ class FactConfig(BaseModel):
               - placed_date
               - shipped_date
     """
+
     type: str
     milestone_dates: List[str] = Field(default_factory=list)
 
 
 class Materialization(BaseModel):
     """Materialization settings for writing outputs."""
-    model_config = ConfigDict(extra='allow')
-    strategy: str = 'append'
+
+    model_config = ConfigDict(extra="allow")
+    strategy: str = "append"
     partition_by: List[str] = Field(default_factory=list)
     cluster_by: List[str] = Field(default_factory=list)
-    reprocess_policy: str = 'overwrite_partition'
+    reprocess_policy: str = "overwrite_partition"
     reprocess_date_column: Optional[str] = None
     target_path: Optional[str] = None
     format: Optional[str] = None
@@ -754,7 +871,31 @@ class Materialization(BaseModel):
     compaction: Optional[Dict[str, Any]] = None
     unknown_member: Optional[Dict[str, Any]] = None
     merge_dedup_guard: Optional[bool] = False
-    _MAT_KNOWN_KEYS: set = {'strategy', 'partition_by', 'cluster_by', 'reprocess_policy', 'reprocess_date_column', 'target_path', 'format', 'location', 'scd2', 'scd1', 'fact', 'soft_delete_column', 'soft_delete_value', 'soft_delete_time_column', 'soft_delete_reason_column', 'table_properties', 'compaction', 'unknown_member', 'merge_dedup_guard', 'secondary_targets', 'dlt_destination', 'dlt_credentials', 'dlt_dataset_name'}
+    _MAT_KNOWN_KEYS: set = {
+        "strategy",
+        "partition_by",
+        "cluster_by",
+        "reprocess_policy",
+        "reprocess_date_column",
+        "target_path",
+        "format",
+        "location",
+        "scd2",
+        "scd1",
+        "fact",
+        "soft_delete_column",
+        "soft_delete_value",
+        "soft_delete_time_column",
+        "soft_delete_reason_column",
+        "table_properties",
+        "compaction",
+        "unknown_member",
+        "merge_dedup_guard",
+        "secondary_targets",
+        "dlt_destination",
+        "dlt_credentials",
+        "dlt_dataset_name",
+    }
 
 
 class UpstreamContractRef(BaseModel):
@@ -763,7 +904,8 @@ class UpstreamContractRef(BaseModel):
     Richer sibling of the plain ``upstream: List[str]`` — carries the upstream
     contract's mesh coordinates (layer / domain / system) for end-to-end lineage.
     """
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     contract: str
     layer: Optional[str] = None
     domain: Optional[str] = None
@@ -801,7 +943,8 @@ class DownstreamConsumer(BaseModel):
             platform: mlflow
             owner: data-science
     """
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     type: str
     name: str
     platform: Optional[str] = None
@@ -832,16 +975,18 @@ class ConfidenceConfig(BaseModel):
       - consistency: run extraction N times, measure field-level agreement
       - field_completeness: % of non-nullable fields that are present
     """
+
     enabled: bool = True
-    method: str = 'field_completeness'
-    column: str = '_lakelogic_extraction_confidence'
+    method: str = "field_completeness"
+    column: str = "_lakelogic_extraction_confidence"
     consistency_runs: int = 3
 
 
 class RetryConfig(BaseModel):
     """Retry configuration for LLM API calls."""
+
     max_attempts: int = 3
-    backoff: str = 'exponential'
+    backoff: str = "exponential"
     initial_delay: float = 1.0
 
 
@@ -875,14 +1020,15 @@ class PreprocessingConfig(BaseModel):
             interval_seconds: 30
             engine: gpt-4o        # vision model for frame analysis
     """
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     content_type: str
     ocr: Optional[Dict[str, Any]] = None
     transcription: Optional[Dict[str, Any]] = None
     frame_extraction: Optional[Dict[str, Any]] = None
     chunking: Optional[Dict[str, Any]] = None
     file_column: Optional[str] = None
-    text_output_column: str = '_extracted_text'
+    text_output_column: str = "_extracted_text"
 
 
 class ExtractionConfig(BaseModel):
@@ -909,18 +1055,23 @@ class ExtractionConfig(BaseModel):
           confidence:
             min_threshold: 0.8
     """
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     provider: str
-    model: str = 'auto'
+    model: str = "auto"
     temperature: float = 0.1
     max_tokens: int = 1000
-    response_format: str = 'json'
+    response_format: str = "json"
     prompt_template: Optional[str] = None
     system_prompt: Optional[str] = None
     text_column: Optional[str] = None
     context_columns: List[str] = Field(default_factory=list)
     preprocessing: Optional[PreprocessingConfig] = None
     output_schema: List[FieldDefinition] = Field(default_factory=list)
+    # provider: regex — deterministic, offline extraction. Maps each output field
+    # to a regex with one capture group applied to the text_column. No LLM/network;
+    # makes the extraction path testable and conformance-checkable across engines.
+    patterns: Optional[Dict[str, str]] = None
     batch_size: int = 50
     concurrency: int = 5
     retry: Optional[RetryConfig] = Field(default_factory=RetryConfig)
@@ -935,36 +1086,66 @@ class ExtractionConfig(BaseModel):
 
 class LineageConfig(BaseModel):
     """Lineage capture settings."""
-    model_config = ConfigDict(extra='allow')
+
+    model_config = ConfigDict(extra="allow")
     enabled: bool = False
     capture_source_path: bool = True
     capture_timestamp: bool = True
     capture_run_id: bool = True
-    source_column_name: str = '_lakelogic_source'
-    timestamp_column_name: str = '_lakelogic_processed_at'
-    run_id_column_name: str = '_lakelogic_run_id'
+    source_column_name: str = "_lakelogic_source"
+    timestamp_column_name: str = "_lakelogic_processed_at"
+    run_id_column_name: str = "_lakelogic_run_id"
     capture_contract_name: bool = True
-    contract_name_column_name: str = '_lakelogic_contract_name'
+    contract_name_column_name: str = "_lakelogic_contract_name"
     capture_domain: bool = True
     capture_system: bool = True
-    domain_column_name: str = '_lakelogic_domain'
-    system_column_name: str = '_lakelogic_system'
+    domain_column_name: str = "_lakelogic_domain"
+    system_column_name: str = "_lakelogic_system"
     capture_created_at: bool = True
-    created_at_column_name: str = '_lakelogic_created_at'
+    created_at_column_name: str = "_lakelogic_created_at"
     capture_created_by: bool = True
-    created_by_column_name: str = '_lakelogic_created_by'
+    created_by_column_name: str = "_lakelogic_created_by"
     created_by_override: Optional[str] = None
     preserve_upstream: List[str] = Field(default_factory=list)
-    upstream_prefix: str = '_upstream'
-    run_id_source: str = 'run_id'
-    _LINEAGE_KNOWN_KEYS: set = {'enabled', 'capture_source_path', 'capture_timestamp', 'capture_run_id', 'source_column_name', 'timestamp_column_name', 'run_id_column_name', 'capture_contract_name', 'contract_name_column_name', 'capture_domain', 'capture_system', 'domain_column_name', 'system_column_name', 'capture_created_at', 'created_at_column_name', 'capture_created_by', 'created_by_column_name', 'created_by_override', 'preserve_upstream', 'upstream_prefix', 'run_id_source'}
+    upstream_prefix: str = "_upstream"
+    run_id_source: str = "run_id"
+    _LINEAGE_KNOWN_KEYS: set = {
+        "enabled",
+        "capture_source_path",
+        "capture_timestamp",
+        "capture_run_id",
+        "source_column_name",
+        "timestamp_column_name",
+        "run_id_column_name",
+        "capture_contract_name",
+        "contract_name_column_name",
+        "capture_domain",
+        "capture_system",
+        "domain_column_name",
+        "system_column_name",
+        "capture_created_at",
+        "created_at_column_name",
+        "capture_created_by",
+        "created_by_column_name",
+        "created_by_override",
+        "preserve_upstream",
+        "upstream_prefix",
+        "run_id_source",
+    }
 
 
 class ExternalLogic(BaseModel):
-    """External logic hook for advanced processing."""
+    """External logic hook for advanced processing.
+
+    ``engine`` is REQUIRED: external logic operates on an engine-specific
+    DataFrame, so the engine it runs against must be declared explicitly
+    (polars | spark | duckdb | ...) rather than left to an implicit default.
+    """
+
     type: str
     path: str
-    entrypoint: str = 'run'
+    engine: str  # required — engine the external logic runs against
+    entrypoint: str = "run"
     args: Dict[str, Any] = Field(default_factory=dict)
     output_path: Optional[str] = None
     output_format: Optional[str] = None

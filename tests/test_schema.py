@@ -14,7 +14,9 @@ class PublishedSchemaTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.schema = json.loads(
-            (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(encoding="utf-8")
+            (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+                encoding="utf-8"
+            )
         )
 
     def test_schema_is_valid_draft_2020_12(self) -> None:
@@ -29,9 +31,14 @@ class PublishedSchemaTests(unittest.TestCase):
     def test_typed_objects_are_closed(self) -> None:
         def visit(node: object) -> None:
             if isinstance(node, dict):
-                if node.get("type") == "object" and isinstance(node.get("properties"), dict):
+                if node.get("type") == "object" and isinstance(
+                    node.get("properties"), dict
+                ):
                     if node.get("title") != "Extensions":
-                        self.assertFalse(node.get("additionalProperties"), node.get("title", "<object>"))
+                        self.assertFalse(
+                            node.get("additionalProperties"),
+                            node.get("title", "<object>"),
+                        )
                 for value in node.values():
                     visit(value)
             elif isinstance(node, list):

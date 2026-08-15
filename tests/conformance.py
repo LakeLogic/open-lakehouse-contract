@@ -7,6 +7,7 @@ Validates fixtures against the published JSON Schema (the language-neutral spec)
     pip install jsonschema pyyaml
     python tests/conformance.py
 """
+
 from __future__ import annotations
 
 import json
@@ -17,7 +18,11 @@ import yaml
 from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = json.loads((ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(encoding="utf-8"))
+SCHEMA = json.loads(
+    (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+        encoding="utf-8"
+    )
+)
 VALIDATOR = Draft202012Validator(SCHEMA)
 
 
@@ -36,7 +41,9 @@ def _is_valid(doc: dict) -> tuple[bool, str]:
 def main() -> int:
     failures = 0
 
-    should_pass = sorted((ROOT / "examples").rglob("*.yaml")) + sorted((ROOT / "tests" / "valid").rglob("*.yaml"))
+    should_pass = sorted((ROOT / "examples").rglob("*.yaml")) + sorted(
+        (ROOT / "tests" / "valid").rglob("*.yaml")
+    )
     for f in should_pass:
         ok, msg = _is_valid(_load(f))
         print(f"  {'PASS' if ok else 'FAIL'}  (expect valid)   {f.relative_to(ROOT)}")
@@ -46,12 +53,21 @@ def main() -> int:
 
     for f in sorted((ROOT / "tests" / "invalid").rglob("*.yaml")):
         ok, _ = _is_valid(_load(f))
-        print(f"  {'PASS' if not ok else 'FAIL'}  (expect invalid) {f.relative_to(ROOT)}")
+        print(
+            f"  {'PASS' if not ok else 'FAIL'}  (expect invalid) {f.relative_to(ROOT)}"
+        )
         if ok:
             print("        -> unexpectedly validated")
             failures += 1
 
-    print("\n" + ("OK  - all conformance checks passed" if failures == 0 else f"FAIL - {failures} check(s) failed"))
+    print(
+        "\n"
+        + (
+            "OK  - all conformance checks passed"
+            if failures == 0
+            else f"FAIL - {failures} check(s) failed"
+        )
+    )
     return 1 if failures else 0
 
 

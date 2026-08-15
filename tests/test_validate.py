@@ -85,12 +85,16 @@ class ValidateCommandTests(unittest.TestCase):
         self.assertEqual(code, 0)
 
     def test_schema_load_failure_has_clean_exit(self) -> None:
-        code, output = self.run_validate("--schema", str(self.root / "missing.json"), "--allow-empty")
+        code, output = self.run_validate(
+            "--schema", str(self.root / "missing.json"), "--allow-empty"
+        )
         self.assertEqual(code, 2)
         self.assertIn("ERROR schema", output)
 
     def test_plain_http_schema_is_rejected(self) -> None:
-        code, output = self.run_validate("--schema", "http://example.com/schema.json", "--allow-empty")
+        code, output = self.run_validate(
+            "--schema", "http://example.com/schema.json", "--allow-empty"
+        )
         self.assertEqual(code, 2)
         self.assertIn("must use HTTPS", output)
 

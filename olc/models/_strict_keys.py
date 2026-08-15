@@ -11,6 +11,7 @@ Free-form regions are never descended into: a field annotated ``Dict[str, Any]``
 (or plain ``Any`` / ``dict``) is treated as an opaque bag, so vendor metadata,
 compliance blocks, extensions, etc. are left alone.
 """
+
 from __future__ import annotations
 
 import typing

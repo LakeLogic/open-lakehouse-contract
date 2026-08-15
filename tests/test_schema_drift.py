@@ -11,6 +11,7 @@ Because the model is public, this runs with **no private dependency** — it nee
 ``pydantic`` (``pip install .[models]``). It skips only if that isn't installed (e.g. a
 minimal docs-only checkout), never treating a missing *private* runtime as success.
 """
+
 from __future__ import annotations
 
 import json
@@ -32,7 +33,9 @@ except Exception as exc:  # pragma: no cover - environment-dependent
 
 
 class SchemaDriftTests(unittest.TestCase):
-    @unittest.skipIf(build_schema is None, f"reference model unavailable: {_IMPORT_ERROR}")
+    @unittest.skipIf(
+        build_schema is None, f"reference model unavailable: {_IMPORT_ERROR}"
+    )
     def test_committed_schema_matches_model(self) -> None:
         regenerated = render_schema(build_schema())
         committed = SCHEMA_PATH.read_text(encoding="utf-8")

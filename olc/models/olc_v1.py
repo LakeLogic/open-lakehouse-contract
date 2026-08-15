@@ -10,6 +10,7 @@ required ``info``/``model``, namespaced ``extensions``, and a corrected ``server
 mode enum. Nested strictness is enforced by ``collect_unknown_nested_keys`` (the
 shared nested shapes stay lenient in the runtime; here we overlay a read-only check).
 """
+
 from __future__ import annotations
 
 from typing import Annotated, Any, Dict, List, Literal, Optional

@@ -3,6 +3,7 @@
 Structural validation only — depends on ``jsonschema`` + ``pyyaml``, never a runtime.
 Importable (``from olc.validate import main``) and runnable (``olc validate``).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,13 +18,19 @@ from jsonschema import Draft202012Validator
 MAX_SCHEMA_BYTES = 10 * 1024 * 1024
 SCHEMA_TIMEOUT_SECONDS = 10
 
+
 def _default_schema() -> Path:
     """Locate the schema whether installed as a wheel (bundled under olc/_bundled/)
     or run from a source checkout (schema/ at the repo root)."""
     here = Path(__file__).resolve()
     for cand in (
-        here.parent / "_bundled" / "schema" / "open-lakehouse-contract.schema.json",  # wheel
-        here.parents[1] / "schema" / "open-lakehouse-contract.schema.json",           # editable / checkout
+        here.parent
+        / "_bundled"
+        / "schema"
+        / "open-lakehouse-contract.schema.json",  # wheel
+        here.parents[1]
+        / "schema"
+        / "open-lakehouse-contract.schema.json",  # editable / checkout
     ):
         if cand.is_file():
             return cand
@@ -38,7 +45,9 @@ def load_schema(ref: str) -> dict:
         raise ValueError("remote schemas must use HTTPS")
     if ref.startswith("https://"):
         request = urllib.request.Request(ref, headers={"User-Agent": "olc-validator"})
-        with urllib.request.urlopen(request, timeout=SCHEMA_TIMEOUT_SECONDS) as response:
+        with urllib.request.urlopen(
+            request, timeout=SCHEMA_TIMEOUT_SECONDS
+        ) as response:
             raw = response.read(MAX_SCHEMA_BYTES + 1)
         if len(raw) > MAX_SCHEMA_BYTES:
             raise ValueError(f"remote schema exceeds {MAX_SCHEMA_BYTES} bytes")
@@ -58,7 +67,9 @@ class UniqueKeyLoader(yaml.SafeLoader):
     """Safe YAML loader that rejects duplicate mapping keys."""
 
 
-def _construct_unique_mapping(loader: UniqueKeyLoader, node: yaml.MappingNode, deep: bool = False) -> dict:
+def _construct_unique_mapping(
+    loader: UniqueKeyLoader, node: yaml.MappingNode, deep: bool = False
+) -> dict:
     mapping: dict[Any, Any] = {}
     for key_node, value_node in node.value:
         key = loader.construct_object(key_node, deep=deep)
@@ -111,13 +122,32 @@ def _emit_text(results: list[dict[str, Any]], max_errors: int) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(prog="olc validate", description="Validate OLC contract files.")
-    ap.add_argument("files", nargs="*", help="contract files; otherwise discover below --root")
-    ap.add_argument("--root", default=".", help="discovery root when no files are supplied")
-    ap.add_argument("--schema", default=str(DEFAULT_SCHEMA), help="schema path or HTTPS URL")
-    ap.add_argument("--output", choices=("text", "json"), default="text", help="result format")
-    ap.add_argument("--max-errors", type=int, default=10, help="errors shown per file in text output")
-    ap.add_argument("--allow-empty", action="store_true", help="return success when discovery finds no files")
+    ap = argparse.ArgumentParser(
+        prog="olc validate", description="Validate OLC contract files."
+    )
+    ap.add_argument(
+        "files", nargs="*", help="contract files; otherwise discover below --root"
+    )
+    ap.add_argument(
+        "--root", default=".", help="discovery root when no files are supplied"
+    )
+    ap.add_argument(
+        "--schema", default=str(DEFAULT_SCHEMA), help="schema path or HTTPS URL"
+    )
+    ap.add_argument(
+        "--output", choices=("text", "json"), default="text", help="result format"
+    )
+    ap.add_argument(
+        "--max-errors",
+        type=int,
+        default=10,
+        help="errors shown per file in text output",
+    )
+    ap.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="return success when discovery finds no files",
+    )
     args = ap.parse_args(argv)
 
     if args.max_errors < 1:
@@ -127,7 +157,11 @@ def main(argv: list[str] | None = None) -> int:
         validator = Draft202012Validator(load_schema(args.schema))
     except Exception as error:
         payload = {"status": "error", "kind": "schema", "message": str(error)}
-        print(json.dumps(payload, indent=2) if args.output == "json" else f"ERROR schema: {error}")
+        print(
+            json.dumps(payload, indent=2)
+            if args.output == "json"
+            else f"ERROR schema: {error}"
+        )
         return 2
 
     files = [Path(f) for f in args.files] if args.files else discover(args.root)
@@ -139,7 +173,11 @@ def main(argv: list[str] | None = None) -> int:
             "results": [],
             "message": "No .olc.yaml or .olc.yml files found",
         }
-        print(json.dumps(payload, indent=2) if args.output == "json" else payload["message"] + ".")
+        print(
+            json.dumps(payload, indent=2)
+            if args.output == "json"
+            else payload["message"] + "."
+        )
         return 0 if args.allow_empty else 1
 
     results = [validate_file(path, validator) for path in files]
@@ -154,5 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(payload, indent=2))
     else:
         _emit_text(results, args.max_errors)
-        print(f"\n{'FAIL' if failed else 'OK'} - {len(results)} file(s), {failed} invalid")
+        print(
+            f"\n{'FAIL' if failed else 'OK'} - {len(results)} file(s), {failed} invalid"
+        )
     return 1 if failed else 0

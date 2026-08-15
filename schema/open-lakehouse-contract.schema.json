@@ -362,7 +362,7 @@
       "additionalProperties": false
     },
     "ExternalLogic": {
-      "description": "External logic hook for advanced processing.",
+      "description": "External logic hook for advanced processing.\n\n``engine`` is REQUIRED: external logic operates on an engine-specific\nDataFrame, so the engine it runs against must be declared explicitly\n(polars | spark | duckdb | ...) rather than left to an implicit default.",
       "properties": {
         "type": {
           "title": "Type",
@@ -370,6 +370,10 @@
         },
         "path": {
           "title": "Path",
+          "type": "string"
+        },
+        "engine": {
+          "title": "Engine",
           "type": "string"
         },
         "entrypoint": {
@@ -433,7 +437,8 @@
       },
       "required": [
         "type",
-        "path"
+        "path",
+        "engine"
       ],
       "title": "ExternalLogic",
       "type": "object",
@@ -527,6 +532,21 @@
           },
           "title": "Output Schema",
           "type": "array"
+        },
+        "patterns": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Patterns"
         },
         "batch_size": {
           "default": 50,
@@ -1144,7 +1164,7 @@
       "type": "object"
     },
     "Link": {
-      "description": "Reference dataset link (file path or table name).",
+      "description": "Reference dataset link (file path or table name).\n\nLoad-time subsetting (link only a *portion* of the referenced data):\n  \u2022 ``columns`` \u2014 column projection (load only these columns).\n  \u2022 ``filter``  \u2014 a PORTABLE SQL boolean predicate (WHERE clause) applied at\n                  load time on every engine, e.g. ``status = 'active'``. Keeps\n                  \"one contract, any engine\" intact; composes with ``columns``.\n  \u2022 ``query``   \u2014 an ENGINE-SPECIFIC full ``SELECT`` escape hatch for the linked\n                  dataset (joins/aggregates/renames at load). Powerful but its\n                  SQL dialect may not port across engines \u2014 use ``filter`` when\n                  portability matters. ``{link}`` refers to the loaded dataset.",
       "properties": {
         "name": {
           "title": "Name",
@@ -1190,6 +1210,30 @@
           },
           "title": "Columns",
           "type": "array"
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Filter"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
         }
       },
       "required": [

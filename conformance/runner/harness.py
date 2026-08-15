@@ -4,6 +4,7 @@ Outcomes follow the capability-profile discipline: a feature an adapter does not
 declare is UNSUPPORTED (never silently PASS); a declared feature that misbehaves
 is FAIL.
 """
+
 from __future__ import annotations
 
 import json
@@ -29,14 +30,17 @@ for _key, _mappings in list(_NoBoolOnLoader.yaml_implicit_resolvers.items()):
         (tag, regex) for tag, regex in _mappings if tag != "tag:yaml.org,2002:bool"
     ]
 _NoBoolOnLoader.add_implicit_resolver(
-    "tag:yaml.org,2002:bool", re.compile(r"^(?:true|false)$", re.IGNORECASE), list("tTfF")
+    "tag:yaml.org,2002:bool",
+    re.compile(r"^(?:true|false)$", re.IGNORECASE),
+    list("tTfF"),
 )
 
 
 def _load_yaml(text: str) -> Any:
     return yaml.load(text, Loader=_NoBoolOnLoader)
 
-from .adapters import ADAPTERS, ConformanceAdapter, LakeLogicAdapter
+
+from .adapters import ADAPTERS, ConformanceAdapter
 from .model import Comparison, ConformanceCase, ExecutionResult, Materialization
 from .normalise import normalise_rows
 
@@ -77,10 +81,15 @@ class Outcome:
 
 # ── loading ──────────────────────────────────────────────────────────────────
 
+
 def _read_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [
+        json.loads(l)
+        for l in path.read_text(encoding="utf-8").splitlines()
+        if l.strip()
+    ]
 
 
 def load_case(directory: Path) -> ConformanceCase:
@@ -125,11 +134,14 @@ def load_case(directory: Path) -> ConformanceCase:
 
 
 def load_all_cases(cases_dir: Path = CASES_DIR) -> list[ConformanceCase]:
-    dirs = sorted(p for p in cases_dir.iterdir() if p.is_dir() and (p / "case.yaml").exists())
+    dirs = sorted(
+        p for p in cases_dir.iterdir() if p.is_dir() and (p / "case.yaml").exists()
+    )
     return [load_case(d) for d in dirs]
 
 
 # ── comparison ───────────────────────────────────────────────────────────────
+
 
 def _norm(rows: list[dict], comp: Comparison) -> list[dict]:
     return normalise_rows(
@@ -140,10 +152,17 @@ def _norm(rows: list[dict], comp: Comparison) -> list[dict]:
     )
 
 
-def compare_result(case: ConformanceCase, result: ExecutionResult, adapter: ConformanceAdapter) -> Outcome:
+def compare_result(
+    case: ConformanceCase, result: ExecutionResult, adapter: ConformanceAdapter
+) -> Outcome:
     caps = getattr(adapter, "capabilities", set())
     if case.feature and caps and case.feature not in caps:
-        return Outcome(case.id, adapter.name, UNSUPPORTED, [f"feature '{case.feature}' not declared"])
+        return Outcome(
+            case.id,
+            adapter.name,
+            UNSUPPORTED,
+            [f"feature '{case.feature}' not declared"],
+        )
 
     reasons: list[str] = []
     comp = case.comparison
@@ -151,7 +170,12 @@ def compare_result(case: ConformanceCase, result: ExecutionResult, adapter: Conf
     if result.exception is not None:
         # An exception is only acceptable if the case explicitly expects one.
         if not case.assertions.get("expects_error"):
-            return Outcome(case.id, adapter.name, FAIL, [f"unexpected error: {result.exception.code}"])
+            return Outcome(
+                case.id,
+                adapter.name,
+                FAIL,
+                [f"unexpected error: {result.exception.code}"],
+            )
 
     # accepted rows
     if case.expected_accepted is not None:
@@ -204,17 +228,22 @@ def _check_assertions(case: ConformanceCase, result: ExecutionResult) -> list[st
         got = meta.get("failed_rules", {})
         for rule, count in a["failed_rules"].items():
             if got.get(rule) != count:
-                reasons.append(f"failed_rules[{rule}]: expected {count}, got {got.get(rule)}")
+                reasons.append(
+                    f"failed_rules[{rule}]: expected {count}, got {got.get(rule)}"
+                )
 
     if "dataset_rules_failed" in a:
         got = set(meta.get("dataset_rules_failed", []))
         for rule in a["dataset_rules_failed"]:
             if rule not in got:
-                reasons.append(f"dataset_rules_failed: expected '{rule}' among {sorted(got)}")
+                reasons.append(
+                    f"dataset_rules_failed: expected '{rule}' among {sorted(got)}"
+                )
     return reasons
 
 
 # ── orchestration ────────────────────────────────────────────────────────────
+
 
 def run_case(case: ConformanceCase, adapter_name: str) -> Outcome:
     adapter = ADAPTERS[adapter_name]()
@@ -222,7 +251,9 @@ def run_case(case: ConformanceCase, adapter_name: str) -> Outcome:
     return compare_result(case, result, adapter)
 
 
-def run_all(adapter_names: Optional[list[str]] = None, cases_dir: Path = CASES_DIR) -> list[Outcome]:
+def run_all(
+    adapter_names: Optional[list[str]] = None, cases_dir: Path = CASES_DIR
+) -> list[Outcome]:
     names = adapter_names or list(ADAPTERS)
     cases = load_all_cases(cases_dir)
     return [run_case(c, n) for c in cases for n in names]

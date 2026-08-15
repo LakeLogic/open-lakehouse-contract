@@ -39,10 +39,22 @@ pip install lakelogic polars deltalake pyyaml pytest
 python -m pytest conformance/test_conformance.py -q
 ```
 
-Each case is authored once and must reproduce identically on every core adapter
-(currently **DuckDB** and **Polars**). Comparison is on *semantic outcome*: row and
-column order are ignored, numbers are compared to a tolerance, and volatile fields
-(run IDs, timestamps) are stripped.
+Each case is authored once and must reproduce identically on every enabled adapter.
+Comparison is on *semantic outcome*: row and column order are ignored, numbers are
+compared to a tolerance, and volatile fields (run IDs, timestamps) are stripped.
+
+### Engines
+
+DuckDB and Polars run by default. **Spark is opt-in** (its JVM startup makes it slow):
+
+```bash
+python -m pytest conformance -q                        # DuckDB + Polars
+OLC_CONFORMANCE_SPARK=1 python -m pytest conformance -q # + Spark
+OLC_CONFORMANCE_ENGINES=duckdb,spark python -m pytest conformance -q  # explicit set
+```
+
+Spark needs `pyspark` installed. When enabled, every case runs on all three engines and
+any divergence fails the run.
 
 ## Outcomes
 

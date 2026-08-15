@@ -7,6 +7,7 @@ standard is regenerable from public code alone (no private LakeLogic dependency)
 runtime's ODCS/soft-delete normalisation (that convenience lives in the reference
 runtime); canonical OLC contracts validate directly.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -14,7 +15,12 @@ from typing import Any
 from olc.models._strict_keys import collect_unknown_nested_keys
 from olc.models.olc_v1 import OLCContractV1, StrictServer
 
-__all__ = ["OLCContractV1", "StrictServer", "collect_unknown_nested_keys", "load_strict"]
+__all__ = [
+    "OLCContractV1",
+    "StrictServer",
+    "collect_unknown_nested_keys",
+    "load_strict",
+]
 
 
 def load_strict(document: Any) -> OLCContractV1:

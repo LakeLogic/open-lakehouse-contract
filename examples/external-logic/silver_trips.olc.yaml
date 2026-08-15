@@ -48,6 +48,7 @@ lineage:
 # handles_output: false → the job returns a dataframe; OLC materializes + governs it.
 external_logic:
   type: python
+  engine: polars
   path: sessionize_trips.py
   entrypoint: run
   args: { session_gap_minutes: 30 }

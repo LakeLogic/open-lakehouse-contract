@@ -5,6 +5,7 @@ row/column order, int-vs-float encoding, decimal precision, generated run IDs,
 timestamps and error text. Normalisation strips all of that so DuckDB, Polars,
 Spark, etc. can be held to the same authored expectations.
 """
+
 from __future__ import annotations
 
 from typing import Any

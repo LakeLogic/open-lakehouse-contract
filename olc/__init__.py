@@ -5,4 +5,5 @@ The specification is the JSON Schema in ``schema/``; this small package provides
 integrations installed. It depends only on ``jsonschema`` + ``pyyaml`` — never on a
 lakehouse runtime.
 """
+
 __all__ = ["validate", "init", "cli"]

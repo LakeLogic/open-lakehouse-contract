@@ -19,6 +19,7 @@ Conformance discipline:
 * ``UNSUPPORTED`` is only acceptable for optional/higher levels, and is surfaced in
   a separate capability matrix (``test_capability_matrix``), never as silent success.
 """
+
 from __future__ import annotations
 
 import os
@@ -91,7 +92,8 @@ def test_case_conforms(case, adapter_name, request):
         )
     else:
         assert outcome.status in (PASS, UNSUPPORTED), (
-            f"{case.id} on {adapter_name}: {outcome.status}\n" + "\n".join(outcome.reasons)
+            f"{case.id} on {adapter_name}: {outcome.status}\n"
+            + "\n".join(outcome.reasons)
         )
 
 
@@ -110,7 +112,9 @@ def test_all_case_contracts_are_strict_valid():
             load_strict(case.contract)
         except Exception as exc:  # noqa: BLE001 - report, don't abort
             failures.append(f"{case.id}: {type(exc).__name__}: {str(exc)[:160]}")
-    assert not failures, "case contracts fail strict validation:\n" + "\n".join(failures)
+    assert not failures, "case contracts fail strict validation:\n" + "\n".join(
+        failures
+    )
 
 
 def test_public_model_matches_runtime_model():
@@ -136,7 +140,9 @@ def test_public_model_matches_runtime_model():
             return [_strip(x) for x in o]
         return o
 
-    assert _strip(PublicModel.model_json_schema()) == _strip(RuntimeModel.model_json_schema()), (
+    assert _strip(PublicModel.model_json_schema()) == _strip(
+        RuntimeModel.model_json_schema()
+    ), (
         "Public olc.models.OLCContractV1 has drifted from the LakeLogic runtime model. "
         "Re-sync them (ultimately: make the runtime import the public model)."
     )
@@ -175,4 +181,6 @@ def test_capability_matrix(capsys):
             print("\nCapability matrix (unsupported optional features):")
             print("\n".join(rows))
         else:
-            print("\nCapability matrix: all declared features supported by all adapters.")
+            print(
+                "\nCapability matrix: all declared features supported by all adapters."
+            )

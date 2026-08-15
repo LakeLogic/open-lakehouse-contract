@@ -1,8 +1,9 @@
 """The ``olc`` command — a thin dispatcher over the subcommands.
 
-    olc validate [files...] [--schema PATH|URL]
-    olc init [--tools claude,codex] [--dest .] [--list]
+olc validate [files...] [--schema PATH|URL]
+olc init [--tools claude,codex] [--dest .] [--list]
 """
+
 from __future__ import annotations
 
 import sys
@@ -36,9 +37,11 @@ def main(argv: list[str] | None = None) -> int:
     cmd, rest = argv[0], argv[1:]
     if cmd == "validate":
         from . import validate
+
         return validate.main(rest)
     if cmd == "init":
         from . import init
+
         return init.main(rest)
 
     print(f"Unknown command: {cmd}\n")

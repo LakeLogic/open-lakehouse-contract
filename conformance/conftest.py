@@ -5,6 +5,7 @@ failure: the whole point of the CI job is to actually exercise the runtime, so a
 skip — a missing dependency, a ``pytest.skip`` in a future case, an empty
 parametrization — must turn CI red rather than pass silently.
 """
+
 from __future__ import annotations
 
 import os

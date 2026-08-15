@@ -5,6 +5,7 @@ The repo keeps schema/ and skills/ at the root (referenced by CI, docs, scripts)
 this copies them into olc/_bundled/ at build time so `olc validate` (schema) and
 `olc init` (skill templates) work from a plain `pip install` — not just editable.
 """
+
 import shutil
 from pathlib import Path
 

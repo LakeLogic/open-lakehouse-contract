@@ -17,7 +17,9 @@ class InitCommandTests(unittest.TestCase):
         self.skills = self.root / "skills"
         self.source = self.skills / "testtool"
         self.source.mkdir(parents=True)
-        (self.source / "instructions.md").write_text("OLC INSTRUCTIONS\n", encoding="utf-8")
+        (self.source / "instructions.md").write_text(
+            "OLC INSTRUCTIONS\n", encoding="utf-8"
+        )
         (self.source / "second.md").write_text("SECOND\n", encoding="utf-8")
         self.dest = self.root / "project"
         self.dest.mkdir()
@@ -42,7 +44,10 @@ class InitCommandTests(unittest.TestCase):
     def test_creates_new_files(self) -> None:
         code, output = self.run_init("--tools", "testtool", "--dest", str(self.dest))
         self.assertEqual(code, 0)
-        self.assertEqual((self.dest / ".agent" / "instructions.md").read_text(encoding="utf-8"), "OLC INSTRUCTIONS\n")
+        self.assertEqual(
+            (self.dest / ".agent" / "instructions.md").read_text(encoding="utf-8"),
+            "OLC INSTRUCTIONS\n",
+        )
         self.assertIn("2 create", output)
 
     def test_identical_files_are_left_unchanged(self) -> None:
@@ -65,13 +70,17 @@ class InitCommandTests(unittest.TestCase):
         target = self.dest / ".agent" / "instructions.md"
         target.parent.mkdir(parents=True)
         target.write_text("USER CONTENT\n", encoding="utf-8")
-        code, output = self.run_init("--tools", "testtool", "--dest", str(self.dest), "--force")
+        code, output = self.run_init(
+            "--tools", "testtool", "--dest", str(self.dest), "--force"
+        )
         self.assertEqual(code, 0)
         self.assertEqual(target.read_text(encoding="utf-8"), "OLC INSTRUCTIONS\n")
         self.assertIn("1 overwrite", output)
 
     def test_dry_run_writes_nothing(self) -> None:
-        code, output = self.run_init("--tools", "testtool", "--dest", str(self.dest), "--dry-run")
+        code, output = self.run_init(
+            "--tools", "testtool", "--dest", str(self.dest), "--dry-run"
+        )
         self.assertEqual(code, 0)
         self.assertFalse((self.dest / ".agent").exists())
         self.assertIn("DRY RUN", output)
@@ -80,7 +89,9 @@ class InitCommandTests(unittest.TestCase):
         target = self.dest / ".agent" / "instructions.md"
         target.parent.mkdir(parents=True)
         target.write_text("USER CONTENT\n", encoding="utf-8")
-        code, output = self.run_init("--tools", "testtool", "--dest", str(self.dest), "--dry-run")
+        code, output = self.run_init(
+            "--tools", "testtool", "--dest", str(self.dest), "--dry-run"
+        )
         self.assertEqual(code, 1)
         self.assertEqual(target.read_text(encoding="utf-8"), "USER CONTENT\n")
         self.assertIn("CONFLICT", output)

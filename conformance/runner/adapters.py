@@ -5,13 +5,14 @@ An adapter is a thin wrapper over ``lakelogic.DataProcessor`` that turns a
 insight the harness proves: the SAME case, run through different engines, yields
 the SAME normalised outcome.
 """
+
 from __future__ import annotations
 
 import re
 import tempfile
 from collections import Counter
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Protocol
 
 from .model import ConformanceCase, ExecutionError, ExecutionResult
 
@@ -63,7 +64,9 @@ class LakeLogicAdapter:
 
     def _make_processor(self, DataProcessor, case: ConformanceCase):
         contract = self._contract_with_references(case)
-        return DataProcessor(engine=self.engine, contract=dict(contract), strict=self.strict)
+        return DataProcessor(
+            engine=self.engine, contract=dict(contract), strict=self.strict
+        )
 
     def _contract_with_references(self, case: ConformanceCase) -> dict:
         """Materialise each link's reference data (references/<name>.jsonl -> a temp
@@ -71,6 +74,20 @@ class LakeLogicAdapter:
         reference table to resolve against — engine-neutral (both read parquet).
         """
         contract = dict(case.contract)
+
+        # external_logic: anchor the script path to the case dir (the runtime gets
+        # a dict contract with no _base_path, so a relative path can't resolve), and
+        # align the pinned engine with the engine under test — the step runs on the
+        # pipeline engine, and the required `engine` field must reflect that.
+        ext = contract.get("external_logic")
+        if ext:
+            ext = dict(ext)
+            p = ext.get("path")
+            if p and not Path(p).is_absolute():
+                ext["path"] = str((case.directory / p).resolve())
+            ext["engine"] = self.engine
+            contract["external_logic"] = ext
+
         links = contract.get("links")
         if not links:
             return contract
@@ -93,25 +110,38 @@ class LakeLogicAdapter:
         contract["links"] = resolved
         return contract
 
+    # ── frame in/out (overridden by non-polars engines like Spark) ────────────
+    def _to_frame(self, rows: list[dict]):
+        import polars as pl
+
+        return pl.DataFrame(rows) if rows else pl.DataFrame()
+
+    def _to_rows(self, frame) -> list[dict]:
+        return frame.to_dicts()
+
     def execute(self, case: ConformanceCase) -> ExecutionResult:
         import polars as pl
 
         from lakelogic import DataProcessor
 
         cols = _model_fields(case.contract)
-        input_df = pl.DataFrame(case.input_rows) if case.input_rows else pl.DataFrame()
+        input_df = self._to_frame(case.input_rows)
 
         try:
             if case.is_materialization:
-                return self._execute_materialization(case, input_df, cols, pl, DataProcessor)
+                return self._execute_materialization(
+                    case, input_df, cols, pl, DataProcessor
+                )
             processor = self._make_processor(DataProcessor, case)
             good, bad = processor.run(input_df)
-            good_rows = good.to_dicts()
-            bad_rows = bad.to_dicts()
+            good_rows = self._to_rows(good)
+            bad_rows = self._to_rows(bad)
             return ExecutionResult(
                 accepted=_project(good_rows, cols),
                 quarantined=_project(bad_rows, cols),
-                run_metadata=self._metadata(processor, good_rows, bad_rows, materialized=False),
+                run_metadata=self._metadata(
+                    processor, good_rows, bad_rows, materialized=False
+                ),
             )
         except Exception as exc:  # engine-neutral surface
             return ExecutionResult(
@@ -125,7 +155,9 @@ class LakeLogicAdapter:
                 ),
             )
 
-    def _execute_materialization(self, case, input_df, cols, pl, DataProcessor) -> ExecutionResult:
+    def _execute_materialization(
+        self, case, input_df, cols, pl, DataProcessor
+    ) -> ExecutionResult:
         mat = case.materialization
         tmp = Path(tempfile.mkdtemp()) / case.id.replace(".", "_")
         target = str(tmp)
@@ -135,7 +167,11 @@ class LakeLogicAdapter:
             seed_rows = _read_jsonl(case.directory / mat.seed)
             if seed_rows:
                 seeder = self._make_processor(DataProcessor, case)
-                seeder.run(pl.DataFrame(seed_rows), materialize=True, materialize_target=target)
+                seeder.run(
+                    self._to_frame(seed_rows),
+                    materialize=True,
+                    materialize_target=target,
+                )
 
         processor = self._make_processor(DataProcessor, case)
         good, bad = processor.run(input_df, materialize=True, materialize_target=target)
@@ -151,11 +187,13 @@ class LakeLogicAdapter:
         else:
             meta_extra = {}
 
-        meta = self._metadata(processor, good.to_dicts(), bad.to_dicts(), materialized=True)
+        meta = self._metadata(
+            processor, self._to_rows(good), self._to_rows(bad), materialized=True
+        )
         meta.update(meta_extra)
         return ExecutionResult(
-            accepted=_project(good.to_dicts(), cols),
-            quarantined=_project(bad.to_dicts(), cols),
+            accepted=_project(self._to_rows(good), cols),
+            quarantined=_project(self._to_rows(bad), cols),
             run_metadata=meta,
             target_rows=target_rows,
         )
@@ -186,7 +224,9 @@ class LakeLogicAdapter:
         return {
             "contract_version": report.get("contract_version"),
             "status": "completed_with_quarantine" if quarantined else "completed",
-            "rows_input": counts.get("source", counts.get("total", accepted + quarantined)),
+            "rows_input": counts.get(
+                "source", counts.get("total", accepted + quarantined)
+            ),
             "rows_accepted": accepted,
             "rows_quarantined": quarantined,
             "failed_rules": _failed_rules(bad_rows),
@@ -236,6 +276,10 @@ class DuckDBAdapter(LakeLogicAdapter):
         "transformations.explode",
         "transformations.date_range_explode",
         "materialization.merge",
+        "materialization.scd2",
+        "external_logic.multi_frame_links",
+        "external_logic.deterministic_extraction",
+        "extraction.regex",
     }
 
 
@@ -267,10 +311,138 @@ class PolarsAdapter(LakeLogicAdapter):
         "transformations.explode",
         "transformations.date_range_explode",
         "materialization.merge",
+        "materialization.scd2",
+        "external_logic.multi_frame_links",
+        "external_logic.deterministic_extraction",
+        "extraction.regex",
     }
 
 
-ADAPTERS: dict[str, type[LakeLogicAdapter]] = {
+class SparkAdapter(LakeLogicAdapter):
+    """Optional third engine — opt in via OLC_CONFORMANCE_SPARK=1 or
+    OLC_CONFORMANCE_ENGINES=...,spark (Spark's JVM startup makes it slow, so it is
+    off by default). Declares the same capability set as the others so the whole
+    corpus is exercised on Spark and any divergence is surfaced.
+    """
+
+    engine = "spark"
+    name = "spark"
+    capabilities = set(PolarsAdapter.capabilities)
+
+    _spark = None  # cached session (JVM startup is expensive)
+
+    @classmethod
+    def _session(cls):
+        if cls._spark is None:
+            from pyspark.sql import SparkSession
+
+            builder = (
+                SparkSession.builder.master("local[2]")
+                .appName("olc-conformance")
+                # Delta extension so merge/SCD2 materialisation works (as it does on
+                # a real Databricks/Delta cluster).
+                .config(
+                    "spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension"
+                )
+                .config(
+                    "spark.sql.catalog.spark_catalog",
+                    "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+                )
+            )
+            try:
+                from delta import configure_spark_with_delta_pip
+
+                builder = configure_spark_with_delta_pip(builder)
+            except Exception:  # pragma: no cover - delta-spark not installed
+                pass
+            cls._spark = builder.getOrCreate()
+            cls._spark.sparkContext.setLogLevel("ERROR")
+        return cls._spark
+
+    def _isession(self):
+        """A per-case Spark session (``newSession``) that shares the JVM/cluster but
+        ISOLATES temp views and the SQL catalog. Engine code names temp views by
+        ``id(self)``, which Python recycles after GC — so across a long shared-session
+        suite run two cases could collide on a view name and, under lazy evaluation,
+        read each other's data (the intermittent dedup 3-rows-vs-2 symptom). A fresh
+        session per case makes view namespaces disjoint and the run deterministic."""
+        s = getattr(self, "_inst_session", None)
+        if s is None:
+            s = self._session().newSession()
+            self._inst_session = s
+        return s
+
+    def _to_frame(self, rows: list[dict]):
+        if not rows:
+            return self._isession().createDataFrame([], schema="_empty STRING")
+        from pyspark.sql.types import (
+            ArrayType,
+            BooleanType,
+            DoubleType,
+            LongType,
+            StringType,
+            StructField,
+            StructType,
+        )
+
+        # Build an explicit schema — Spark can't infer an all-null column (e.g. a
+        # coalesce/lookup input where a source is entirely null).
+        def _infer(col: str):
+            for r in rows:
+                v = r.get(col)
+                if v is None:
+                    continue
+                if isinstance(v, bool):
+                    return BooleanType()
+                if isinstance(v, int):
+                    return LongType()
+                if isinstance(v, float):
+                    return DoubleType()
+                if isinstance(v, list):
+                    return ArrayType(StringType())
+                return StringType()
+            return StringType()  # all-null -> string
+
+        cols = list(rows[0].keys())
+        schema = StructType([StructField(c, _infer(c), True) for c in cols])
+        return self._isession().createDataFrame(rows, schema=schema)
+
+    def _to_rows(self, frame) -> list[dict]:
+        import math
+
+        records = frame.toPandas().to_dict("records")
+        # pandas represents SQL NULL as NaN — restore None so comparisons match.
+        return [
+            {
+                k: (None if isinstance(v, float) and math.isnan(v) else v)
+                for k, v in rec.items()
+            }
+            for rec in records
+        ]
+
+
+_ADAPTER_REGISTRY: dict[str, type[LakeLogicAdapter]] = {
     "duckdb": DuckDBAdapter,
     "polars": PolarsAdapter,
+    "spark": SparkAdapter,
+}
+
+
+def _enabled_adapter_names() -> list[str]:
+    """Which engines the conformance run uses. DuckDB + Polars by default; Spark is
+    opt-in via OLC_CONFORMANCE_SPARK=1 or an explicit OLC_CONFORMANCE_ENGINES list."""
+    import os
+
+    explicit = os.environ.get("OLC_CONFORMANCE_ENGINES")
+    if explicit:
+        names = [n.strip().lower() for n in explicit.split(",") if n.strip()]
+    elif os.environ.get("OLC_CONFORMANCE_SPARK") == "1":
+        names = ["duckdb", "polars", "spark"]
+    else:
+        names = ["duckdb", "polars"]
+    return [n for n in names if n in _ADAPTER_REGISTRY]
+
+
+ADAPTERS: dict[str, type[LakeLogicAdapter]] = {
+    n: _ADAPTER_REGISTRY[n] for n in _enabled_adapter_names()
 }

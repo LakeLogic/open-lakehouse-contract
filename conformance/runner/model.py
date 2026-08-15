@@ -4,6 +4,7 @@ These types are engine-neutral: an adapter runs a case on a specific runtime and
 returns an :class:`ExecutionResult`, which the comparator checks against the
 case's authored expectations. Nothing here imports an engine.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

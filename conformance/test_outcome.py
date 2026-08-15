@@ -4,6 +4,7 @@ Locks down the contract that ``ok`` means ONLY a genuine PASS, while
 ``acceptable_for_capability_report`` also tolerates UNSUPPORTED / SKIP. This is
 the guard that keeps an unimplemented core feature from ever reading as success.
 """
+
 from __future__ import annotations
 
 import sys

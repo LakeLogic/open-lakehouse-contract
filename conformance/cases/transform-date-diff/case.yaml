@@ -2,7 +2,7 @@ id: OLC-T-012
 spec_version: 1.0.0
 level: core-runtime
 feature: transformations.date_diff
-description: date_diff computes the day difference between two date columns, identically across engines.
+description: date_diff computes the day difference between two compact YYYYMMDD (GA4) date columns, identically across engines.
 input: input.jsonl
 expected:
   accepted: expected/accepted.jsonl

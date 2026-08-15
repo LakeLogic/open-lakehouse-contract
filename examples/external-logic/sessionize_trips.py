@@ -12,12 +12,15 @@ exceeds `session_gap_minutes`) and returns the frame; because the contract sets
 Runs in LakeLogic's restricted sandbox: no `subprocess` / `shutil` / `socket`, no
 `exec` / `eval`, with a timeout. It's transformation code, not orchestration.
 """
+
 from __future__ import annotations
 
 DEFAULT_GAP_MIN = 30
 
 
-def run(df, *, contract=None, engine=None, session_gap_minutes: int = DEFAULT_GAP_MIN, **_):
+def run(
+    df, *, contract=None, engine=None, session_gap_minutes: int = DEFAULT_GAP_MIN, **_
+):
     """Add `session_id` to trips using a per-rider sessionization window."""
     if engine == "spark":
         from pyspark.sql import Window
@@ -25,8 +28,12 @@ def run(df, *, contract=None, engine=None, session_gap_minutes: int = DEFAULT_GA
 
         w = Window.partitionBy("rider_id").orderBy("requested_at")
         prev_completed = F.lag("completed_at").over(w)
-        gap_minutes = (F.col("requested_at").cast("long") - prev_completed.cast("long")) / 60.0
-        starts_new_session = (prev_completed.isNull() | (gap_minutes > session_gap_minutes)).cast("int")
+        gap_minutes = (
+            F.col("requested_at").cast("long") - prev_completed.cast("long")
+        ) / 60.0
+        starts_new_session = (
+            prev_completed.isNull() | (gap_minutes > session_gap_minutes)
+        ).cast("int")
         session_index = F.sum(starts_new_session).over(w)
         return df.withColumn(
             "session_id",
