@@ -1,0 +1,13 @@
+id: OLC-T-009
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.map_values
+description: map_values maps codes to labels with a default
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+comparison:
+  sort_by: [id]

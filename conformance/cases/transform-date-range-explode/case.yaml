@@ -1,0 +1,13 @@
+id: OLC-T-017
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.date_range_explode
+description: date_range_explode expands each row into one row per day in [start, end], identically across engines.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 3
+comparison:
+  sort_by: [id, snapshot]

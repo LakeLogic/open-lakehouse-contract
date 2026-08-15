@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: code, type: string }
+    - { name: label, type: string }
+transformations:
+  - phase: post
+    map_values: { field: code, mapping: { A: Apple, B: Banana }, default: "unknown", output: label }

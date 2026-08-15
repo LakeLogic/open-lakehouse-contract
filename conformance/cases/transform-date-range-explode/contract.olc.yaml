@@ -1,0 +1,11 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: s, type: string }
+    - { name: e, type: string }
+    - { name: snapshot, type: string }
+transformations:
+  - phase: post
+    date_range_explode: { output: snapshot, start_col: s, end_col: e, interval: 1d }

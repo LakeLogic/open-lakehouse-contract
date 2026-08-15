@@ -1,0 +1,12 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: status_id, type: integer }
+    - { name: status_name, type: string }
+links:
+  - { name: status_ref, path: "references/status_ref.jsonl" }
+transformations:
+  - phase: post
+    lookup: { field: status_name, reference: status_ref, on: status_id, key: sid, value: name }

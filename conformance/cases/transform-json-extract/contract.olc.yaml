@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: coords, type: string }
+    - { name: lat, type: float }
+transformations:
+  - phase: post
+    json_extract: { field: lat, source: coords, path: "$.lat", cast: float }

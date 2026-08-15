@@ -1,0 +1,13 @@
+id: OLC-T-005
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.cast
+description: cast is reconciled with the model type consistently across engines
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 1
+comparison:
+  sort_by: [id]

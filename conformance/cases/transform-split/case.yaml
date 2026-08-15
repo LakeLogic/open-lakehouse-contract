@@ -1,0 +1,13 @@
+id: OLC-T-011
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.split
+description: split turns a delimited string into a JSON array string, identically across engines.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 1
+comparison:
+  sort_by: [id]

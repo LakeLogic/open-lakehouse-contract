@@ -7,11 +7,34 @@ is FAIL.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
 import yaml
+
+
+class _NoBoolOnLoader(yaml.SafeLoader):
+    """YAML loader that does NOT coerce on/off/yes/no to booleans.
+
+    OLC contracts use keys like ``on:`` (lookup/deduplicate). Default YAML parses
+    ``on`` as boolean ``True``, corrupting the key — the runtime avoids this, so the
+    conformance harness must too.
+    """
+
+
+for _key, _mappings in list(_NoBoolOnLoader.yaml_implicit_resolvers.items()):
+    _NoBoolOnLoader.yaml_implicit_resolvers[_key] = [
+        (tag, regex) for tag, regex in _mappings if tag != "tag:yaml.org,2002:bool"
+    ]
+_NoBoolOnLoader.add_implicit_resolver(
+    "tag:yaml.org,2002:bool", re.compile(r"^(?:true|false)$", re.IGNORECASE), list("tTfF")
+)
+
+
+def _load_yaml(text: str) -> Any:
+    return yaml.load(text, Loader=_NoBoolOnLoader)
 
 from .adapters import ADAPTERS, ConformanceAdapter, LakeLogicAdapter
 from .model import Comparison, ConformanceCase, ExecutionResult, Materialization
@@ -61,8 +84,8 @@ def _read_jsonl(path: Path) -> list[dict]:
 
 
 def load_case(directory: Path) -> ConformanceCase:
-    manifest = yaml.safe_load((directory / "case.yaml").read_text(encoding="utf-8"))
-    contract = yaml.safe_load((directory / "contract.olc.yaml").read_text(encoding="utf-8"))
+    manifest = _load_yaml((directory / "case.yaml").read_text(encoding="utf-8"))
+    contract = _load_yaml((directory / "contract.olc.yaml").read_text(encoding="utf-8"))
     expected = manifest.get("expected") or {}
     comp = manifest.get("comparison") or {}
     mat = manifest.get("materialization")

@@ -1,0 +1,13 @@
+id: OLC-T-014
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.lookup
+description: lookup enriches rows with a value from a reference link table (LEFT JOIN), identically across engines.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+comparison:
+  sort_by: [id]

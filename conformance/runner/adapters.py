@@ -62,7 +62,36 @@ class LakeLogicAdapter:
     strict: bool = True
 
     def _make_processor(self, DataProcessor, case: ConformanceCase):
-        return DataProcessor(engine=self.engine, contract=dict(case.contract), strict=self.strict)
+        contract = self._contract_with_references(case)
+        return DataProcessor(engine=self.engine, contract=dict(contract), strict=self.strict)
+
+    def _contract_with_references(self, case: ConformanceCase) -> dict:
+        """Materialise each link's reference data (references/<name>.jsonl -> a temp
+        parquet) and point ``link.path`` at it, so join/lookup transforms have a real
+        reference table to resolve against — engine-neutral (both read parquet).
+        """
+        contract = dict(case.contract)
+        links = contract.get("links")
+        if not links:
+            return contract
+        import tempfile
+
+        import polars as pl
+
+        ref_dir = case.directory / "references"
+        resolved = []
+        for link in links:
+            link = dict(link)
+            name = link.get("name")
+            ref_jsonl = ref_dir / f"{name}.jsonl" if name else None
+            if ref_jsonl and ref_jsonl.exists():
+                rows = _read_jsonl(ref_jsonl)
+                tmp = Path(tempfile.mkdtemp()) / f"{name}.parquet"
+                pl.DataFrame(rows).write_parquet(tmp)
+                link["path"] = str(tmp)
+            resolved.append(link)
+        contract["links"] = resolved
+        return contract
 
     def execute(self, case: ConformanceCase) -> ExecutionResult:
         import polars as pl
@@ -191,6 +220,21 @@ class DuckDBAdapter(LakeLogicAdapter):
         "transformations.post",
         "transformations.filter",
         "transformations.deduplicate_by_latest",
+        "transformations.lower",
+        "transformations.trim",
+        "transformations.cast",
+        "transformations.coalesce",
+        "transformations.select",
+        "transformations.drop",
+        "transformations.map_values",
+        "transformations.json_extract",
+        "transformations.split",
+        "transformations.date_diff",
+        "transformations.bucket",
+        "transformations.lookup",
+        "transformations.join",
+        "transformations.explode",
+        "transformations.date_range_explode",
         "materialization.merge",
     }
 
@@ -207,6 +251,21 @@ class PolarsAdapter(LakeLogicAdapter):
         "transformations.post",
         "transformations.filter",
         "transformations.deduplicate_by_latest",
+        "transformations.lower",
+        "transformations.trim",
+        "transformations.cast",
+        "transformations.coalesce",
+        "transformations.select",
+        "transformations.drop",
+        "transformations.map_values",
+        "transformations.json_extract",
+        "transformations.split",
+        "transformations.date_diff",
+        "transformations.bucket",
+        "transformations.lookup",
+        "transformations.join",
+        "transformations.explode",
+        "transformations.date_range_explode",
         "materialization.merge",
     }
 

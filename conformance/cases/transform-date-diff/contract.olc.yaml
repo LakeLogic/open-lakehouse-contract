@@ -1,0 +1,11 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: opened, type: string }
+    - { name: closed, type: string }
+    - { name: days_open, type: integer }
+transformations:
+  - phase: post
+    date_diff: { field: days_open, from_col: opened, to_col: closed, unit: days }

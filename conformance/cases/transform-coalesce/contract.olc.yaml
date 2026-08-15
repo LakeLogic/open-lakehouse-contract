@@ -1,0 +1,11 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: primary, type: string }
+    - { name: backup, type: string }
+    - { name: chosen, type: string }
+transformations:
+  - phase: post
+    coalesce: { field: chosen, sources: [primary, backup], default: "none" }

@@ -12,8 +12,16 @@ from typing import Any
 
 def _round_numbers(value: Any, tolerance: float) -> Any:
     """Collapse int/float representation and clamp precision to the tolerance."""
+    import datetime as _dt
+
     if isinstance(value, bool):
         return value
+    # Dates/timestamps are engine-typed (a DATE vs a TIMESTAMP, python date vs
+    # datetime); compare them as their ISO date string, matching JSONL fixtures.
+    if isinstance(value, _dt.datetime):
+        return value.date().isoformat()
+    if isinstance(value, _dt.date):
+        return value.isoformat()
     if isinstance(value, (int, float)):
         if tolerance and tolerance > 0:
             # Snap to the tolerance grid so 1 == 1.0 == 0.9999996.

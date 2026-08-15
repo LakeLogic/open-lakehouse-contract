@@ -1,0 +1,13 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: cid, type: integer }
+    - { name: segment, type: string }
+    - { name: region, type: string }
+links:
+  - { name: seg_ref, path: "references/seg_ref.jsonl" }
+transformations:
+  - phase: post
+    join: { reference: seg_ref, on: cid, key: cid, fields: [segment, region], type: left }
