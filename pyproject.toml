@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "open-lakehouse-contract"
-version = "0.1.0"
+version = "0.2.0"
 description = "The Open Lakehouse Contract — an open, executable, SQL-native data-product contract. CLI + validator + agent integrations."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -34,3 +34,14 @@ packages = ["olc", "olc.models"]
 # `pip install`, not just an editable checkout.
 [tool.setuptools.package-data]
 olc = ["_bundled/**/*"]
+
+# `cz bump` reads/writes the single source of truth — [project].version (PEP 621) —
+# so there is no duplicate version literal to drift. Conventional-commit history
+# drives the SemVer bump; the changelog is regenerated on each bump.
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "pep621"
+version_scheme = "semver"
+tag_format = "v$version"
+update_changelog_on_bump = true
+major_version_zero = true

@@ -11,9 +11,13 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
+
+from .adapters import ADAPTERS, ConformanceAdapter
+from .model import Comparison, ConformanceCase, ExecutionResult, Materialization
+from .normalise import normalise_rows
 
 
 class _NoBoolOnLoader(yaml.SafeLoader):
@@ -39,10 +43,6 @@ _NoBoolOnLoader.add_implicit_resolver(
 def _load_yaml(text: str) -> Any:
     return yaml.load(text, Loader=_NoBoolOnLoader)
 
-
-from .adapters import ADAPTERS, ConformanceAdapter
-from .model import Comparison, ConformanceCase, ExecutionResult, Materialization
-from .normalise import normalise_rows
 
 CASES_DIR = Path(__file__).resolve().parents[1] / "cases"
 
@@ -86,9 +86,9 @@ def _read_jsonl(path: Path) -> list[dict]:
     if not path.exists():
         return []
     return [
-        json.loads(l)
-        for l in path.read_text(encoding="utf-8").splitlines()
-        if l.strip()
+        json.loads(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
     ]
 
 
@@ -99,7 +99,7 @@ def load_case(directory: Path) -> ConformanceCase:
     comp = manifest.get("comparison") or {}
     mat = manifest.get("materialization")
 
-    def _exp(name: str) -> Optional[list[dict]]:
+    def _exp(name: str) -> list[dict] | None:
         rel = expected.get(name)
         return _read_jsonl(directory / rel) if rel else None
 
@@ -167,15 +167,14 @@ def compare_result(
     reasons: list[str] = []
     comp = case.comparison
 
-    if result.exception is not None:
-        # An exception is only acceptable if the case explicitly expects one.
-        if not case.assertions.get("expects_error"):
-            return Outcome(
-                case.id,
-                adapter.name,
-                FAIL,
-                [f"unexpected error: {result.exception.code}"],
-            )
+    # An exception is only acceptable if the case explicitly expects one.
+    if result.exception is not None and not case.assertions.get("expects_error"):
+        return Outcome(
+            case.id,
+            adapter.name,
+            FAIL,
+            [f"unexpected error: {result.exception.code}"],
+        )
 
     # accepted rows
     if case.expected_accepted is not None:
@@ -252,7 +251,7 @@ def run_case(case: ConformanceCase, adapter_name: str) -> Outcome:
 
 
 def run_all(
-    adapter_names: Optional[list[str]] = None, cases_dir: Path = CASES_DIR
+    adapter_names: list[str] | None = None, cases_dir: Path = CASES_DIR
 ) -> list[Outcome]:
     names = adapter_names or list(ADAPTERS)
     cases = load_all_cases(cases_dir)
