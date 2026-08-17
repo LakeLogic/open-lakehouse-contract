@@ -1,0 +1,17 @@
+id: OLC-X-002
+spec_version: 1.0.0
+level: core-runtime
+feature: external_logic.deterministic_extraction
+description: >
+  Deterministic (non-LLM) extraction of structured fields from a free-text column
+  via an engine-agnostic external_logic step — identical structured output across
+  every engine. (Real LLM inference is non-deterministic and out of conformance
+  scope; this locks the engine-agnostic text->structured routing + materialization.)
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 3
+comparison:
+  sort_by: [id]

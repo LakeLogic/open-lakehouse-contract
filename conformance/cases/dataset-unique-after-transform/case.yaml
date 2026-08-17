@@ -1,0 +1,15 @@
+id: OLC-D-003
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.dataset.unique
+description: A dataset uniqueness rule evaluates AFTER pre-transforms — a key made duplicate by lower() is detected identically across engines.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+  rows_quarantined: 0
+  dataset_rules_failed: [name_unique]
+comparison:
+  sort_by: [id]

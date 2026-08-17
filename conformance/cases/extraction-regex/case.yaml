@@ -1,0 +1,18 @@
+id: OLC-X-003
+spec_version: 1.0.0
+level: core-runtime
+feature: extraction.regex
+description: >
+  Native extraction path (contract `extraction:` block) turns a free-text column
+  into structured fields via the deterministic offline `regex` provider — run by
+  the pipeline itself (not external_logic), identical across every engine. Locks
+  the engine-agnostic text->structured extraction routing; real LLM providers ride
+  the same wiring but are non-deterministic and out of conformance scope.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 3
+comparison:
+  sort_by: [id]

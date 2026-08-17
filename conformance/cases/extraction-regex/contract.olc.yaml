@@ -1,0 +1,14 @@
+version: 1.0.0
+info: { title: SensorNotes, table_name: sensor_notes }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: note, type: string }
+    - { name: temperature, type: integer, description: Extracted from note. }
+    - { name: status, type: string, description: Extracted from note. }
+extraction:
+  provider: regex
+  text_column: note
+  patterns:
+    temperature: 'temperature=(\d+)'
+    status: 'status=(\w+)'

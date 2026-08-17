@@ -1,0 +1,20 @@
+version: 1.0.0
+info: { title: TripsEnriched, table_name: trips_enriched }
+model:
+  fields:
+    - { name: trip_id, type: string, required: true }
+    - { name: driver_id, type: string, required: true }
+    - { name: fare, type: double }
+    - { name: driver_name, type: string }
+# Reference link handed to the external step; filter+columns subset it at load time.
+links:
+  - name: drivers
+    path: references/drivers.jsonl
+    columns: [driver_id, driver_name]
+    filter: "status = 'active'"
+external_logic:
+  type: python
+  engine: polars          # harness overrides to the run engine; script is engine-agnostic
+  path: enrich.py
+  entrypoint: run
+  handles_output: false   # return the frame; the runtime governs + surfaces it

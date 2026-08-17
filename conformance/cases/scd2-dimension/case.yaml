@@ -1,0 +1,13 @@
+id: OLC-SCD2-001
+spec_version: 1.0.0
+level: materialization
+feature: materialization.scd2
+description: SCD2 opens a new version when a tracked column changes and closes the prior one, identically across engines.
+input: input.jsonl
+expected:
+  target: expected/target.jsonl
+comparison:
+  sort_by: [customer_id, version]
+materialization:
+  format: delta
+  seed: seed.jsonl

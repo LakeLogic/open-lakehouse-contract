@@ -1,0 +1,28 @@
+version: 1.0.0
+info: { title: DimCustomer, table_name: dim_customer }
+model:
+  fields:
+    - { name: customer_id, type: integer, required: true }
+    - { name: tier, type: string }
+    - { name: updated_at, type: string }
+    - { name: is_current, type: boolean }
+    - { name: version, type: integer }
+    - { name: effective_from, type: string }
+    - { name: effective_to, type: string }
+primary_key: [customer_id]
+natural_key: [customer_id]
+materialization:
+  strategy: scd2
+  format: delta
+  scd2:
+    timestamp_field: updated_at
+    effective_from_field: effective_from
+    effective_to_field: effective_to
+    current_flag_field: is_current
+    version_column: version
+    track_columns: [tier]
+    # pandas/Windows-safe date sentinels — the Kimball 9999-12-31 default overflows
+    # pandas Timestamp (max 2262), and a pre-1970 effective_from default trips
+    # Windows localtime (Errno 22) when Spark converts a result via toPandas.
+    effective_from_default: "1900-01-01"
+    effective_to_default: "2200-01-01"

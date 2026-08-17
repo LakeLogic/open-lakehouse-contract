@@ -1,0 +1,12 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: name, type: string, required: true }
+transformations:
+  - phase: pre
+    lower: { fields: [name] }
+quality:
+  dataset_rules:
+    - { name: name_key, unique: name }

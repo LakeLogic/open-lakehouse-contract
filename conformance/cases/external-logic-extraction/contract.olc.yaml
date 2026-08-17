@@ -1,0 +1,14 @@
+version: 1.0.0
+info: { title: SensorNotes, table_name: sensor_notes }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: note, type: string }
+    - { name: temperature, type: integer, description: Extracted from note. }
+    - { name: status, type: string, description: Extracted from note. }
+external_logic:
+  type: python
+  engine: polars          # harness overrides to the run engine; script is engine-agnostic
+  path: extract.py
+  entrypoint: run
+  handles_output: false   # return the enriched frame; the runtime governs + materializes it

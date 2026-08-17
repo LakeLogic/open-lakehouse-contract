@@ -1,0 +1,16 @@
+id: OLC-X-001
+spec_version: 1.0.0
+level: core-runtime
+feature: external_logic.multi_frame_links
+description: >
+  external_logic receives the source frame AND a linked reference frame (subset by
+  filter+columns), left-joins them in an engine-agnostic script, and returns the
+  enriched frame — identical accepted output across every engine.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 3
+comparison:
+  sort_by: [trip_id]

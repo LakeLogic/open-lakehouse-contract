@@ -1,0 +1,3 @@
+{"id":1,"note":"temperature=72 status=active reading ok"}
+{"id":2,"note":"status=inactive temperature=5 low"}
+{"id":3,"note":"temperature=20 status=idle"}
