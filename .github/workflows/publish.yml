@@ -10,8 +10,15 @@ name: Publish to PyPI
 #     self-contained-wheel smoke test + conformance corpus — the OLC-specific gates
 #     that must pass before anything reaches PyPI.
 #
-# Nothing reaches PyPI until a `v*` tag is pushed (or dispatched) AND the
-# `PYPI_API_TOKEN` repo secret is set — the same token secret LL uses.
+# Publishes via PyPI Trusted Publishing (OIDC) — NO stored token. PyPI is
+# configured with a trusted publisher bound to (owner=LakeLogic,
+# repo=open-lakehouse-contract, workflow=publish.yml, environment=pypi); at
+# publish time the job mints a short-lived OIDC token that PyPI exchanges for an
+# ephemeral, project-scoped upload token. Nothing reaches PyPI until a `v*` tag is
+# pushed (or dispatched) AND that trusted publisher exists on PyPI (add it as a
+# "pending publisher" for the first release, which creates the project).
+# (Same LL-style tag trigger + version resolution + gates; only the auth differs —
+# LL uses a token, OLC uses OIDC.)
 
 on:
     workflow_dispatch:
@@ -27,12 +34,18 @@ on:
             - "v*"
 
 permissions:
-    contents: write
+    contents: write # push the tag on manual dispatch
+    id-token: write # mint the OIDC token for PyPI Trusted Publishing (no stored secret)
 
 jobs:
     pypi-publish:
         name: Build, gate, and publish to PyPI
         runs-on: ubuntu-latest
+        # Publishing runs in the `pypi` environment — it's the target the PyPI
+        # trusted publisher is bound to, and it lets you require an approval before
+        # any release goes out (Settings → Environments → pypi → required reviewers),
+        # independent of who has repo commit access.
+        environment: pypi
         steps:
             - uses: actions/checkout@v4
               with:
@@ -184,5 +197,5 @@ jobs:
                   python -m pip install jsonschema pyyaml
                   python tests/conformance.py
 
-            - name: Publish to PyPI
-              run: uv publish --token ${{ secrets.PYPI_API_TOKEN }}
+            - name: Publish to PyPI (Trusted Publishing / OIDC — no token)
+              run: uv publish --trusted-publishing always

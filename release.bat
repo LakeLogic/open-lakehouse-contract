@@ -146,8 +146,9 @@ echo   Release %NEW_TAG% complete!
 echo ======================================================
 echo.
 echo   The pushed tag triggers .github/workflows/publish.yml (build + gates +
-echo   uv publish) and changelog.yml (git-cliff regen). Nothing reaches PyPI
-echo   until the PYPI_API_TOKEN repo secret is configured.
+echo   uv publish via PyPI Trusted Publishing / OIDC - no token) and changelog.yml
+echo   (git-cliff regen). Publishing requires the PyPI trusted publisher to exist
+echo   for open-lakehouse-contract (add it once as a pending publisher).
 echo.
 echo   To fix a bad changelog after release:
 echo     1. Edit cliff.toml or reword commits
