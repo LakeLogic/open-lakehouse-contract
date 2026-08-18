@@ -1598,7 +1598,7 @@
 <h1 id="bigquery-gcp">BigQuery (GCP)</h1>
 <p><strong>Engine:</strong> BigQuery (also Spark for Iceberg) · <strong>Format:</strong> BigQuery native tables, plus Iceberg on GCS · <strong>Storage:</strong> BigQuery datasets; Iceberg on Google Cloud Storage · <strong>Status:</strong> ✅ Live.</p>
 <p>The same contracts run on <strong>three execution surfaces</strong>: a headless <strong>Cloud Run Job</strong> (the BigQuery engine, all 11 systems), a <strong>BigQuery Pipelines</strong> notebook DAG (assemble the medallion visually in the UI), and <strong>Dataproc Serverless</strong> Spark for <strong>Iceberg</strong> on GCS — one contract set, three ways to run it.</p>
-<p><strong>Reference data mesh lakehouse:</strong> <a href="https://github.com/LakeLogic/lakelogic-gcp-data-mesh-lakehouse"><code>lakelogic-gcp-data-mesh-lakehouse</code></a> — the full runnable RideFlow mesh lives there: all three execution surfaces, and every table it materializes (BigQuery native + 18 Iceberg tables on GCS).</p>
+<p><strong>Reference data mesh lakehouse:</strong> <code>lakelogic-gcp-data-mesh-lakehouse</code> <em>(coming soon — repo is private for now)</em> — the full runnable RideFlow mesh lives there: all three execution surfaces, and every table it materializes (BigQuery native + 18 Iceberg tables on GCS).</p>
 <h2 id="the-same-contract">The same contract</h2>
 <p>No change from the <a href="index.html#what-same-contract-means-here">canonical RideFlow contract</a> — RideFlow being the fictional ride-hailing company (like Uber) used throughout. Backend choices:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">materialization</span><span class="p">:</span>

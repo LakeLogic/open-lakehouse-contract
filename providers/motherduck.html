@@ -1598,7 +1598,7 @@
 <h1 id="motherduck">MotherDuck</h1>
 <p><strong>Engine:</strong> DuckDB · <strong>Format:</strong> DuckLake · <strong>Storage:</strong> MotherDuck-hosted catalog · <strong>Status:</strong> ✅ Live.</p>
 <p><a href="https://motherduck.com">MotherDuck</a> is a <strong>serverless analytics platform built on DuckDB</strong> — more than hosted DuckDB. It adds <strong>hybrid execution</strong> (splitting a query between your laptop and the cloud), a managed cloud catalog with <strong>zero-copy sharing</strong>, a collaborative SQL UI, and elastic scale — all DuckDB-native. With DuckLake, your governed medallion runs from a laptop straight into a <strong>MotherDuck-hosted lakehouse</strong> — same contracts, no local files, no Spark.</p>
-<p><strong>Reference data mesh lakehouse:</strong> <a href="https://github.com/LakeLogic/lakelogic-motherduck-data-mesh-lakehouse"><code>lakelogic-motherduck-data-mesh-lakehouse</code></a> — a deliberately thin, upload-and-run artifact: how to seed and build the mesh into MotherDuck, and every table it materializes.</p>
+<p><strong>Reference data mesh lakehouse:</strong> <code>lakelogic-motherduck-data-mesh-lakehouse</code> <em>(coming soon — repo is private for now)</em> — a deliberately thin, upload-and-run artifact: how to seed and build the mesh into MotherDuck, and every table it materializes.</p>
 <h2 id="the-same-contract">The same contract</h2>
 <p>Identical to the <a href="duckdb-ducklake.html">DuckLake provider</a>; only the catalog location changes (local file → MotherDuck):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">materialization</span><span class="p">:</span>

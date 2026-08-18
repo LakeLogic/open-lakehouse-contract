@@ -1620,7 +1620,7 @@
 <h1 id="duckdb-ducklake">DuckDB / DuckLake</h1>
 <p><strong>Engine:</strong> DuckDB · <strong>Format:</strong> DuckLake · <strong>Storage:</strong> local files, or S3 / GCS / Azure ADLS · <strong>Status:</strong> ✅ Live.</p>
 <p><a href="https://ducklake.select">DuckLake</a> is DuckDB's open lakehouse format — a SQL-catalog (DuckDB / SQLite / Postgres) plus Parquet data. You get a real <strong>ACID</strong> lakehouse: snapshots &amp; time-travel, schema evolution, hidden partitioning, data inlining for small tables, and concurrent writers (a Postgres catalog adds GRANT/REVOKE governance) — with <strong>nothing to run</strong>.</p>
-<p><strong>Reference data mesh lakehouse:</strong> <a href="https://github.com/LakeLogic/lakelogic-duckdb-ducklake-data-mesh-lakehouse"><code>lakelogic-duckdb-ducklake-data-mesh-lakehouse</code></a> — the full runnable RideFlow mesh lives there: how to seed and build it, and every table it materializes.</p>
+<p><strong>Reference data mesh lakehouse:</strong> <code>lakelogic-duckdb-ducklake-data-mesh-lakehouse</code> <em>(coming soon — repo is private for now)</em> — the full runnable RideFlow mesh lives there: how to seed and build it, and every table it materializes.</p>
 <h2 id="the-same-contract">The same contract</h2>
 <p>No change from the <a href="index.html#what-same-contract-means-here">canonical RideFlow contract</a>. The backend choices for this provider:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">materialization</span><span class="p">:</span>

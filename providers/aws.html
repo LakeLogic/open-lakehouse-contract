@@ -1597,7 +1597,7 @@
 
 <h1 id="aws-glue">AWS (Glue)</h1>
 <p><strong>Engine:</strong> Spark (AWS Glue) · <strong>Format:</strong> Iceberg · <strong>Storage:</strong> Glue Data Catalog + S3 · <strong>Status:</strong> ✅ Live.</p>
-<p><strong>Reference data mesh lakehouse:</strong> <a href="https://github.com/LakeLogic/lakelogic-aws-data-mesh-lakehouse"><code>lakelogic-aws-data-mesh-lakehouse</code></a> — the full runnable RideFlow mesh lives there: the Glue-job deploy, and the Glue-registered Iceberg tables it materializes on S3 (reference + marketplace domains; one Silver job is parked on Glue's Spark 3.5 — see below).</p>
+<p><strong>Reference data mesh lakehouse:</strong> <code>lakelogic-aws-data-mesh-lakehouse</code> <em>(coming soon — repo is private for now)</em> — the full runnable RideFlow mesh lives there: the Glue-job deploy, and the Glue-registered Iceberg tables it materializes on S3 (reference + marketplace domains; one Silver job is parked on Glue's Spark 3.5 — see below).</p>
 <h2 id="the-same-contract">The same contract</h2>
 <p>No change from the <a href="index.html#what-same-contract-means-here">canonical RideFlow contract</a> — RideFlow being the fictional ride-hailing company (like Uber) used throughout. Backend choices:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">materialization</span><span class="p">:</span>
