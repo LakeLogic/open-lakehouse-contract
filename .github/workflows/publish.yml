@@ -1,0 +1,188 @@
+name: Publish to PyPI
+
+# Mirrors the LakeLogic (LL) deployment approach so both repos release the same way:
+#   * `cz bump` locally bumps [project].version + writes the changelog, then
+#     `git push --follow-tags` pushes a `v<version>` tag → this workflow builds &
+#     publishes with uv.
+#   * Or run it manually (workflow_dispatch): it resolves the version from
+#     pyproject.toml (must match origin/main), creates + pushes the tag, then publishes.
+#   * workflow_dispatch WITHOUT a matching pushed tag still builds + runs the
+#     self-contained-wheel smoke test + conformance corpus — the OLC-specific gates
+#     that must pass before anything reaches PyPI.
+#
+# Nothing reaches PyPI until a `v*` tag is pushed (or dispatched) AND the
+# `PYPI_API_TOKEN` repo secret is set — the same token secret LL uses.
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Optional. If empty, uses version from pyproject.toml on origin/main."
+                required: false
+            tag:
+                description: "Optional tag reference (defaults to v<version>)"
+                required: false
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+
+jobs:
+    pypi-publish:
+        name: Build, gate, and publish to PyPI
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # full history + tags for version/tag resolution
+
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            - name: Install uv
+              run: |
+                  curl -LsSf https://astral.sh/uv/install.sh | sh
+                  echo "$HOME/.local/bin" >> $GITHUB_PATH
+            - name: Verify uv
+              run: uv --version
+
+            - name: Resolve version and tag (manual)
+              if: github.event_name == 'workflow_dispatch'
+              id: resolve
+              env:
+                  INPUT_VERSION: ${{ github.event.inputs.version }}
+                  INPUT_TAG: ${{ github.event.inputs.tag }}
+              run: |
+                  python - <<'PY'
+                  import os
+                  import re
+                  import sys
+                  import subprocess
+
+                  version = os.environ.get("INPUT_VERSION", "").strip()
+                  tag = os.environ.get("INPUT_TAG", "").strip()
+
+                  def parse_version(text):
+                      in_project = False
+                      for line in text.splitlines():
+                          line = line.strip()
+                          if line.startswith("[") and line.endswith("]"):
+                              in_project = (line == "[project]")
+                              continue
+                          if in_project:
+                              m = re.match(r'version\s*=\s*"([^"]+)"', line)
+                              if m:
+                                  return m.group(1)
+                      return None
+
+                  def read_version_from_ref(ref):
+                      try:
+                          data = subprocess.check_output(
+                              ["git", "show", f"{ref}:pyproject.toml"], text=True
+                          )
+                      except subprocess.CalledProcessError:
+                          return None
+                      return parse_version(data)
+
+                  # Prefer main, fallback to master if needed
+                  main_version = read_version_from_ref("origin/main")
+                  if not main_version:
+                      main_version = read_version_from_ref("origin/master")
+
+                  with open("pyproject.toml", "r", encoding="utf-8") as f:
+                      current_version = parse_version(f.read())
+
+                  if not current_version:
+                      print("Could not find [project] version in current pyproject.toml.")
+                      sys.exit(1)
+
+                  if version:
+                      if version != current_version:
+                          print(
+                              f"Version mismatch: current pyproject.toml has {current_version}, "
+                              f"input is {version}."
+                          )
+                          sys.exit(1)
+                  else:
+                      if not main_version:
+                          print("Could not read version from origin/main (or origin/master).")
+                          sys.exit(1)
+                      version = main_version
+                      if current_version != main_version:
+                          print(
+                              "Current branch version differs from origin/main. "
+                              "Run the workflow on main or provide a version input."
+                          )
+                          sys.exit(1)
+
+                  if tag and tag != f"v{version}":
+                      print(f"Tag mismatch: expected v{version}, input is {tag}.")
+                      sys.exit(1)
+
+                  resolved_tag = tag or f"v{version}"
+
+                  print(f"Resolved version={version}, tag={resolved_tag}")
+
+                  out = os.environ.get("GITHUB_OUTPUT")
+                  if not out:
+                      print("GITHUB_OUTPUT is not set.")
+                      sys.exit(1)
+                  with open(out, "a", encoding="utf-8") as fh:
+                      fh.write(f"version={version}\n")
+                      fh.write(f"tag={resolved_tag}\n")
+                  PY
+
+            - name: Create and push tag (manual)
+              if: github.event_name == 'workflow_dispatch'
+              env:
+                  RESOLVED_TAG: ${{ steps.resolve.outputs.tag }}
+              run: |
+                  set -euo pipefail
+                  TAG="${RESOLVED_TAG}"
+
+                  git fetch --tags
+
+                  if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+                      echo "Tag $TAG already exists locally."
+                      exit 1
+                  fi
+
+                  if git ls-remote --tags origin "$TAG" | grep -q "$TAG"; then
+                      echo "Tag $TAG already exists on origin."
+                      exit 1
+                  fi
+
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+                  git tag "$TAG"
+                  git push origin "$TAG"
+
+            - name: Build distribution (sdist + wheel)
+              run: uv build
+
+            # ── OLC-specific pre-publish gates (LL doesn't have these) ──
+            - name: Smoke-test the wheel is self-contained
+              run: |
+                  python -m venv /tmp/v
+                  /tmp/v/bin/python -m pip install --upgrade pip
+                  /tmp/v/bin/python -m pip install dist/*.whl jsonschema pyyaml
+                  # run OUTSIDE the checkout so the BUNDLED schema/skills are the only source
+                  mkdir -p /tmp/work && cd /tmp/work
+                  cp "$GITHUB_WORKSPACE/examples/orders.olc.yaml" my.olc.yaml
+                  /tmp/v/bin/olc validate my.olc.yaml                       # bundled schema
+                  /tmp/v/bin/olc init --tools all                           # bundled skills
+                  test -f .claude/commands/olc/validate.md
+                  test -f AGENTS.md
+                  echo "wheel is self-contained ✓"
+
+            - name: Conformance corpus
+              run: |
+                  python -m pip install jsonschema pyyaml
+                  python tests/conformance.py
+
+            - name: Publish to PyPI
+              run: uv publish --token ${{ secrets.PYPI_API_TOKEN }}

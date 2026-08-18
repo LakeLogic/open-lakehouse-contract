@@ -1,6 +1,10 @@
 __pycache__/
 *.pyc
 
+# tool caches
+.pytest_cache/
+.ruff_cache/
+
 # mkdocs build output
 site/
 site_build/

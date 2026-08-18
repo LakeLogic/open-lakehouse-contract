@@ -1,0 +1,6 @@
+{
+    "files.exclude": {
+        "**/.pytest_cache": true,
+        "**/.ruff_cache": true
+    }
+}
