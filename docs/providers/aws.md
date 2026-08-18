@@ -2,7 +2,7 @@
 
 **Engine:** Spark (AWS Glue) · **Format:** Iceberg · **Storage:** Glue Data Catalog + S3 · **Status:** ✅ Live.
 
-**Reference data mesh lakehouse:** [`lakelogic-aws-data-mesh-lakehouse`](https://github.com/LakeLogic/lakelogic-aws-data-mesh-lakehouse) — the full runnable RideFlow mesh lives there: the Glue-job deploy, and the Glue-registered Iceberg tables it materializes on S3 (reference + marketplace domains; one Silver job is parked on Glue's Spark 3.5 — see below).
+**Reference data mesh lakehouse:** `lakelogic-aws-data-mesh-lakehouse` *(coming soon — repo is private for now)* — the full runnable RideFlow mesh lives there: the Glue-job deploy, and the Glue-registered Iceberg tables it materializes on S3 (reference + marketplace domains; one Silver job is parked on Glue's Spark 3.5 — see below).
 
 ## The same contract
 

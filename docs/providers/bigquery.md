@@ -4,7 +4,7 @@
 
 The same contracts run on **three execution surfaces**: a headless **Cloud Run Job** (the BigQuery engine, all 11 systems), a **BigQuery Pipelines** notebook DAG (assemble the medallion visually in the UI), and **Dataproc Serverless** Spark for **Iceberg** on GCS — one contract set, three ways to run it.
 
-**Reference data mesh lakehouse:** [`lakelogic-gcp-data-mesh-lakehouse`](https://github.com/LakeLogic/lakelogic-gcp-data-mesh-lakehouse) — the full runnable RideFlow mesh lives there: all three execution surfaces, and every table it materializes (BigQuery native + 18 Iceberg tables on GCS).
+**Reference data mesh lakehouse:** `lakelogic-gcp-data-mesh-lakehouse` *(coming soon — repo is private for now)* — the full runnable RideFlow mesh lives there: all three execution surfaces, and every table it materializes (BigQuery native + 18 Iceberg tables on GCS).
 
 ## The same contract
 

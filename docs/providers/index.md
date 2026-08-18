@@ -13,12 +13,12 @@ The contract never changes between these pages. Only the `engine`, the `format`,
 
 | Platform | Engine(s) | Format | Scope & status | Reference repo |
 |---|---|---|---|---|
-| **[DuckDB / DuckLake](duckdb-ducklake.md)** | DuckDB | DuckLake | ✅ Live — full 6-domain mesh, ~59 tables | [GitHub ↗](https://github.com/LakeLogic/lakelogic-duckdb-ducklake-data-mesh-lakehouse) |
-| **[MotherDuck](motherduck.md)** | DuckDB | DuckLake | ✅ Live — marketplace domain, 18 tables + snapshots | [GitHub ↗](https://github.com/LakeLogic/lakelogic-motherduck-data-mesh-lakehouse) |
+| **[DuckDB / DuckLake](duckdb-ducklake.md)** | DuckDB | DuckLake | ✅ Live — full 6-domain mesh, ~59 tables | *Coming soon* |
+| **[MotherDuck](motherduck.md)** | DuckDB | DuckLake | ✅ Live — marketplace domain, 18 tables + snapshots | *Coming soon* |
 | **[Databricks](databricks.md)** | Spark, Polars, DuckDB | Delta | ✅ Live — full mesh on UC; external ADLS Delta via Polars/DuckDB | [GitHub ↗](https://github.com/LakeLogic/lakelogic-databricks-data-mesh-lakehouse) |
 | **[Snowflake](snowflake.md)** | Snowflake SQL | Native tables | ✅ Live — full mesh on a trial, + native Project | [GitHub ↗](https://github.com/LakeLogic/lakelogic-snowflake-data-mesh-lakehouse) |
-| **[BigQuery (GCP)](bigquery.md)** | BigQuery, Spark | BigQuery native, Iceberg | ✅ Live — 11/11 systems; 18 Iceberg tables | [GitHub ↗](https://github.com/LakeLogic/lakelogic-gcp-data-mesh-lakehouse) |
-| **[AWS (Glue)](aws.md)** | Spark | Iceberg | ✅ Live — reference + marketplace; one Silver job on Spark 3.5 | [GitHub ↗](https://github.com/LakeLogic/lakelogic-aws-data-mesh-lakehouse) |
+| **[BigQuery (GCP)](bigquery.md)** | BigQuery, Spark | BigQuery native, Iceberg | ✅ Live — 11/11 systems; 18 Iceberg tables | *Coming soon* |
+| **[AWS (Glue)](aws.md)** | Spark | Iceberg | ✅ Live — reference + marketplace; one Silver job on Spark 3.5 | *Coming soon* |
 | **[Microsoft Fabric](fabric.md)** | Spark | Delta | ◑ Validated & deploy-ready — assign a capacity | [GitHub ↗](https://github.com/LakeLogic/lakelogic-microsoft-fabric-data-mesh-lakehouse) |
 
 !!! note "How to read 'scope & status'"

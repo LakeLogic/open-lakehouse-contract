@@ -4,7 +4,7 @@
 
 [DuckLake](https://ducklake.select) is DuckDB's open lakehouse format — a SQL-catalog (DuckDB / SQLite / Postgres) plus Parquet data. You get a real **ACID** lakehouse: snapshots & time-travel, schema evolution, hidden partitioning, data inlining for small tables, and concurrent writers (a Postgres catalog adds GRANT/REVOKE governance) — with **nothing to run**.
 
-**Reference data mesh lakehouse:** [`lakelogic-duckdb-ducklake-data-mesh-lakehouse`](https://github.com/LakeLogic/lakelogic-duckdb-ducklake-data-mesh-lakehouse) — the full runnable RideFlow mesh lives there: how to seed and build it, and every table it materializes.
+**Reference data mesh lakehouse:** `lakelogic-duckdb-ducklake-data-mesh-lakehouse` *(coming soon — repo is private for now)* — the full runnable RideFlow mesh lives there: how to seed and build it, and every table it materializes.
 
 ## The same contract
 
