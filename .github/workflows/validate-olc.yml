@@ -56,9 +56,16 @@ jobs:
     # pushes/PRs; forked PRs (which cannot receive secrets) still get the full public
     # gate — structural fixtures, the public strict model, and the schema-drift gate —
     # in the `test` job above, none of which need any private dependency.
+    #
+    # It ALSO only runs once the runtime pin is configured: with `LAKELOGIC_REF`
+    # unset the job SKIPS (neutral) rather than fails, so CI stays green on the
+    # public gates until a maintainer opts into the real-runtime gate by setting the
+    # `LAKELOGIC_REF` repo variable (+ `LAKELOGIC_INSTALL_TOKEN` secret). The pin
+    # format is still hard-verified in the first step when it IS set.
     if: >-
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository
+      vars.LAKELOGIC_REF != '' &&
+      ( github.event_name != 'pull_request' ||
+        github.event.pull_request.head.repo.full_name == github.repository )
     env:
       # Pin the exact LakeLogic revision the engines are validated at (immutable SHA).
       LAKELOGIC_REF: ${{ vars.LAKELOGIC_REF }}
