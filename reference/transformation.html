@@ -1,0 +1,2720 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="One executable contract for a data product — ingest from any source, govern it, land it in an open lakehouse, publish it anywhere. Portable, SQL-native, engine-agnostic; the open, executable, agent-native contract for lakehouse data products.
+">
+      
+      
+        <meta name="author" content="LakeLogic">
+      
+      
+        <link rel="canonical" href="https://lakelogic.github.io/open-lakehouse-contract/reference/transformation.html">
+      
+      
+        <link rel="prev" href="compliance.html">
+      
+      
+        <link rel="next" href="external-logic.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/logo.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Transformation - Open Lakehouse Contract</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css?v=4">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#transformation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="Open Lakehouse Contract" class="md-header__button md-logo" aria-label="Open Lakehouse Contract" data-md-component="logo">
+      
+  <img src="../assets/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Open Lakehouse Contract
+            <span class="ll-docs-badge">Docs</span>
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Transformation
+            
+          </span>
+        </div>
+      </div>
+    </div><nav class="ll-metanav" aria-label="Documentation sections">
+      <a class="ll-metanav__link" href="../getting-started.html">Get started</a>
+      <a class="ll-metanav__link" href="../concepts/what-is-olc.html">Concepts</a>
+      <a class="ll-metanav__link" href="../concepts/agent-workflow.html">AI agents</a>
+      <a class="ll-metanav__link" href="../providers/index.html">Providers</a>
+      <a class="ll-metanav__link" href="schema.html">Reference</a>
+    </nav>
+
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="light-blue"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    <div class="ll-header-extra">
+      <a class="ll-header-extra__link" href="https://lakelogic.org" target="_blank" rel="noopener">Website</a>
+    </div>
+
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/LakeLogic/open-lakehouse-contract" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    LakeLogic/open-lakehouse-contract
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="Open Lakehouse Contract" class="md-nav__button md-logo" aria-label="Open Lakehouse Contract" data-md-component="logo">
+      
+  <img src="../assets/logo.svg" alt="logo">
+
+    </a>
+    Open Lakehouse Contract
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/LakeLogic/open-lakehouse-contract" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    LakeLogic/open-lakehouse-contract
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/what-is-olc.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What is OLC?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/why-pydantic.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why Pydantic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/ai-data-agents.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Data Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/agent-native.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent-Native
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/agent-workflow.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/vs-odcs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OLC & ODCS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../providers/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Providers
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Providers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/duckdb-ducklake.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DuckDB / DuckLake
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/motherduck.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MotherDuck
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/databricks.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Databricks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/snowflake.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Snowflake
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/bigquery.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BigQuery (GCP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/fabric.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Microsoft Fabric
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../providers/aws.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS (Glue)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="schema.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview & Libraries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="anatomy.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Anatomy of a Contract (all options)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="execution-order.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Execution Order (pre & post)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ingestion.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingestion & Sources
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lifecycle.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Post-Ingestion Lifecycle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="quality.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation & Quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="security.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security & PII
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="compliance.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compliance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="transformation.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#phase-pre-or-post" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        phase — pre or post
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sql-first-the-escape-hatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQL-first (the escape hatch)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#column-shaping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Column shaping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Column shaping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#select-keep-only-these-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        select — keep only these columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drop-remove-these-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        drop — remove these columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rename-rename-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rename — rename columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cast-change-column-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cast — change column types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derive-add-a-computed-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        derive — add a computed column
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coalesce-first-non-null-across-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        coalesce — first non-null across columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#map_values-remap-values-via-a-lookup-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        map_values — remap values via a lookup dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#string-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        String helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="String helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trim-strip-whitespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trim — strip whitespace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lower-upper-case-fold-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lower / upper — case-fold columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#split-split-a-string-into-parts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        split — split a string into parts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#json_extract-pull-a-field-out-of-jsonstruct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        json_extract — pull a field out of JSON/struct
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rows-reshaping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rows &amp; reshaping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rows &amp; reshaping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter-keep-rows-matching-a-predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter — keep rows matching a predicate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deduplicate-drop-duplicates-keep-the-chosen-row" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deduplicate — drop duplicates, keep the chosen row
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#explode-one-row-per-array-element" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        explode — one row per array element
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#date_range_explode-expand-a-start-end-range-into-daily-rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        date_range_explode — expand a [start, end] range into daily rows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bucket-assign-rows-to-numeric-bands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bucket — assign rows to numeric bands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#date_diff-difference-between-two-dates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        date_diff — difference between two dates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#joins-lookups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Joins &amp; lookups
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Joins &amp; lookups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lookup-one-field-from-a-reference-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lookup — one field from a reference table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#join-multiple-fields-from-a-reference-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        join — multiple fields from a reference table
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aggregation-pivots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregation &amp; pivots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Aggregation &amp; pivots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rollup-group-by-aggregation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rollup — group-by aggregation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pivot-long-wide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pivot — long → wide
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unpivot-wide-long" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        unpivot — wide → long
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-op-list-sql-variant-shorthand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full op list — SQL variant + shorthand
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="external-logic.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    External Logic (Spark / notebooks)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="materialization.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Materialization & Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="server.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Server & Output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lineage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="slo.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Service Levels (SLOs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="notifications.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="extraction.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unstructured (LLM Extraction)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="conformance.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conformance Suite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#phase-pre-or-post" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        phase — pre or post
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sql-first-the-escape-hatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQL-first (the escape hatch)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#column-shaping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Column shaping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Column shaping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#select-keep-only-these-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        select — keep only these columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drop-remove-these-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        drop — remove these columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rename-rename-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rename — rename columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cast-change-column-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cast — change column types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derive-add-a-computed-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        derive — add a computed column
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coalesce-first-non-null-across-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        coalesce — first non-null across columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#map_values-remap-values-via-a-lookup-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        map_values — remap values via a lookup dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#string-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        String helpers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="String helpers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trim-strip-whitespace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        trim — strip whitespace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lower-upper-case-fold-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lower / upper — case-fold columns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#split-split-a-string-into-parts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        split — split a string into parts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#json_extract-pull-a-field-out-of-jsonstruct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        json_extract — pull a field out of JSON/struct
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rows-reshaping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rows &amp; reshaping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rows &amp; reshaping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#filter-keep-rows-matching-a-predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        filter — keep rows matching a predicate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deduplicate-drop-duplicates-keep-the-chosen-row" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deduplicate — drop duplicates, keep the chosen row
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#explode-one-row-per-array-element" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        explode — one row per array element
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#date_range_explode-expand-a-start-end-range-into-daily-rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        date_range_explode — expand a [start, end] range into daily rows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bucket-assign-rows-to-numeric-bands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bucket — assign rows to numeric bands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#date_diff-difference-between-two-dates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        date_diff — difference between two dates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#joins-lookups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Joins &amp; lookups
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Joins &amp; lookups">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lookup-one-field-from-a-reference-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lookup — one field from a reference table
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#join-multiple-fields-from-a-reference-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        join — multiple fields from a reference table
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aggregation-pivots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregation &amp; pivots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Aggregation &amp; pivots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rollup-group-by-aggregation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        rollup — group-by aggregation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pivot-long-wide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pivot — long → wide
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unpivot-wide-long" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        unpivot — wide → long
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-op-list-sql-variant-shorthand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full op list — SQL variant + shorthand
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="transformation">Transformation</h1>
+<p>Transformations are the declared steps between the source and the materialized target. Each entry in <code>transformations[]</code> is one operation (<code>Transformation</code>); they run in order. OLC is <strong>SQL-first</strong>: the <code>sql:</code> op gives you full SQL, and every shorthand op below is a convenience wrapper that <strong>compiles to SQL</strong>. So each op here shows its <strong>SQL variant first</strong> — that's what actually runs — followed by the shorthand you can use instead.</p>
+<div class="admonition abstract">
+<p class="admonition-title">Powered by</p>
+<p>Transformations are <strong>Pydantic</strong> models compiled to native operations on the active engine — DataFrame ops / SQL on <strong>PySpark</strong>, <strong>duckdb</strong>, or <strong>polars</strong>. The SQL below is shown DuckDB-flavored for concreteness; the framework rewrites dialect differences (e.g. <code>QUALIFY</code>, <code>DATE_DIFF</code>, <code>PIVOT</code>) per engine, so the <em>same</em> op runs everywhere. In every <code>sql:</code> block, <code>source</code> is the current dataset and <code>links:</code> datasets are joinable by name.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">SQL is the portability bet — dialects are a v-next concern</p>
+<p>OLC is SQL-native on purpose: <code>sql: "amount &gt; 0"</code> is far more portable across engines than a bespoke <code>{ check: greater_than, value: 0 }</code> object, because Spark SQL, DuckDB, Snowflake, BigQuery, and Fabric all understand broadly SQL-shaped expressions. Dialect differences are real but bounded — today the reference framework rewrites the common ones. A future spec version may let a rule pin its dialect explicitly, e.g. <code>expression: { sql: "amount &gt; 0", dialect: ansi }</code>, so authors can opt into a portable ANSI subset or an engine-specific escape hatch. <strong>v1 does not try to solve every dialect</strong> — write standard-leaning SQL, and let the framework handle the rest.</p>
+</div>
+<h2 id="phase-pre-or-post"><code>phase</code> — pre or post</h2>
+<p>Every op accepts <code>phase: pre | post</code>. <strong>Pre</strong> transforms run before quality checks and may reference only source columns; <strong>post</strong> transforms run after the good/bad split and may reference derived columns too. The full run sequence — where pre and post sit relative to validation, quarantine, and materialization — is on the <a href="execution-order.html">Execution Order</a> page.</p>
+<hr />
+<h2 id="sql-first-the-escape-hatch">SQL-first (the escape hatch)</h2>
+<p>The most powerful op — full SQL with access to <code>source</code> and any <code>links:</code> reference datasets. Everything below is shorthand for common shapes of this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">sql</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="no">SELECT</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">      </span><span class="no">o.*,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="no">ROUND(o.quantity * o.unit_price * (1.0 - COALESCE(o.discount_pct, 0)), 2) AS line_total,</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="no">c.name AS customer_name</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="no">FROM source o</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="no">LEFT JOIN customers c ON o.customer_id = c.customer_id</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div>
+<hr />
+<h2 id="column-shaping">Column shaping</h2>
+<h3 id="select-keep-only-these-columns"><code>select</code> — keep only these columns</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">customer_id</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">select</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> columns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_id</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">email</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">age</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">status</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="drop-remove-these-columns"><code>drop</code> — remove these columns</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">EXCLUDE</span><span class="w"> </span><span class="p">(</span><span class="n">internal_notes</span><span class="p">,</span><span class="w"> </span><span class="n">temp_field</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">drop</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> columns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">internal_notes</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">temp_field</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="rename-rename-columns"><code>rename</code> — rename columns</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">RENAME</span><span class="w"> </span><span class="p">(</span><span class="n">cust_id</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customer_id</span><span class="p">,</span><span class="w"> </span><span class="n">email_addr</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="n">cust_status</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">status</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">rename</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> from</span><span class="p">:</span><span class="w"> </span><span class="nv">cust_id</span><span class="p p-Indicator">,</span><span class="nt"> to</span><span class="p">:</span><span class="w"> </span><span class="nv">customer_id</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">          </span><span class="c1"># single</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">rename</span><span class="p">:</span><span class="w">                                             </span><span class="c1"># many</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">mappings</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> cust_id</span><span class="p">:</span><span class="w"> </span><span class="nv">customer_id</span><span class="p p-Indicator">,</span><span class="nt"> email_addr</span><span class="p">:</span><span class="w"> </span><span class="nv">email</span><span class="p p-Indicator">,</span><span class="nt"> cust_status</span><span class="p">:</span><span class="w"> </span><span class="nv">status</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="cast-change-column-types"><code>cast</code> — change column types</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">REPLACE</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="k">CAST</span><span class="p">(</span><span class="n">customer_id</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customer_id</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="k">CAST</span><span class="p">(</span><span class="n">age</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">)</span><span class="w">        </span><span class="k">AS</span><span class="w"> </span><span class="n">age</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="k">CAST</span><span class="p">(</span><span class="n">created_at</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">created_at</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">cast</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> columns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> customer_id</span><span class="p">:</span><span class="w"> </span><span class="nv">long</span><span class="p p-Indicator">,</span><span class="nt"> age</span><span class="p">:</span><span class="w"> </span><span class="nv">int</span><span class="p p-Indicator">,</span><span class="nt"> created_at</span><span class="p">:</span><span class="w"> </span><span class="nv">timestamp</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="derive-add-a-computed-column"><code>derive</code> — add a computed column</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">       </span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">25</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'young'</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">65</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'adult'</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="s1">'senior'</span><span class="w"> </span><span class="k">END</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">age_group</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">derive</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">age_group</span><span class="p p-Indicator">,</span><span class="nt"> sql</span><span class="p">:</span><span class="w"> </span><span class="s">"CASE</span><span class="nv"> </span><span class="s">WHEN</span><span class="nv"> </span><span class="s">age</span><span class="nv"> </span><span class="s">&lt;</span><span class="nv"> </span><span class="s">25</span><span class="nv"> </span><span class="s">THEN</span><span class="nv"> </span><span class="s">'young'</span><span class="nv"> </span><span class="s">WHEN</span><span class="nv"> </span><span class="s">age</span><span class="nv"> </span><span class="s">&lt;</span><span class="nv"> </span><span class="s">65</span><span class="nv"> </span><span class="s">THEN</span><span class="nv"> </span><span class="s">'adult'</span><span class="nv"> </span><span class="s">ELSE</span><span class="nv"> </span><span class="s">'senior'</span><span class="nv"> </span><span class="s">END"</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># optional engine-specific overrides: sql_duckdb / sql_spark</span>
+</code></pre></div></p>
+<h3 id="coalesce-first-non-null-across-columns"><code>coalesce</code> — first non-null across columns</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">       </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">primary_email</span><span class="p">,</span><span class="w"> </span><span class="n">secondary_email</span><span class="p">,</span><span class="w"> </span><span class="n">backup_email</span><span class="p">,</span><span class="w"> </span><span class="s1">'unknown@example.com'</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">email</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">coalesce</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">email</span><span class="p p-Indicator">,</span><span class="nt"> sources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">primary_email</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">secondary_email</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">backup_email</span><span class="p p-Indicator">],</span><span class="nt"> default</span><span class="p">:</span><span class="w"> </span><span class="s">"unknown@example.com"</span><span class="p p-Indicator">,</span><span class="nt"> output</span><span class="p">:</span><span class="w"> </span><span class="nv">email</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="map_values-remap-values-via-a-lookup-dict"><code>map_values</code> — remap values via a lookup dict</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">       </span><span class="k">CASE</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="s1">'A'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'ACTIVE'</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="s1">'I'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'INACTIVE'</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="s1">'P'</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'PENDING'</span><span class="w"> </span><span class="k">ELSE</span><span class="w"> </span><span class="s1">'UNKNOWN'</span><span class="w"> </span><span class="k">END</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">status</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">map_values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">status</span><span class="p p-Indicator">,</span><span class="nt"> mapping</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> A</span><span class="p">:</span><span class="w"> </span><span class="nv">ACTIVE</span><span class="p p-Indicator">,</span><span class="nt"> I</span><span class="p">:</span><span class="w"> </span><span class="nv">INACTIVE</span><span class="p p-Indicator">,</span><span class="nt"> P</span><span class="p">:</span><span class="w"> </span><span class="nv">PENDING</span><span class="w"> </span><span class="p p-Indicator">},</span><span class="nt"> default</span><span class="p">:</span><span class="w"> </span><span class="nv">UNKNOWN</span><span class="p p-Indicator">,</span><span class="nt"> output</span><span class="p">:</span><span class="w"> </span><span class="nv">status</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<hr />
+<h2 id="string-helpers">String helpers</h2>
+<h3 id="trim-strip-whitespace"><code>trim</code> — strip whitespace</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">TRIM</span><span class="p">(</span><span class="n">email</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="k">TRIM</span><span class="p">(</span><span class="n">status</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span><span class="w">   </span><span class="c1">-- side: left→LTRIM, right→RTRIM</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">trim</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">email</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">status</span><span class="p p-Indicator">],</span><span class="nt"> side</span><span class="p">:</span><span class="w"> </span><span class="nv">both</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">        </span><span class="c1"># both | left | right</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="lower-upper-case-fold-columns"><code>lower</code> / <code>upper</code> — case-fold columns</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">LOWER</span><span class="p">(</span><span class="n">email</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="k">LOWER</span><span class="p">(</span><span class="n">status</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">UPPER</span><span class="p">(</span><span class="n">country_code</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">country_code</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">lower</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">email</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">status</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">upper</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">country_code</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="split-split-a-string-into-parts"><code>split</code> — split a string into parts</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">STRING_SPLIT</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span><span class="w"> </span><span class="s1">','</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">tag_array</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">split</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">tags</span><span class="p p-Indicator">,</span><span class="nt"> delimiter</span><span class="p">:</span><span class="w"> </span><span class="s">","</span><span class="p p-Indicator">,</span><span class="nt"> output</span><span class="p">:</span><span class="w"> </span><span class="nv">tag_array</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="json_extract-pull-a-field-out-of-jsonstruct"><code>json_extract</code> — pull a field out of JSON/struct</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">CAST</span><span class="p">(</span><span class="n">json_extract_string</span><span class="p">(</span><span class="n">location_coordinates</span><span class="p">,</span><span class="w"> </span><span class="s1">'$.latitude'</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="nb">FLOAT</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">latitude</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">json_extract</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">latitude</span><span class="p p-Indicator">,</span><span class="nt"> source</span><span class="p">:</span><span class="w"> </span><span class="nv">location_coordinates</span><span class="p p-Indicator">,</span><span class="nt"> path</span><span class="p">:</span><span class="w"> </span><span class="s">"$.latitude"</span><span class="p p-Indicator">,</span><span class="nt"> cast</span><span class="p">:</span><span class="w"> </span><span class="nv">float</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<hr />
+<h2 id="rows-reshaping">Rows &amp; reshaping</h2>
+<h3 id="filter-keep-rows-matching-a-predicate"><code>filter</code> — keep rows matching a predicate</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">customer_id</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">filter</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> sql</span><span class="p">:</span><span class="w"> </span><span class="s">"customer_id</span><span class="nv"> </span><span class="s">IS</span><span class="nv"> </span><span class="s">NOT</span><span class="nv"> </span><span class="s">NULL</span><span class="nv"> </span><span class="s">AND</span><span class="nv"> </span><span class="s">email</span><span class="nv"> </span><span class="s">IS</span><span class="nv"> </span><span class="s">NOT</span><span class="nv"> </span><span class="s">NULL"</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="deduplicate-drop-duplicates-keep-the-chosen-row"><code>deduplicate</code> — drop duplicates, keep the chosen row</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="n">QUALIFY</span><span class="w"> </span><span class="n">ROW_NUMBER</span><span class="p">()</span><span class="w"> </span><span class="n">OVER</span><span class="w"> </span><span class="p">(</span><span class="n">PARTITION</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">customer_id</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">updated_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">deduplicate</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="s">"on"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_id</span><span class="p p-Indicator">],</span><span class="nt"> sort_by</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">updated_at</span><span class="p p-Indicator">],</span><span class="nt"> order</span><span class="p">:</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># quote 'on' (YAML keyword)</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="explode-one-row-per-array-element"><code>explode</code> — one row per array element</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">UNNEST</span><span class="p">(</span><span class="n">tag_array</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">explode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">tag_array</span><span class="p p-Indicator">,</span><span class="nt"> output</span><span class="p">:</span><span class="w"> </span><span class="nv">tag</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
+</code></pre></div></p>
+<h3 id="date_range_explode-expand-a-start-end-range-into-daily-rows"><code>date_range_explode</code> — expand a [start, end] range into daily rows</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="w">       </span><span class="k">UNNEST</span><span class="p">(</span><span class="n">generate_series</span><span class="p">(</span><span class="n">creation_date</span><span class="p">,</span><span class="w"> </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">deleted_at</span><span class="p">,</span><span class="w"> </span><span class="k">current_date</span><span class="p">),</span><span class="w"> </span><span class="nb">INTERVAL</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">DAY</span><span class="p">))</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">snapshot_date</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">date_range_explode</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> output</span><span class="p">:</span><span class="w"> </span><span class="nv">snapshot_date</span><span class="p p-Indicator">,</span><span class="nt"> start_col</span><span class="p">:</span><span class="w"> </span><span class="nv">creation_date</span><span class="p p-Indicator">,</span><span class="nt"> end_col</span><span class="p">:</span><span class="w"> </span><span class="nv">deleted_at</span><span class="p p-Indicator">,</span><span class="nt"> interval</span><span class="p">:</span><span class="w"> </span><span class="nv">1d</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<h3 id="bucket-assign-rows-to-numeric-bands"><code>bucket</code> — assign rows to numeric bands</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="w">       </span><span class="k">CASE</span><span class="w"> </span><span class="k">WHEN</span><span class="w"> </span><span class="n">listing_price</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">250000</span><span class="w">  </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'sub_250k'</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="w">            </span><span class="k">WHEN</span><span class="w"> </span><span class="n">listing_price</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">500000</span><span class="w">  </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'250k_500k'</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="w">            </span><span class="k">WHEN</span><span class="w"> </span><span class="n">listing_price</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1000000</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">'500k_1m'</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="w">            </span><span class="k">ELSE</span><span class="w"> </span><span class="s1">'1m_plus'</span><span class="w"> </span><span class="k">END</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">price_band</span>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">bucket</span><span class="p">:</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="w">    </span><span class="nt">field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">price_band</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">listing_price</span>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="w">    </span><span class="nt">bins</span><span class="p">:</span>
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> lt</span><span class="p">:</span><span class="w"> </span><span class="nv">250000</span><span class="p p-Indicator">,</span><span class="nt">  label</span><span class="p">:</span><span class="w"> </span><span class="nv">sub_250k</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> lt</span><span class="p">:</span><span class="w"> </span><span class="nv">500000</span><span class="p p-Indicator">,</span><span class="nt">  label</span><span class="p">:</span><span class="w"> </span><span class="nv">250k_500k</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> lt</span><span class="p">:</span><span class="w"> </span><span class="nv">1000000</span><span class="p p-Indicator">,</span><span class="nt"> label</span><span class="p">:</span><span class="w"> </span><span class="nv">500k_1m</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a><span class="w">    </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1m_plus</span><span class="w">                     </span><span class="c1"># bin bounds: lt / lte / gt / gte / eq</span>
+<a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<h3 id="date_diff-difference-between-two-dates"><code>date_diff</code> — difference between two dates</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">DATE_DIFF</span><span class="p">(</span><span class="s1">'day'</span><span class="p">,</span><span class="w"> </span><span class="n">creation_date</span><span class="p">,</span><span class="w"> </span><span class="n">event_date</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">listing_age_days</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">date_diff</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">listing_age_days</span><span class="p p-Indicator">,</span><span class="nt"> from_col</span><span class="p">:</span><span class="w"> </span><span class="nv">creation_date</span><span class="p p-Indicator">,</span><span class="nt"> to_col</span><span class="p">:</span><span class="w"> </span><span class="nv">event_date</span><span class="p p-Indicator">,</span><span class="nt"> unit</span><span class="p">:</span><span class="w"> </span><span class="nv">days</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># days | hours | months</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<hr />
+<h2 id="joins-lookups">Joins &amp; lookups</h2>
+<h3 id="lookup-one-field-from-a-reference-table"><code>lookup</code> — one field from a reference table</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">d</span><span class="p">.</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="s1">'Unknown'</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">country_name</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="k">FROM</span><span class="w"> </span><span class="k">source</span><span class="w"> </span><span class="n">s</span>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">dim_countries</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">country_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d</span><span class="p">.</span><span class="n">code</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">lookup</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">country_name</span><span class="p p-Indicator">,</span><span class="nt"> reference</span><span class="p">:</span><span class="w"> </span><span class="nv">dim_countries</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"on"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">country_code</span><span class="p p-Indicator">,</span><span class="nt"> key</span><span class="p">:</span><span class="w"> </span><span class="nv">code</span><span class="p p-Indicator">,</span><span class="nt"> value</span><span class="p">:</span><span class="w"> </span><span class="nv">name</span><span class="p p-Indicator">,</span><span class="nt"> default_value</span><span class="p">:</span><span class="w"> </span><span class="nv">Unknown</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<h3 id="join-multiple-fields-from-a-reference-table"><code>join</code> — multiple fields from a reference table</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="o">*</span><span class="p">,</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="w">       </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">d</span><span class="p">.</span><span class="n">product_name</span><span class="p">,</span><span class="w"> </span><span class="s1">'Unknown Product'</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">product_product_name</span><span class="p">,</span>
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a><span class="w">       </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">d</span><span class="p">.</span><span class="n">category</span><span class="p">,</span><span class="w"> </span><span class="s1">'Uncategorized'</span><span class="p">)</span><span class="w">       </span><span class="k">AS</span><span class="w"> </span><span class="n">product_category</span><span class="p">,</span>
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="w">       </span><span class="n">d</span><span class="p">.</span><span class="n">price</span><span class="w">                                     </span><span class="k">AS</span><span class="w"> </span><span class="n">product_price</span>
+<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a><span class="k">FROM</span><span class="w"> </span><span class="k">source</span><span class="w"> </span><span class="n">s</span>
+<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">dim_products</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">product_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d</span><span class="p">.</span><span class="n">id</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">join</span><span class="p">:</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="w">    </span><span class="nt">reference</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dim_products</span>
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a><span class="w">    </span><span class="s">"on"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">product_id</span>
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">id</span>
+<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a><span class="w">    </span><span class="nt">fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">product_name</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">category</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">price</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">left</span><span class="w">                           </span><span class="c1"># left | inner | right | full</span>
+<a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a><span class="w">    </span><span class="nt">prefix</span><span class="p">:</span><span class="w"> </span><span class="s">"product_"</span>
+<a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a><span class="w">    </span><span class="nt">defaults</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> product_name</span><span class="p">:</span><span class="w"> </span><span class="nv">Unknown Product</span><span class="p p-Indicator">,</span><span class="nt"> category</span><span class="p">:</span><span class="w"> </span><span class="nv">Uncategorized</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-38-9" name="__codelineno-38-9" href="#__codelineno-38-9"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<hr />
+<h2 id="aggregation-pivots">Aggregation &amp; pivots</h2>
+<h3 id="rollup-group-by-aggregation"><code>rollup</code> — group-by aggregation</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">customer_segment</span><span class="p">,</span><span class="w"> </span><span class="n">country</span><span class="p">,</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="w">       </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w">            </span><span class="k">AS</span><span class="w"> </span><span class="n">total_customers</span><span class="p">,</span>
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="w">       </span><span class="k">AVG</span><span class="p">(</span><span class="n">age</span><span class="p">)</span><span class="w">            </span><span class="k">AS</span><span class="w"> </span><span class="n">avg_age</span><span class="p">,</span>
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="w">       </span><span class="k">SUM</span><span class="p">(</span><span class="n">lifetime_value</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_revenue</span>
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">customer_segment</span><span class="p">,</span><span class="w"> </span><span class="n">country</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">rollup</span><span class="p">:</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="w">    </span><span class="nt">group_by</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_segment</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">country</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a><span class="w">    </span><span class="nt">aggregations</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> total_customers</span><span class="p">:</span><span class="w"> </span><span class="s">"COUNT(*)"</span><span class="p p-Indicator">,</span><span class="nt"> avg_age</span><span class="p">:</span><span class="w"> </span><span class="s">"AVG(age)"</span><span class="p p-Indicator">,</span><span class="nt"> total_revenue</span><span class="p">:</span><span class="w"> </span><span class="s">"SUM(lifetime_value)"</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="w">    </span><span class="nt">keys</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">customer_id</span><span class="w">                    </span><span class="c1"># track rollup lineage (which rows rolled up)</span>
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a><span class="w">    </span><span class="nt">distinct</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<h3 id="pivot-long-wide"><code>pivot</code> — long → wide</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="n">PIVOT</span><span class="w"> </span><span class="k">source</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">metric</span><span class="w"> </span><span class="k">USING</span><span class="w"> </span><span class="k">sum</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">customer_id</span><span class="w">   </span><span class="c1">-- values: clicks, impressions</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pivot</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> id_vars</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_id</span><span class="p p-Indicator">],</span><span class="nt"> pivot_col</span><span class="p">:</span><span class="w"> </span><span class="nv">metric</span><span class="p p-Indicator">,</span><span class="nt"> value_cols</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">value</span><span class="p p-Indicator">],</span><span class="nt"> values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">clicks</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">impressions</span><span class="p p-Indicator">],</span><span class="nt"> agg</span><span class="p">:</span><span class="w"> </span><span class="nv">sum</span><span class="p p-Indicator">,</span><span class="nt"> name_template</span><span class="p">:</span><span class="w"> </span><span class="s">"{pivot_alias}"</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<h3 id="unpivot-wide-long"><code>unpivot</code> — wide → long</h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="n">UNPIVOT</span><span class="w"> </span><span class="k">source</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">clicks</span><span class="p">,</span><span class="w"> </span><span class="n">impressions</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">NAME</span><span class="w"> </span><span class="n">metric</span><span class="w"> </span><span class="n">VALUE</span><span class="w"> </span><span class="n">value</span><span class="w">   </span><span class="c1">-- id_vars kept automatically</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">unpivot</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> id_vars</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_id</span><span class="p p-Indicator">],</span><span class="nt"> value_vars</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">clicks</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">impressions</span><span class="p p-Indicator">],</span><span class="nt"> key_field</span><span class="p">:</span><span class="w"> </span><span class="nv">metric</span><span class="p p-Indicator">,</span><span class="nt"> value_field</span><span class="p">:</span><span class="w"> </span><span class="nv">value</span><span class="p p-Indicator">,</span><span class="nt"> include_nulls</span><span class="p">:</span><span class="w"> </span><span class="nv">false</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
+</code></pre></div></p>
+<hr />
+<h2 id="full-op-list-sql-variant-shorthand">Full op list — SQL variant + shorthand</h2>
+<table>
+<thead>
+<tr>
+<th>Op</th>
+<th>SQL variant (what runs)</th>
+<th>Shorthand</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>select</code></td>
+<td><code>SELECT a, b FROM source</code></td>
+<td><code>select: { columns: [a, b] }</code></td>
+</tr>
+<tr>
+<td><code>drop</code></td>
+<td><code>SELECT * EXCLUDE (tmp) FROM source</code></td>
+<td><code>drop: { columns: [tmp] }</code></td>
+</tr>
+<tr>
+<td><code>rename</code></td>
+<td><code>SELECT * RENAME (a AS b) FROM source</code></td>
+<td><code>rename: { from: a, to: b }</code></td>
+</tr>
+<tr>
+<td><code>cast</code></td>
+<td><code>SELECT * REPLACE (CAST(age AS INT) AS age) FROM source</code></td>
+<td><code>cast: { columns: { age: int } }</code></td>
+</tr>
+<tr>
+<td><code>derive</code></td>
+<td><code>SELECT *, a + b AS t FROM source</code></td>
+<td><code>derive: { field: t, sql: "a + b" }</code></td>
+</tr>
+<tr>
+<td><code>coalesce</code></td>
+<td><code>SELECT *, COALESCE(e1, e2) AS e FROM source</code></td>
+<td><code>coalesce: { field: e, sources: [e1, e2], output: e }</code></td>
+</tr>
+<tr>
+<td><code>map_values</code></td>
+<td><code>SELECT *, CASE s WHEN 'A' THEN 'ACTIVE' END AS s FROM source</code></td>
+<td><code>map_values: { field: s, mapping: { A: ACTIVE }, output: s }</code></td>
+</tr>
+<tr>
+<td><code>trim</code></td>
+<td><code>SELECT *, TRIM(e) AS e FROM source</code></td>
+<td><code>trim: { fields: [e], side: both }</code></td>
+</tr>
+<tr>
+<td><code>lower</code></td>
+<td><code>SELECT *, LOWER(e) AS e FROM source</code></td>
+<td><code>lower: { fields: [e] }</code></td>
+</tr>
+<tr>
+<td><code>upper</code></td>
+<td><code>SELECT *, UPPER(cc) AS cc FROM source</code></td>
+<td><code>upper: { fields: [cc] }</code></td>
+</tr>
+<tr>
+<td><code>split</code></td>
+<td><code>SELECT *, STRING_SPLIT(tags, ',') AS arr FROM source</code></td>
+<td><code>split: { field: tags, delimiter: ",", output: arr }</code></td>
+</tr>
+<tr>
+<td><code>json_extract</code></td>
+<td><code>SELECT *, CAST(json_extract_string(loc, '$.lat') AS FLOAT) AS lat FROM source</code></td>
+<td><code>json_extract: { field: lat, source: loc, path: "$.lat", cast: float }</code></td>
+</tr>
+<tr>
+<td><code>filter</code></td>
+<td><code>SELECT * FROM source WHERE id IS NOT NULL</code></td>
+<td><code>filter: { sql: "id IS NOT NULL" }</code></td>
+</tr>
+<tr>
+<td><code>deduplicate</code></td>
+<td><code>... QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY ts DESC) = 1</code></td>
+<td><code>deduplicate: { "on": [id], sort_by: [ts], order: desc }</code></td>
+</tr>
+<tr>
+<td><code>explode</code></td>
+<td><code>SELECT *, UNNEST(arr) AS tag FROM source</code></td>
+<td><code>explode: { field: arr, output: tag }</code></td>
+</tr>
+<tr>
+<td><code>date_range_explode</code></td>
+<td><code>SELECT *, UNNEST(generate_series(s, e, INTERVAL 1 DAY)) AS d FROM source</code></td>
+<td><code>date_range_explode: { output: d, start_col: s, end_col: e, interval: 1d }</code></td>
+</tr>
+<tr>
+<td><code>bucket</code></td>
+<td><code>SELECT *, CASE WHEN price &lt; 100 THEN 'lo' ELSE 'hi' END AS band FROM source</code></td>
+<td><code>bucket: { field: band, source: price, bins: [{lt: 100, label: lo}], default: hi }</code></td>
+</tr>
+<tr>
+<td><code>date_diff</code></td>
+<td><code>SELECT *, DATE_DIFF('day', a, b) AS age FROM source</code></td>
+<td><code>date_diff: { field: age, from_col: a, to_col: b, unit: days }</code></td>
+</tr>
+<tr>
+<td><code>lookup</code></td>
+<td><code>SELECT s.*, d.name FROM source s LEFT JOIN dim d ON s.code = d.code</code></td>
+<td><code>lookup: { field: name, reference: dim, "on": code, key: code, value: name }</code></td>
+</tr>
+<tr>
+<td><code>join</code></td>
+<td><code>SELECT s.*, d.x FROM source s LEFT JOIN dim d ON s.id = d.id</code></td>
+<td><code>join: { reference: dim, "on": id, key: id, fields: [x], type: left }</code></td>
+</tr>
+<tr>
+<td><code>rollup</code></td>
+<td><code>SELECT g, COUNT(*) AS n FROM source GROUP BY g</code></td>
+<td><code>rollup: { group_by: [g], aggregations: { n: "COUNT(*)" } }</code></td>
+</tr>
+<tr>
+<td><code>pivot</code></td>
+<td><code>PIVOT source ON m USING sum(v) GROUP BY id</code></td>
+<td><code>pivot: { id_vars: [id], pivot_col: m, value_cols: [v], values: [a, b], agg: sum }</code></td>
+</tr>
+<tr>
+<td><code>unpivot</code></td>
+<td><code>UNPIVOT source ON a, b INTO NAME m VALUE v</code></td>
+<td><code>unpivot: { id_vars: [id], value_vars: [a, b], key_field: m, value_field: v }</code></td>
+</tr>
+<tr>
+<td><code>sql</code></td>
+<td><em>(any SQL you write)</em></td>
+<td><code>sql: "SELECT *, a+b AS c FROM source"</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Shorthand or SQL — same result</p>
+<p>The shorthand ops are portable, introspectable, and agent-friendly (an agent can add a <code>rename</code> and know exactly what changed). The <code>sql:</code> op is the full-power escape hatch. Because the shorthands <em>compile to the SQL shown above</em>, you can start with shorthand and drop to <code>sql:</code> the moment a case gets bespoke — no rewrite of the rest.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+
+
+<!-- Footer links grid -->
+<footer class="ll-footer">
+  <div class="ll-footer__grid md-grid">
+    <a href="https://github.com/LakeLogic/open-lakehouse-contract" class="ll-footer__link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 22V18.13a3.07 3.07 0 0 0-.94-2.36c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.07 3.07 0 0 0 9 18.13V22"/></svg>
+      OLC on GitHub
+    </a>
+    <a href="https://lakelogic.org" class="ll-footer__link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Reference framework: LakeLogic
+    </a>
+    <a href="https://github.com/bitol-io/open-data-contract-standard" class="ll-footer__link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Complements ODCS
+    </a>
+    <a href="https://agents.md" class="ll-footer__link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h.01M16 16h.01"/></svg>
+      Works with your AI agent
+    </a>
+    <a href="https://github.com/LakeLogic/open-lakehouse-contract/issues" class="ll-footer__link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+      Report an issue
+    </a>
+    <a href="https://github.com/LakeLogic/open-lakehouse-contract/blob/main/schema/open-lakehouse-contract.schema.json" class="ll-footer__link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      The JSON Schema
+    </a>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="ll-footer__bottom md-grid">
+    <div class="ll-footer__meta">
+      <span>&copy; Copyright &copy; 2026 — the Open Lakehouse Contract is vendor-neutral · Reference framework: <a href="https://lakelogic.org" target="_blank">LakeLogic</a>
+</span>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.sections", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../javascripts/theme-switcher.js"></script>
+      
+    
+  </body>
+</html>
