@@ -9,7 +9,6 @@ from pathlib import Path
 
 from olc import validate
 
-
 VALID_CONTRACT = """\
 version: 1.0.0
 info:

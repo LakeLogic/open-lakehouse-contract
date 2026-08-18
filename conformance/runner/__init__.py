@@ -12,12 +12,12 @@ from .model import ConformanceCase, ExecutionError, ExecutionResult
 
 __all__ = [
     "ConformanceCase",
-    "ExecutionResult",
     "ExecutionError",
+    "ExecutionResult",
     "Outcome",
-    "load_case",
-    "load_all_cases",
-    "run_case",
-    "run_all",
     "compare_result",
+    "load_all_cases",
+    "load_case",
+    "run_all",
+    "run_case",
 ]

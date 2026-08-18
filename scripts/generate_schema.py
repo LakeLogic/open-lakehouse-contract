@@ -40,8 +40,8 @@ from pathlib import Path
 from pydantic import BaseModel
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from olc.models import OLCContractV1  # the canonical public standard  # noqa: E402
-from olc.models import _nested as _models  # noqa: E402
+from olc.models import OLCContractV1  # the canonical public standard
+from olc.models import _nested as _models
 
 OUT = (
     Path(__file__).resolve().parents[1]

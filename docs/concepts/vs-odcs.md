@@ -49,9 +49,9 @@ The reference framework imports ODCS and can export back to it, so the two aren'
 ```python
 from lakelogic.core.models import DataContract
 
-contract = DataContract.from_odcs("orders.odcs.yaml")   # ingest an ODCS contract
+contract = DataContract.from_odcs("orders.odcs.yaml")  # ingest an ODCS contract
 # ... run it: validate, quarantine, materialize ...
-odcs = contract.to_odcs()                               # emit ODCS back out
+odcs = contract.to_odcs()  # emit ODCS back out
 ```
 
 There's also a CLI export (`lakelogic export-odcs`) in the reference framework.

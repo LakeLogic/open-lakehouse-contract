@@ -6,6 +6,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.3.1] — 2026-08-18
+
+### CI/CD
+
+- **publish**: Switch to PyPI Trusted Publishing (OIDC)
+- Skip runtime-conformance until LAKELOGIC_REF is pinned
 ## [0.3.0] — 2026-08-18
 
 ### Added
@@ -66,6 +72,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.3.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/LakeLogic/open-lakehouse-contract/releases/tag/v0.2.0
 

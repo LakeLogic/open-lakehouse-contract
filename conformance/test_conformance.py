@@ -52,9 +52,9 @@ _require("lakelogic", "LakeLogic runtime not installed")  # engines run the case
 _require("olc.models", "public OLC strict model unavailable (pip install .[models])")
 _require("polars", "polars not installed")
 
-from runner import load_all_cases, run_case  # noqa: E402
-from runner.adapters import ADAPTERS  # noqa: E402
-from runner.harness import PASS, UNSUPPORTED  # noqa: E402
+from runner import load_all_cases, run_case
+from runner.adapters import ADAPTERS
+from runner.harness import PASS, UNSUPPORTED
 
 CASES = load_all_cases()
 ADAPTER_NAMES = list(ADAPTERS)
@@ -127,7 +127,7 @@ def test_public_model_matches_runtime_model():
     """
     try:
         from lakelogic.core.contracts import OLCContractV1 as RuntimeModel
-    except Exception:  # noqa: BLE001
+    except Exception:
         if REQUIRE:
             raise
         pytest.skip("LakeLogic runtime strict model unavailable")

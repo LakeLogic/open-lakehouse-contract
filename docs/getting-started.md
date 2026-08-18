@@ -69,9 +69,9 @@ pip install lakelogic
 ```python
 from lakelogic import DataProcessor
 
-proc = DataProcessor("orders.olc.yaml", engine="duckdb")   # or "spark" / "polars"
-good, bad = proc.run(source_dataframe)                     # validate + quarantine
-proc.materialize(good, bad)                                # write per `materialization`
+proc = DataProcessor("orders.olc.yaml", engine="duckdb")  # or "spark" / "polars"
+good, bad = proc.run(source_dataframe)  # validate + quarantine
+proc.materialize(good, bad)  # write per `materialization`
 ```
 
 The *same* contract runs unchanged on another engine, table format, or platform — that's the whole point. Pick your backend on the [Providers](providers/index.md) pages.

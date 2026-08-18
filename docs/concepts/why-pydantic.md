@@ -14,8 +14,9 @@ python scripts/generate_schema.py     # schema/ ← DataContract.model_json_sche
 
 ```python
 # scripts/generate_schema.py (essence)
-from lakelogic.core.models import DataContract   # the reference implementation
-schema = DataContract.model_json_schema()        # Pydantic → JSON Schema, for free
+from lakelogic.core.models import DataContract  # the reference implementation
+
+schema = DataContract.model_json_schema()  # Pydantic → JSON Schema, for free
 ```
 
 The published schema can't describe something the reference framework can't run, because it's *emitted by* that runtime's own type definitions. The machine-readable layer tracks a working implementation instead of a hand-kept document — while the specification itself stays framework-neutral.

@@ -6,4 +6,4 @@ integrations installed. It depends only on ``jsonschema`` + ``pyyaml`` — never
 lakehouse runtime.
 """
 
-__all__ = ["validate", "init", "cli"]
+__all__ = ["cli", "init", "validate"]

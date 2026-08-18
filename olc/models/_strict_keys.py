@@ -15,7 +15,8 @@ compliance blocks, extensions, etc. are left alone.
 from __future__ import annotations
 
 import typing
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 from pydantic import BaseModel
 

@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(
     0, str(Path(__file__).resolve().parents[1])
 )  # repo root → import olc without installing
-from olc.validate import main  # noqa: E402
+from olc.validate import main
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

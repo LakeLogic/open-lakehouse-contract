@@ -121,7 +121,6 @@ class LakeLogicAdapter:
 
     def execute(self, case: ConformanceCase) -> ExecutionResult:
         import polars as pl
-
         from lakelogic import DataProcessor
 
         cols = _model_fields(case.contract)

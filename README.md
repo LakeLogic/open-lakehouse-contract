@@ -202,9 +202,10 @@ pip install lakelogic
 ```
 ```python
 from lakelogic import DataProcessor
-proc = DataProcessor("orders.olc.yaml", engine="duckdb")   # or "spark" / "polars"
-good, bad = proc.run(source_df)                            # validate + quarantine
-proc.materialize(good, bad)                                # write per `materialization`
+
+proc = DataProcessor("orders.olc.yaml", engine="duckdb")  # or "spark" / "polars"
+good, bad = proc.run(source_df)  # validate + quarantine
+proc.materialize(good, bad)  # write per `materialization`
 ```
 
 ## Specification, schema, and reference implementation

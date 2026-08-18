@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from runner.harness import FAIL, PASS, SKIP, UNSUPPORTED, Outcome  # noqa: E402
+from runner.harness import FAIL, PASS, SKIP, UNSUPPORTED, Outcome
 
 
 def _outcome(status: str) -> Outcome:
