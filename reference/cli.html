@@ -6,20 +6,19 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="One executable contract to build, govern and deliver a trusted data product across lakehouse platforms. Portable, SQL-native, engine-agnostic; the open, executable, agent-native contract for lakehouse data products.
-">
+        <meta name="description" content="The `olc` command — validate contracts against the spec and install agent integrations, with zero framework dependency.">
       
       
         <meta name="author" content="LakeLogic">
       
       
-        <link rel="canonical" href="https://lakelogic.github.io/open-lakehouse-contract/reference/execution-order.html">
+        <link rel="canonical" href="https://lakelogic.github.io/open-lakehouse-contract/reference/cli.html">
       
       
-        <link rel="prev" href="anatomy.html">
+        <link rel="prev" href="conformance.html">
       
       
-        <link rel="next" href="ingestion.html">
+        <link rel="next" href="../contributing.html">
       
       
         
@@ -30,7 +29,7 @@
     
     
       
-        <title>Execution Order (pre & post) - Open Lakehouse Contract</title>
+        <title>CLI - Open Lakehouse Contract</title>
       
     
     
@@ -83,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#execution-order-pre-post" class="md-skip">
+        <a href="#cli-olc" class="md-skip">
           Skip to content
         </a>
       
@@ -119,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Execution Order (pre & post)
+              CLI
             
           </span>
         </div>
@@ -1010,37 +1009,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Execution Order (pre & post)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="execution-order.html" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="execution-order.html" class="md-nav__link">
         
   
   
@@ -1056,70 +1028,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-canonical-sequence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The canonical sequence
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#pre-vs-post-the-rule-of-thumb" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pre vs post — the rule of thumb
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#declaring-the-phase" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Declaring the phase
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1521,10 +1429,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="cli.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="cli.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1540,6 +1475,59 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#olc-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        olc validate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#olc-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        olc init
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-olc-ends-and-lakelogic-begins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where olc ends and LakeLogic begins
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1606,10 +1594,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-canonical-sequence" class="md-nav__link">
+  <a href="#olc-validate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The canonical sequence
+        olc validate
       
     </span>
   </a>
@@ -1617,10 +1605,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pre-vs-post-the-rule-of-thumb" class="md-nav__link">
+  <a href="#olc-init" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pre vs post — the rule of thumb
+        olc init
       
     </span>
   </a>
@@ -1628,21 +1616,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#declaring-the-phase" class="md-nav__link">
+  <a href="#where-olc-ends-and-lakelogic-begins" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Declaring the phase
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related
+        Where olc ends and LakeLogic begins
       
     </span>
   </a>
@@ -1669,136 +1646,65 @@
   
 
 
-<h1 id="execution-order-pre-post">Execution Order (pre &amp; post)</h1>
-<p>Several parts of a contract carry a <code>phase: pre | post</code> — most visibly <a href="transformation.html#phase-pre-or-post">transformations</a> and <a href="quality.html">quality rules</a>. "Pre" and "post" only mean something against the <strong>run sequence</strong>, so this page captures the whole order in one place: what runs, when, and which columns each phase can see.</p>
-<h2 id="the-canonical-sequence">The canonical sequence</h2>
-<p>A single run executes these steps in order:</p>
-<pre class="mermaid"><code>flowchart TD
-    S[1 · Source] --&gt; PRE[2 · Pre-transforms] --&gt; SE[3 · Schema] --&gt; PQ[4 · Pre-quality] --&gt; SPLIT{5 · Good / bad}
-    SPLIT --&gt;|good rows| POST[6 · Post-transforms] --&gt; POQ[7 · Post-quality] --&gt; M[8 · Materialize] --&gt; C[9 · Cleanup]
-    SPLIT --&gt;|bad rows| Q[(Quarantine)]</code></pre>
-<table>
-<thead>
-<tr>
-<th>Step</th>
-<th>Stage</th>
-<th>What happens</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td><strong>Source loaded</strong></td>
-<td>Raw data read from the source (file / table / API / stream). See <a href="ingestion.html">Ingestion</a>.</td>
-</tr>
-<tr>
-<td>2</td>
-<td><strong>Pre-transforms</strong></td>
-<td><code>phase: pre</code> transforms — shape raw input before it's checked.</td>
-</tr>
-<tr>
-<td>3</td>
-<td><strong>Schema enforcement</strong></td>
-<td>Columns cast to the contract's declared types.</td>
-</tr>
-<tr>
-<td>4</td>
-<td><strong>Pre quality rules</strong></td>
-<td><code>phase: pre</code> rules validate <strong>source</strong> columns.</td>
-</tr>
-<tr>
-<td>5</td>
-<td><strong>Good / bad split</strong></td>
-<td>Failing rows are routed to <a href="quality.html#quarantine">quarantine</a> with the rule + reason; good rows continue.</td>
-</tr>
-<tr>
-<td>6</td>
-<td><strong>Post-transforms</strong></td>
-<td><code>phase: post</code> transforms — enrich validated data (joins, derived fields, rollups).</td>
-</tr>
-<tr>
-<td>7</td>
-<td><strong>Post quality rules</strong></td>
-<td><code>phase: post</code> rules validate <strong>derived</strong> columns.</td>
-</tr>
-<tr>
-<td>8</td>
-<td><strong>Materialize</strong></td>
-<td>Converge the target table per <a href="materialization.html">materialization</a>.</td>
-</tr>
-<tr>
-<td>9</td>
-<td><strong>Post-ingestion cleanup</strong></td>
-<td>Delete / archive / retain the consumed input — see <a href="lifecycle.html">Lifecycle</a>.</td>
-</tr>
-</tbody>
-</table>
-<h2 id="pre-vs-post-the-rule-of-thumb">Pre vs post — the rule of thumb</h2>
-<p>The split at step 5 (good/bad) is the dividing line, and it determines what each phase can reference:</p>
-<table>
-<thead>
-<tr>
-<th></th>
-<th><strong>Pre</strong></th>
-<th><strong>Post</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Runs</td>
-<td>Before quality checks (steps 2 &amp; 4)</td>
-<td>After the good/bad split (steps 6 &amp; 7)</td>
-</tr>
-<tr>
-<td>Can reference</td>
-<td><strong>Source columns only</strong></td>
-<td>Source <strong>and</strong> derived columns</td>
-</tr>
-<tr>
-<td>Typical use</td>
-<td>Clean/normalize raw input so it <em>passes</em> validation — rename, cast, trim, filter, deduplicate</td>
-<td>Enrich validated data — derive, lookup, join, rollup, pivot, SQL</td>
-</tr>
-<tr>
-<td>Operates on</td>
-<td>The full raw dataset</td>
-<td>Only the rows that passed validation</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition tip">
-<p class="admonition-title">Why the order matters</p>
-<ul>
-<li><strong>Put normalization in <code>pre</code></strong> so a rule like <code>email IS NOT NULL</code> checks <em>cleaned</em> values, not raw ones — otherwise you quarantine rows that a <code>trim</code>/<code>coalesce</code> would have rescued.</li>
-<li><strong>Put enrichment in <code>post</code></strong> so joins/derivations run only on good rows (cheaper, and you never enrich a row that's about to be quarantined).</li>
-<li>A field derived in a <code>post</code> transform can be validated by a <code>post</code> quality rule — but <strong>not</strong> a <code>pre</code> rule, because it doesn't exist yet at step 4.</li>
-</ul>
-</div>
-<h2 id="declaring-the-phase">Declaring the phase</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">transformations</span><span class="p">:</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">trim</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">email</span><span class="p p-Indicator">],</span><span class="nt"> side</span><span class="p">:</span><span class="w"> </span><span class="nv">both</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">         </span><span class="c1"># normalize BEFORE checks</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">derive</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> field</span><span class="p">:</span><span class="w"> </span><span class="nv">line_total</span><span class="p p-Indicator">,</span><span class="nt"> sql</span><span class="p">:</span><span class="w"> </span><span class="s">"qty</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">price"</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># enrich AFTER the split</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">post</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">quality</span><span class="p">:</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">row_rules</span><span class="p">:</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">email_present</span><span class="p p-Indicator">,</span><span class="nt"> sql</span><span class="p">:</span><span class="w"> </span><span class="s">"email</span><span class="nv"> </span><span class="s">IS</span><span class="nv"> </span><span class="s">NOT</span><span class="nv"> </span><span class="s">NULL"</span><span class="p p-Indicator">,</span><span class="nt"> phase</span><span class="p">:</span><span class="w"> </span><span class="nv">pre</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># checks source</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">total_positive</span><span class="p p-Indicator">,</span><span class="nt"> sql</span><span class="p">:</span><span class="w"> </span><span class="s">"line_total</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">0"</span><span class="p p-Indicator">,</span><span class="nt">   phase</span><span class="p">:</span><span class="w"> </span><span class="nv">post</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">  </span><span class="c1"># checks derived</span>
+<h1 id="cli-olc">CLI (<code>olc</code>)</h1>
+<p>The <code>olc</code> command is the <strong>standalone, dependency-free</strong> way to work with Open Lakehouse
+Contracts. It validates any <code>*.olc.yaml</code> against the public JSON Schema and installs
+agent integrations — no runtime, no cloud, no framework required.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>open-lakehouse-contract
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>olc<span class="w"> </span>--version
 </code></pre></div>
-<p>If you omit <code>phase</code>, each op uses its natural default (normalizing ops default to <code>pre</code>, enriching ops to <code>post</code>), but being explicit is clearer for anything order-sensitive.</p>
-<h2 id="related">Related</h2>
+<p><strong>Why it matters</strong></p>
 <ul>
-<li><a href="transformation.html">Transformation</a> — the ops available in each phase (SQL variant + shorthand).</li>
-<li><a href="quality.html">Validation &amp; Quality</a> — row/dataset rules and how the good/bad split feeds quarantine.</li>
-<li><a href="lifecycle.html">Post-Ingestion Lifecycle</a> — what happens to the source after step 8.</li>
+<li><strong>A gate you can trust in CI.</strong> <code>olc validate</code> fails on the things that silently rot a
+  contract estate — schema violations, <em>and</em> a discovery run that finds <strong>zero</strong>
+  contracts (a misconfigured path that would otherwise pass green).</li>
+<li><strong>Portable by construction.</strong> It checks against the JSON Schema, so the same guarantee
+  holds in any language or pipeline — the contract is the standard, not the tool.</li>
+<li><strong>Agent-ready in one step.</strong> <code>olc init</code> drops in assistant integrations safely, never
+  overwriting divergent files without your say-so.</li>
 </ul>
+<hr />
+<h2 id="olc-validate"><code>olc validate</code></h2>
+<p>Validate explicit files, or recursively discover every contract under a directory.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>olc<span class="w"> </span>validate<span class="w"> </span>contracts/orders.olc.yaml<span class="w">        </span><span class="c1"># one or more files</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>olc<span class="w"> </span>validate<span class="w"> </span>--root<span class="w"> </span>contracts<span class="w">                 </span><span class="c1"># discover recursively</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>olc<span class="w"> </span>validate<span class="w"> </span>--root<span class="w"> </span>contracts<span class="w"> </span>--output<span class="w"> </span>json<span class="w">   </span><span class="c1"># machine-readable for CI</span>
+</code></pre></div>
+<p>Discovery <strong>fails when no contracts are found</strong>, so a mistyped path can't let a CI job
+pass silently — use <code>--allow-empty</code> only when an empty directory is genuinely expected.
+The YAML loader also rejects duplicate keys rather than silently keeping the last one.</p>
+<p>Point at a specific schema (a pinned version, or a URL) with <code>--schema</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>olc<span class="w"> </span>validate<span class="w"> </span>contracts/orders.olc.yaml<span class="w"> </span>--schema<span class="w"> </span>schema/open-lakehouse-contract.schema.json
+</code></pre></div>
+<p>Exit code <code>0</code> = every contract valid; non-zero = at least one failure. That's the whole
+contract with CI.</p>
+<hr />
+<h2 id="olc-init"><code>olc init</code></h2>
+<p>Install assistant integrations (e.g. Claude, Codex) into a project, safely.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>olc<span class="w"> </span>init<span class="w"> </span>--list<span class="w">                       </span><span class="c1"># show what can be installed</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>olc<span class="w"> </span>init<span class="w"> </span>--tools<span class="w"> </span>claude,codex<span class="w"> </span>--dry-run
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>olc<span class="w"> </span>init<span class="w"> </span>--tools<span class="w"> </span>claude,codex
+</code></pre></div>
+<p>Existing <strong>identical</strong> files are left untouched. If a destination file <strong>differs</strong>, the
+whole install stops before writing anything — review and merge it yourself, or pass
+<code>--force</code> when replacement is intentional. No surprise overwrites.</p>
+<hr />
+<h2 id="where-olc-ends-and-lakelogic-begins">Where <code>olc</code> ends and LakeLogic begins</h2>
+<p><code>olc</code> validates and scaffolds a <strong>single portable contract</strong>. To <em>run</em> contracts
+(validate + quarantine + materialize across engines), or to validate the <strong>mesh
+registry</strong> that supplies contracts their shared defaults, use the LakeLogic reference
+framework and its <code>lakelogic</code> CLI — see
+<a href="https://lakelogic.github.io/LakeLogic/cli/">LakeLogic CLI</a>. The boundary is deliberate:
+the standard stays small and portable; the framework does the heavy lifting.</p>
 
 
 
 
 
 
+
+  
+  
 
 
 

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="One executable contract for a data product — ingest from any source, govern it, land it in an open lakehouse, publish it anywhere. Portable, SQL-native, engine-agnostic; executed unchanged by any conforming framework.">
+        <meta name="description" content="Define a governed data product once. Validate it in CI and execute it through supported data runtimes.">
       
       
         <meta name="author" content="LakeLogic">
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#terraform-for-the-lakehouse" class="md-skip">
+        <a href="#define-once-validate-early-execute-anywhere-supported" class="md-skip">
           Skip to content
         </a>
       
@@ -289,6 +289,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -331,6 +333,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -339,10 +343,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#terraform-for-the-lakehouse" class="md-nav__link">
+  <a href="#a-minimal-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Terraform for the lakehouse
+        A minimal contract
       
     </span>
   </a>
@@ -350,10 +354,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-olc" class="md-nav__link">
+  <a href="#choose-your-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why OLC
+        Choose your path
       
     </span>
   </a>
@@ -361,10 +365,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-to-go-next" class="md-nav__link">
+  <a href="#current-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where to go next
+        Current scope
       
     </span>
   </a>
@@ -974,6 +978,8 @@
       
         
       
+        
+      
     
     
     
@@ -1495,6 +1501,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/cli.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1546,6 +1580,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1554,10 +1590,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#terraform-for-the-lakehouse" class="md-nav__link">
+  <a href="#a-minimal-contract" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Terraform for the lakehouse
+        A minimal contract
       
     </span>
   </a>
@@ -1565,10 +1601,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-olc" class="md-nav__link">
+  <a href="#choose-your-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why OLC
+        Choose your path
       
     </span>
   </a>
@@ -1576,10 +1612,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-to-go-next" class="md-nav__link">
+  <a href="#current-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where to go next
+        Current scope
       
     </span>
   </a>
@@ -1606,85 +1642,76 @@
   
 
 
-<div class="ll-eyebrow"><span class="ll-eyebrow__pip"></span> Apache 2.0 · reference lightweight framework: LakeLogic</div>
-
-<div class="hero-section"><div class="hero-content"><h1 class="hero-title">One contract.<br><span style="color:var(--md-accent-fg-color)">Every lakehouse.</span></h1><p class="hero-subtitle">One executable contract for a data product — pull data from any source, govern it, land it in an open lakehouse, and publish it anywhere. It's just YAML, and the same file runs unchanged on Spark, DuckDB, or Polars — writing Delta, Iceberg, or DuckLake.</p><div class="hero-cta"><a class="md-button md-button--primary" href="getting-started.html">Get started →</a> <a class="md-button md-button--secondary" href="providers/index.html">See the providers</a> <a class="md-button" href="https://github.com/LakeLogic/open-lakehouse-contract" target="_blank">★ Star on GitHub</a></div></div><div class="hero-visual"><div class="ll-win ll-win--yaml"><div class="ll-win__head"><span class="ll-win__dots"><i></i><i></i><i></i></span><span class="ll-win__name">orders.olc.yaml</span></div><pre class="ll-code"><span class="k">version</span>: <span class="n">1.0.0</span>
-<span class="k">info</span>: { <span class="k">title</span>: Orders, <span class="k">table_name</span>: orders }
-
-<span class="k">model</span>:
-  <span class="k">fields</span>:
-    - <span class="k">name</span>: order_id
-      <span class="k">type</span>: <span class="s">integer</span>
-      <span class="k">required</span>: <span class="b">true</span>
-<span class="hl">    - <span class="k">name</span>: customer_email
-      <span class="k">type</span>: <span class="s">string</span>
-      <span class="k">pii</span>: <span class="b">true</span>
-      <span class="k">masking</span>: <span class="s">partial</span></span>
-<span class="k">quality</span>:
-  <span class="k">row_rules</span>:
-    - <span class="k">sql</span>: <span class="s">"amount &gt; 0"</span>
-<span class="k">materialization</span>: { <span class="k">strategy</span>: <span class="s">merge</span>, <span class="k">format</span>: <span class="s">iceberg</span> }</pre></div><div class="ll-pr"><div class="ll-pr__head"><span class="ll-pr__num">pull request #128</span><span class="ll-pr__count">2 of 3 passed</span></div><div class="ll-pr__check"><span class="ll-ck ll-ck--ok">✓</span><span class="ll-pr__name">ci / <b>build</b></span><span class="ll-res ll-res--ok">Passed</span></div><div class="ll-pr__check"><span class="ll-ck ll-ck--ok">✓</span><span class="ll-pr__name">ci / <b>unit-tests</b></span><span class="ll-res ll-res--ok">Passed</span></div><div class="ll-pr__check"><span class="ll-ck ll-ck--no">✕</span><span class="ll-pr__name">olc / <b>data-contract</b></span><span class="ll-res ll-res--no">Breaking</span></div></div></div></div>
-
-<p>An Open Lakehouse Contract (OLC) is a single YAML file that declares a dataset's <strong>schema, quality rules, PII handling, lineage, materialization, and SLOs</strong>. Unlike a purely <em>descriptive</em> data-contract spec, an OLC is <strong>executable</strong>: a conforming framework validates, quarantines, enforces, masks, and materializes the declared intent straight from the file — so the standard and the implementation can't drift. The contract itself doesn't run anything; it's the portable <em>intent</em>, and any conforming framework carries it out.</p>
-<p>That same contract runs on <strong>Spark / DuckDB / Polars</strong>, materializes to <strong>Delta / Iceberg / DuckLake</strong>, on <strong>Databricks / Snowflake / Fabric / BigQuery / AWS / MotherDuck</strong> — <a href="providers/index.html">see it proven on each →</a>.</p>
-<div class="admonition tip">
-<p class="admonition-title">SQL-native</p>
-<p>Transformation logic is <strong>SQL</strong> — the universal data language — not Python, not Spark code, not notebooks. Write SQL in the contract; the framework runs it, unchanged, on whichever engine you point it at. The shorthand ops (<code>rename</code>, <code>filter</code>, <code>join</code>, <code>rollup</code>, …) are convenience wrappers that <strong>compile to SQL</strong> — each shows its SQL variant in the <a href="reference/transformation.html">Transformation reference</a>.</p>
-</div>
-<hr />
-<h2 id="terraform-for-the-lakehouse">Terraform for the lakehouse</h2>
-<p>Terraform's real power isn't HCL — it's the <strong>separation of a declarative spec from pluggable providers that execute it</strong>: one language, many backends, each documented against the same vocabulary. OLC has the same shape, applied to data products instead of infrastructure:</p>
-<table>
-<thead>
-<tr>
-<th>Terraform</th>
-<th>Open Lakehouse Contract</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>HCL + resource schema</td>
-<td>The OLC contract (JSON Schema, derived from Pydantic)</td>
-</tr>
-<tr>
-<td>Providers (aws, azurerm, google…)</td>
-<td>Frameworks: engines × table formats × platforms</td>
-</tr>
-<tr>
-<td><code>terraform apply</code> → converge to desired state</td>
-<td><code>materialize</code> (merge / SCD2) → converge a table to declared shape + quality</td>
-</tr>
-<tr>
-<td>Registry + per-provider docs</td>
-<td><a href="providers/index.html">The provider matrix</a></td>
-</tr>
-</tbody>
-</table>
-<p>And OLC is <em>simpler</em> than Terraform in one important way: Terraform has hundreds of resource types to learn, one per provider. OLC has <strong>one universal resource — the data contract — that every backend implements</strong>. The "registry" is one canonical contract rendered across a matrix of backends.</p>
-<div class="admonition note">
-<p class="admonition-title">Precise framing</p>
-<p>OLC is <em>to data products what Terraform is to infrastructure</em> — declarative, portable, backend-pluggable. It governs the <strong>data plane</strong> (the data itself), not the control plane (infra). It converges one data product per run; cross-contract drift/state tracking lives in the <a href="https://lakelogic.org">LakeLogic</a> framework, not the open spec.</p>
-</div>
-<hr />
-<h2 id="why-olc">Why OLC</h2>
-<ul>
-<li><strong>Executable, not just descriptive.</strong> The same file that documents the contract <em>runs</em> it — validation, quarantine, quality gates, PII masking, lineage, materialization. No spec-vs-implementation gap.</li>
-<li><strong>Portable.</strong> One contract, every lakehouse. The backend is a flag; the contract is the invariant.</li>
-<li><strong>Broader than "data contract."</strong> OLC covers the whole lakehouse surface — schema <strong>+ quality + PII + lineage + materialization + SLOs</strong> — not just schema.</li>
-<li><strong>Agent-native.</strong> Typed, self-validating, and executable — the ideal substrate for <a href="concepts/agent-native.html">AI data agents</a>: they can <em>generate</em> it (schema-constrained), <em>self-correct</em> against validation errors, <em>act</em> and observe real outcomes, and reason about the same contract on every platform.</li>
-</ul>
-<hr />
-<h2 id="where-to-go-next">Where to go next</h2>
+<h1 id="define-once-validate-early-execute-anywhere-supported">Define once. Validate early. Execute anywhere supported.</h1>
+<p>Open Lakehouse Contract (OLC) is an open YAML specification for declaring a data product's schema, quality rules, transformations, lineage, service levels and materialisation.</p>
+<p>The contract holds the intent. JSON Schema validates its structure, while a conforming runtime such as <a href="https://github.com/LakeLogic/LakeLogic">LakeLogic Core</a> executes the declared behaviour.</p>
 <div class="grid cards">
 <ul>
-<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27zM5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39S16.66.269 11 5.93c-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.55.56 1.37.74 2.12.46A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61m-7.07 7.07c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83s-2.05.78-2.83 0m-5.66 7.07-1.41-1.41zM6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22zM2 22h1.41l4.77-4.76-1.42-1.41L2 20.59zm0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76z"/></svg></span> <strong><a href="getting-started.html">Getting Started</a></strong> — validate a contract in 60 seconds.</li>
-<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 9h5.5L13 3.5zM6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4c0-1.11.89-2 2-2m9 16v-2H6v2zm3-4v-2H6v2z"/></svg></span> <strong><a href="concepts/what-is-olc.html">What is OLC?</a></strong> — the executable-contract idea in full.</li>
-<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11h8V3H3m0 18h8v-8H3m10 8h8v-8h-8m0-10v8h8V3"/></svg></span> <strong><a href="providers/index.html">Providers</a></strong> — the same contract, proven on 7 platforms.</li>
-<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 3h2v2H5v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5h2v2H5c-1.07-.27-2-.9-2-2v-4a2 2 0 0 0-2-2H0v-2h1a2 2 0 0 0 2-2V5a2 2 0 0 1 2-2m14 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3zm-7 12a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m-4 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m8 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1"/></svg></span> <strong><a href="reference/schema.html">Field Reference</a></strong> — every field in the spec.</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m10 17-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9m-6-8L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5z"/></svg></span> <strong>Prevent breaking changes</strong></p>
+<p>Validate contracts in CI before pipeline changes reach production.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3c-1.27 0-2.4.8-2.82 2H3v2h1.95L2 14c-.47 2 1 3 3.5 3s4.06-1 3.5-3L6.05 7h3.12c.33.85.98 1.5 1.83 1.83V20H2v2h20v-2h-9V8.82c.85-.32 1.5-.97 1.82-1.82h3.13L15 14c-.47 2 1 3 3.5 3s4.06-1 3.5-3l-2.95-7H21V5h-6.17C14.4 3.8 13.27 3 12 3m0 2a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m-6.5 5.25L7 14H4zm13 0L20 14h-3z"/></svg></span> <strong>Apply governance consistently</strong></p>
+<p>Keep schema, quality, PII handling, lineage and service levels in one reviewable file.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m21 9-4-4v3h-7v2h7v3M7 11l-4 4 4 4v-3h7v-2H7z"/></svg></span> <strong>Keep intent portable</strong></p>
+<p>Separate the data product's intent from backend-owned engine, catalogue, storage and table-format settings.</p>
+</li>
 </ul>
 </div>
-<hr />
-<p><em>The spec is the JSON Schema; <a href="https://lakelogic.org">LakeLogic</a> is the canonical reference framework that implements it. This project is intentionally vendor-neutral.</em></p>
+<h2 id="a-minimal-contract">A minimal contract</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0.0</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">info</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Orders</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">table_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">orders</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">model</span><span class="p">:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">fields</span><span class="p">:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_id</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nt">quality</span><span class="p">:</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">row_rules</span><span class="p">:</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">positive_order_id</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">sql</span><span class="p">:</span><span class="w"> </span><span class="s">"order_id</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">0"</span>
+</code></pre></div>
+<p>Validate it without installing a data engine:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>olc<span class="w"> </span>validate<span class="w"> </span>orders.olc.yaml
+</code></pre></div>
+<p>OLC itself does not move or transform data. A conforming runtime reads the contract and carries out the declared validation, quarantine, transformation and materialisation behaviour.</p>
+<h2 id="choose-your-path">Choose your path</h2>
+<div class="grid cards">
+<ul>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27zM5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39S16.66.269 11 5.93c-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.55.56 1.37.74 2.12.46A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61m-7.07 7.07c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83s-2.05.78-2.83 0m-5.66 7.07-1.41-1.41zM6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22zM2 22h1.41l4.77-4.76-1.42-1.41L2 20.59zm0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76z"/></svg></span> <strong><a href="getting-started.html">Get started</a></strong></p>
+<p>Validate and execute your first contract.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m19 2-5 4.5v11l5-4.5zM6.5 5C4.55 5 2.45 5.4 1 6.5v14.66c0 .25.25.5.5.5.1 0 .15-.07.25-.07 1.35-.65 3.3-1.09 4.75-1.09 1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.31 4.75 1.06.1.05.15.03.25.03.25 0 .5-.25.5-.5V6.5c-.6-.45-1.25-.75-2-1V19c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V6.5C10.55 5.4 8.45 5 6.5 5"/></svg></span> <strong><a href="concepts/what-is-olc.html">Understand OLC</a></strong></p>
+<p>Learn what belongs in the standard and what belongs to a runtime.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 3h2v2H5v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5h2v2H5c-1.07-.27-2-.9-2-2v-4a2 2 0 0 0-2-2H0v-2h1a2 2 0 0 0 2-2V5a2 2 0 0 1 2-2m14 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3zm-7 12a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m-4 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m8 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1"/></svg></span> <strong><a href="reference/schema.html">Use the reference</a></strong></p>
+<p>Look up every contract field and its purpose.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m23 12-2.44-2.78.34-3.68-3.61-.82-1.89-3.18L12 3 8.6 1.54 6.71 4.72l-3.61.81.34 3.68L1 12l2.44 2.78-.34 3.69 3.61.82 1.89 3.18L12 21l3.4 1.46 1.89-3.18 3.61-.82-.34-3.68zm-13 5-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9z"/></svg></span> <strong><a href="reference/conformance.html">Review conformance</a></strong></p>
+<p>See how structural and runtime behaviour are tested.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19c0 .34.04.67.09 1H6.5c-1.5 0-2.81-.5-3.89-1.57C1.54 17.38 1 16.09 1 14.58q0-1.95 1.17-3.48C3.34 9.57 4 9.43 5.25 9.15c.42-1.53 1.25-2.77 2.5-3.72S10.42 4 12 4c1.95 0 3.6.68 4.96 2.04S19 9.05 19 11c1.15.13 2.1.63 2.86 1.5.51.57.84 1.21 1 1.92A5.9 5.9 0 0 0 19 13c-3.31 0-6 2.69-6 6m4.75.43-1.59-1.59L15 19l2.75 3 4.75-4.75-1.16-1.41z"/></svg></span> <strong><a href="providers/index.html">Inspect provider evidence</a></strong></p>
+<p>Check what has been validated or executed on each platform.</p>
+</li>
+<li>
+<p><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 14c-3.36 0-4.46 1.35-4.82 2.24C9.25 16.7 10 17.76 10 19a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7.83A2.99 2.99 0 0 1 4 5a3 3 0 0 1 3-3 3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v5.29c.88-.65 2.16-1.12 4-1.12 2.67 0 3.56-1.34 3.85-2.23A3.01 3.01 0 0 1 14 7a3 3 0 0 1 3-3 3 3 0 0 1 3 3c0 1.34-.88 2.5-2.09 2.86C17.65 11.29 16.68 14 13 14m-6 4a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1M7 4a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m10 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"/></svg></span> <strong><a href="contributing.html">Contribute</a></strong></p>
+<p>Propose changes, fixtures and runtime evidence.</p>
+</li>
+</ul>
+</div>
+<h2 id="current-scope">Current scope</h2>
+<p>OLC defines one data-product contract. It does not define infrastructure or a multi-contract mesh registry. Runtime and provider support varies, so the <a href="reference/conformance.html">conformance suite</a> and <a href="providers/index.html">provider matrix</a> are the source of truth for tested behaviour.</p>
+<p>OLC v1 is under active development and is licensed under Apache 2.0.</p>
 
 
 

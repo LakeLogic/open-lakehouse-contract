@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="One executable contract for a data product — ingest from any source, govern it, land it in an open lakehouse, publish it anywhere. Portable, SQL-native, engine-agnostic; the open, executable, agent-native contract for lakehouse data products.
+        <meta name="description" content="One executable contract to build, govern and deliver a trusted data product across lakehouse platforms. Portable, SQL-native, engine-agnostic; the open, executable, agent-native contract for lakehouse data products.
 ">
       
       
@@ -1003,6 +1003,8 @@
       
         
       
+        
+      
     
     
     
@@ -1524,6 +1526,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/cli.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1721,24 +1751,10 @@
 <h2 id="cli-reference">CLI reference</h2>
 <p>Install the standalone validator and agent-integration CLI:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pip<span class="w"> </span>install<span class="w"> </span>open-lakehouse-contract
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>olc<span class="w"> </span>--version
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>olc<span class="w"> </span>validate<span class="w"> </span>--root<span class="w"> </span>contracts<span class="w">        </span><span class="c1"># discover + validate; fails if none found</span>
 </code></pre></div>
-<p>Validate explicit files or recursively discover contracts under a directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>olc<span class="w"> </span>validate<span class="w"> </span>contracts/orders.olc.yaml
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>olc<span class="w"> </span>validate<span class="w"> </span>--root<span class="w"> </span>contracts
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>olc<span class="w"> </span>validate<span class="w"> </span>--root<span class="w"> </span>contracts<span class="w"> </span>--output<span class="w"> </span>json
-</code></pre></div>
-<p>Discovery fails when no contracts are found, which prevents a misconfigured CI job
-from passing silently. Use <code>--allow-empty</code> only when an empty directory is expected.
-The YAML loader also rejects duplicate keys rather than silently keeping the last one.</p>
-<p>Install assistant integrations safely:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>olc<span class="w"> </span>init<span class="w"> </span>--list
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>olc<span class="w"> </span>init<span class="w"> </span>--tools<span class="w"> </span>claude,codex<span class="w"> </span>--dry-run
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>olc<span class="w"> </span>init<span class="w"> </span>--tools<span class="w"> </span>claude,codex
-</code></pre></div>
-<p>Existing identical files are left untouched. If a destination file differs, the
-whole installation stops before writing anything. Review the conflict and merge it
-yourself, or use <code>--force</code> when replacement is intentional.</p>
+<p>Full command reference — <code>olc validate</code> and <code>olc init</code>, with flags and CI usage — is on
+the dedicated <a href="reference/cli.html">CLI</a> page.</p>
 
 
 
