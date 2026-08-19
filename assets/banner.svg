@@ -28,8 +28,8 @@
 
   <text x="88" y="188" class="sans" font-size="66" font-weight="800" letter-spacing="-1.5" fill="#f2f6f8">Open Lakehouse <tspan fill="#2fd2e8">Contract</tspan></text>
 
-  <text x="94" y="238" class="mono" font-size="22" fill="#9aa6ae">One executable contract for a data product —</text>
-  <text x="94" y="270" class="mono" font-size="22" fill="#9aa6ae">any source → governed lakehouse → anywhere.</text>
+  <text x="94" y="238" class="mono" font-size="22" fill="#9aa6ae">One executable contract to build, govern and deliver</text>
+  <text x="94" y="270" class="mono" font-size="22" fill="#9aa6ae">a trusted data product across lakehouse platforms.</text>
 
   <!-- pills -->
   <rect x="94" y="304" width="146" height="40" rx="20" fill="none" stroke="#2fd2e8" stroke-opacity="0.8" stroke-width="1.2"/>

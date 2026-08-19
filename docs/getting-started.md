@@ -93,29 +93,8 @@ Install the standalone validator and agent-integration CLI:
 
 ```bash
 pip install open-lakehouse-contract
-olc --version
+olc validate --root contracts        # discover + validate; fails if none found
 ```
 
-Validate explicit files or recursively discover contracts under a directory:
-
-```bash
-olc validate contracts/orders.olc.yaml
-olc validate --root contracts
-olc validate --root contracts --output json
-```
-
-Discovery fails when no contracts are found, which prevents a misconfigured CI job
-from passing silently. Use `--allow-empty` only when an empty directory is expected.
-The YAML loader also rejects duplicate keys rather than silently keeping the last one.
-
-Install assistant integrations safely:
-
-```bash
-olc init --list
-olc init --tools claude,codex --dry-run
-olc init --tools claude,codex
-```
-
-Existing identical files are left untouched. If a destination file differs, the
-whole installation stops before writing anything. Review the conflict and merge it
-yourself, or use `--force` when replacement is intentional.
+Full command reference — `olc validate` and `olc init`, with flags and CI usage — is on
+the dedicated [CLI](reference/cli.md) page.

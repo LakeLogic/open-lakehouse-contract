@@ -68,24 +68,20 @@ lakelogic run product.olc.yaml \              # run OLC, resolving the ODCS agre
 ```
 
 ```mermaid
-flowchart LR
-    subgraph ODCS[ODCS · the agreement]
-      A1[ownership]
-      A2[semantics]
-      A3[schema]
-      A4[quality expectations]
-      A5[SLA]
+flowchart TB
+    subgraph CONTRACTS[Two contracts · one data product]
+      direction LR
+      ODCS["ODCS agreement<br/>Ownership · semantics · schema<br/>Quality expectations · SLA"]
+      OLC["OLC execution contract<br/>Engine · materialization · SQL<br/>Incremental behaviour · runtime quality"]
     end
-    subgraph OLC[OLC · the execution]
-      B1[engine]
-      B2[materialization]
-      B3[SQL execution]
-      B4[incremental behaviour]
-      B5[quality at runtime]
-    end
-    ODCS --> M[Reference framework model]
+
+    ODCS --> M["Reference framework model<br/>resolves both contracts"]
     OLC --> M
-    M --> X[execute]
+    M --> X["Execute the data product"]
+
+    class ODCS,OLC olc-flow-card
+    class M olc-flow-model
+    class X olc-flow-outcome
 ```
 
 The ODCS document stays the organisation's data-product *agreement*; the OLC file is the executable lakehouse *implementation*. Neither duplicates the other.
