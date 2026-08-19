@@ -19,6 +19,8 @@ Conformance discipline:
 * ``UNSUPPORTED`` is only acceptable for optional/higher levels, and is surfaced in
   a separate capability matrix (``test_capability_matrix``), never as silent success.
 """
+# ruff: noqa: E402 — the imports below are intentionally deferred past the _require()
+# dependency guards, so a docs-only checkout without the runtime still collects.
 
 from __future__ import annotations
 
