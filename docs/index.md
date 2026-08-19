@@ -1,11 +1,15 @@
 ---
 title: Open Lakehouse Contract
-description: Define a governed data product once. Validate it in CI and execute it through supported data runtimes.
+description: The open standard for portable, executable lakehouse data contracts.
 ---
 
-# Define once. Validate early. Execute anywhere supported.
+<img src="assets/banner.svg" alt="Open Lakehouse Contract: the open standard for portable, executable lakehouse data contracts" width="100%">
 
-Open Lakehouse Contract (OLC) is an open YAML specification for declaring a data product's schema, quality rules, transformations, lineage, service levels and materialisation.
+# The open standard for portable, executable lakehouse data contracts
+
+Define a data product's sources, schema, ownership, quality rules, PII handling, lineage, service levels (SLAs and SLOs), transformations and materialisation in one portable, vendor-neutral contract.
+
+Open Lakehouse Contract (OLC) captures that definition in a portable YAML document.
 
 The contract holds the intent. JSON Schema validates its structure, while a conforming runtime such as [LakeLogic Core](https://github.com/LakeLogic/LakeLogic) executes the declared behaviour.
 

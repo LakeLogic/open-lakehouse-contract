@@ -1,8 +1,7 @@
 site_name: Open Lakehouse Contract
 site_description: >
-  One executable contract to build, govern and deliver a trusted data product
-  across lakehouse platforms. Portable, SQL-native,
-  engine-agnostic; the open, executable, agent-native contract for lakehouse data products.
+  The open standard for portable, executable lakehouse data contracts. Define
+  the intent of a trusted data product in one vendor-neutral contract.
 site_url: https://lakelogic.github.io/open-lakehouse-contract/
 site_author: LakeLogic
 repo_name: LakeLogic/open-lakehouse-contract
