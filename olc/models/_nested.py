@@ -955,6 +955,15 @@ class DownstreamConsumer(BaseModel):
     columns_used: List[str] = Field(default_factory=list)
     sla: Optional[str] = None
     managed: Optional[bool] = None
+    # Nested consumers that read THROUGH this consumer, capturing multi-hop
+    # lineage (e.g. gold table → semantic_model → report). A report nested under
+    # a semantic_model consumes the table via that model. Self-referential; the
+    # strict OLC v1 path recurses into these and enforces the same key rules.
+    consumers: List["DownstreamConsumer"] = Field(default_factory=list)
+
+
+# Resolve the self-referential ``consumers`` forward ref above.
+DownstreamConsumer.model_rebuild()
 
 
 class ConfidenceConfig(BaseModel):

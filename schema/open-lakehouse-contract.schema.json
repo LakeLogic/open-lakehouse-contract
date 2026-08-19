@@ -325,6 +325,13 @@
           ],
           "default": null,
           "title": "Managed"
+        },
+        "consumers": {
+          "items": {
+            "$ref": "#/$defs/DownstreamConsumer"
+          },
+          "title": "Consumers",
+          "type": "array"
         }
       },
       "required": [
