@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 440" width="1600" height="440" role="img" aria-label="Open Lakehouse Contract, one contract executed across Spark, DuckDB and Polars into Delta, Iceberg and DuckLake">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#05080a"/>
+      <stop offset="0.55" stop-color="#081317"/>
+      <stop offset="1" stop-color="#04191c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.72" cy="0.5" r="0.55">
+      <stop offset="0" stop-color="#0e6b78" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#0e6b78" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#2fd2e8" stroke-width="0.6" opacity="0.05"/>
+    </pattern>
+    <style>
+      .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .sans { font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="440" fill="url(#bg)"/>
+  <rect width="1600" height="440" fill="url(#grid)"/>
+  <rect width="1600" height="440" fill="url(#glow)"/>
+  <rect x="6" y="6" width="1588" height="428" rx="4" fill="none" stroke="#1b2a30" stroke-width="1"/>
+
+  <text x="92" y="96" class="sans" font-size="18" font-weight="700" letter-spacing="6" fill="#2fd2e8">OPEN STANDARD</text>
+  <text x="88" y="188" class="sans" font-size="66" font-weight="800" letter-spacing="-1.5" fill="#f2f6f8">Open Lakehouse <tspan fill="#2fd2e8">Contract</tspan></text>
+  <text x="94" y="238" class="mono" font-size="22" fill="#9aa6ae">The open standard for portable, executable</text>
+  <text x="94" y="270" class="mono" font-size="22" fill="#9aa6ae">lakehouse data contracts.</text>
+
+  <rect x="94" y="304" width="146" height="40" rx="20" fill="none" stroke="#2fd2e8" stroke-opacity="0.8" stroke-width="1.2"/>
+  <text x="167" y="330" class="mono" font-size="18" fill="#2fd2e8" text-anchor="middle">Apache 2.0</text>
+  <rect x="256" y="304" width="224" height="40" rx="20" fill="none" stroke="#3a4750" stroke-width="1.2"/>
+  <text x="368" y="330" class="mono" font-size="18" fill="#b7c0c8" text-anchor="middle">complements ODCS</text>
+  <text x="94" y="404" class="sans" font-size="22" font-weight="800" fill="#f2f6f8">LakeLogic<tspan class="mono" font-weight="400" font-size="15" letter-spacing="3" fill="#6b7681">   |   REFERENCE RUNTIME</tspan></text>
+
+  <g fill="none" stroke="#2fd2e8" stroke-width="1.6" stroke-dasharray="5 6" opacity="0.7">
+    <path d="M1268 214 C1330 170, 1360 104, 1430 104"/>
+    <path d="M1268 214 C1330 205, 1360 196, 1430 196"/>
+    <path d="M1268 214 C1330 250, 1360 288, 1430 288"/>
+    <path d="M1268 214 C1315 300, 1320 378, 1336 378"/>
+  </g>
+
+  <rect x="1046" y="170" width="222" height="90" rx="12" fill="#08181d" stroke="#2fd2e8" stroke-width="1.6"/>
+  <text x="1157" y="207" class="mono" font-size="22" fill="#eaf6f8" text-anchor="middle">contract.olc.yml</text>
+  <text x="1157" y="233" class="mono" font-size="13" letter-spacing="3" fill="#2fd2e8" text-anchor="middle">ONE INVARIANT</text>
+
+  <g class="sans">
+    <rect x="1430" y="72" width="150" height="64" rx="10" fill="#0b1418" stroke="#2b363d" stroke-width="1"/>
+    <text x="1450" y="104" font-size="21" font-weight="700" fill="#f2f6f8">Spark</text>
+    <text x="1450" y="124" class="mono" font-size="12" letter-spacing="2" fill="#6b7681">ENGINE</text>
+    <rect x="1430" y="164" width="150" height="64" rx="10" fill="#0b1418" stroke="#2b363d" stroke-width="1"/>
+    <text x="1450" y="196" font-size="21" font-weight="700" fill="#f2f6f8">DuckDB</text>
+    <text x="1450" y="216" class="mono" font-size="12" letter-spacing="2" fill="#6b7681">ENGINE</text>
+    <rect x="1430" y="256" width="150" height="64" rx="10" fill="#0b1418" stroke="#2b363d" stroke-width="1"/>
+    <text x="1450" y="288" font-size="21" font-weight="700" fill="#f2f6f8">Polars</text>
+    <text x="1450" y="308" class="mono" font-size="12" letter-spacing="2" fill="#6b7681">ENGINE</text>
+  </g>
+
+  <rect x="1336" y="346" width="244" height="64" rx="10" fill="#120f20" stroke="#6d5fd0" stroke-width="1.2"/>
+  <text x="1356" y="378" class="sans" font-size="14" font-weight="700" fill="#f2f6f8">Delta · Iceberg · DuckLake</text>
+  <text x="1356" y="398" class="mono" font-size="12" letter-spacing="2" fill="#9b8ff0">FORMATS</text>
+</svg>
