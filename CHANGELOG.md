@@ -6,6 +6,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.6.0] — 2026-08-23
+
+### Added
+
+- Update deduplication transformation and add upstream sources support
+
+### Build
+
+- **release**: Exit cleanly when there is nothing to bump
+
+### Documentation
+
+- Update README and documentation for clarity and consistency
+- Update changelog for v0.4.0
+
+### Styling
+
+- **conformance**: Silence E402 on imports deferred past _require guards
 ## [0.4.0] — 2026-08-19
 
 ### Added
@@ -26,23 +44,28 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **release**: Annotate the re-attached tag so --follow-tags pushes it
 ## [0.3.1] — 2026-08-18
 
+### CI/CD
+
+- **publish**: Switch to PyPI Trusted Publishing (OIDC)
+- Skip runtime-conformance until LAKELOGIC_REF is pinned
+## [0.3.0] — 2026-08-18
+
+### Added
+
+- Add changelog generation workflow and update related configurations
+- Add new conformance cases for dataset uniqueness, external logic extraction, regex extraction, and SCD2 dimension handling
+## [0.2.0] — 2026-08-15
+
 ### Added
 
 - **skills**: Expand agent integrations to 11 assistants
 - **skills**: Agent integrations for 7 assistants (add Cursor/Copilot/Gemini/Windsurf/Cline)
-- Add changelog generation workflow and update related configurations
-- Add new conformance cases for dataset uniqueness, external logic extraction, regex extraction, and SCD2 dimension handling
 - Implement strict OLC v1 model with nested key validation
 - Real olc CLI + Claude/Codex agent integrations (skills/)
 
 ### Build
 
 - Self-contained wheel + PyPI publish workflow
-
-### CI/CD
-
-- **publish**: Switch to PyPI Trusted Publishing (OIDC)
-- Skip runtime-conformance until LAKELOGIC_REF is pinned
 
 ### Documentation
 
@@ -85,6 +108,9 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.6.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.4.0...v0.6.0
 [0.4.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.3.1...v0.4.0
-[0.3.1]: https://github.com/LakeLogic/open-lakehouse-contract/releases/tag/v0.3.1
+[0.3.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/LakeLogic/open-lakehouse-contract/releases/tag/v0.2.0
 

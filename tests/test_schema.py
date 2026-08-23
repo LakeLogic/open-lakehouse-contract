@@ -96,9 +96,9 @@ class DeduplicateSchemaTests(unittest.TestCase):
         The generator writes only `schema/`, so a regenerated schema ships stale
         unless the bundled copy is synced too.
         """
-        published = (
-            ROOT / "schema" / "open-lakehouse-contract.schema.json"
-        ).read_text(encoding="utf-8")
+        published = (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+            encoding="utf-8"
+        )
         bundled = (
             ROOT / "olc" / "_bundled" / "schema" / "open-lakehouse-contract.schema.json"
         ).read_text(encoding="utf-8")
