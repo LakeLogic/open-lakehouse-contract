@@ -1800,16 +1800,29 @@
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="nt">upstream</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">silver_rideflow_trips</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">silver_rideflow_rider_profiles</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># declared upstream products</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># consumers (edges OUT)</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="nt">downstream</span><span class="p">:</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dashboard</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Finance</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">Daily</span><span class="nv"> </span><span class="s">Revenue"</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nt">platform</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">powerbi</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">"https://app.powerbi.com/…"</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">finance-team@example.com</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="nt">refresh</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">daily</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="nt">columns_used</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">kpi_date</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">city_code</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">gross_revenue_amount</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="nt">sla</span><span class="p">:</span><span class="w"> </span><span class="s">"available</span><span class="nv"> </span><span class="s">by</span><span class="nv"> </span><span class="s">07:00</span><span class="nv"> </span><span class="s">UTC"</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># non-contract origins (edges IN, nested) — the source→landing→bronze chain, since</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1"># neither the source system nor the landing zone has an OLC file of its own.</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="nt">upstream_sources</span><span class="p">:</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">landing</span><span class="w">                       </span><span class="c1"># the direct producer of this contract</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GA4 app_events landing</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"{landing_root}/app_events"</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="nt">upstream_sources</span><span class="p">:</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">source_system</span><span class="w">             </span><span class="c1"># where the landing data came from</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Google Analytics 4</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">        </span><span class="nt">system</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Google LLC</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="c1"># consumers (edges OUT, nested) — the table→semantic_model→report chain</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="nt">downstream</span><span class="p">:</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">semantic_model</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"RideFlow</span><span class="nv"> </span><span class="s">Gold"</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="nt">platform</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">powerbi</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">    </span><span class="nt">consumers</span><span class="p">:</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">report</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Finance</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">Daily</span><span class="nv"> </span><span class="s">Revenue"</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">        </span><span class="nt">platform</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">powerbi</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">        </span><span class="nt">columns_used</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">kpi_date</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">city_code</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">gross_revenue_amount</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">        </span><span class="nt">sla</span><span class="p">:</span><span class="w"> </span><span class="s">"available</span><span class="nv"> </span><span class="s">by</span><span class="nv"> </span><span class="s">07:00</span><span class="nv"> </span><span class="s">UTC"</span>
 </code></pre></div>
 <table>
 <thead>
@@ -1836,13 +1849,26 @@
 <td>Declared upstream data products (names/paths) this one derives from.</td>
 </tr>
 <tr>
+<td><code>upstream_contracts</code></td>
+<td><code>[UpstreamContractRef]</code></td>
+<td>Structured refs to upstream products that <strong>have their own OLC contract</strong> — carries their mesh coordinates (<code>contract</code>, <code>layer</code>, <code>domain</code>, <code>system</code>) so the chain is walked via the graph, not restated.</td>
+</tr>
+<tr>
+<td><code>upstream_sources</code></td>
+<td><code>[UpstreamSource]</code></td>
+<td>Nested origins with <strong>no</strong> contract of their own — a source system, landing zone, external file/API. Captures the <code>source → landing → bronze</code> chain inline.</td>
+</tr>
+<tr>
 <td><code>downstream</code></td>
 <td><code>[DownstreamConsumer]</code></td>
-<td>Declared consumers — dashboards, models, exports — that read this product.</td>
+<td>Declared consumers — dashboards, models, exports — that read this product. Nested via <code>consumers</code>.</td>
 </tr>
 </tbody>
 </table>
-<p><strong><code>DownstreamConsumer</code></strong> makes consumers first-class, so impact analysis ("if I change this column, what breaks?") is answerable from the contract:</p>
+<p><strong>Two nestable, first-class edge shapes</strong> make impact analysis answerable from the contract
+in both directions — <code>upstream_sources</code> for producers and <code>downstream</code> for consumers.</p>
+<p><strong><code>DownstreamConsumer</code></strong> — a consumer that reads this product; nests via <code>consumers</code>
+(<code>table → semantic_model → report</code>):</p>
 <table>
 <thead>
 <tr>
@@ -1853,23 +1879,15 @@
 <tbody>
 <tr>
 <td><code>type</code> <strong>(req)</strong> / <code>name</code> <strong>(req)</strong></td>
-<td>Kind of consumer (dashboard / model / export / api) and its name.</td>
+<td>Kind of consumer (dashboard / model / report / export / api) and its name.</td>
 </tr>
 <tr>
 <td><code>platform</code> / <code>url</code></td>
 <td>Where it lives (Power BI, Tableau, a feature store…).</td>
 </tr>
 <tr>
-<td><code>owner</code></td>
-<td>Who owns the consumer.</td>
-</tr>
-<tr>
-<td><code>description</code></td>
-<td>What it's for.</td>
-</tr>
-<tr>
-<td><code>refresh</code></td>
-<td>How often it reads (daily, hourly…).</td>
+<td><code>owner</code> / <code>description</code> / <code>refresh</code></td>
+<td>Who owns it, what it's for, how often it reads.</td>
 </tr>
 <tr>
 <td><code>columns_used</code></td>
@@ -1879,8 +1897,54 @@
 <td><code>sla</code></td>
 <td>The consumer's expectation of this product.</td>
 </tr>
+<tr>
+<td><code>consumers</code></td>
+<td><strong>Nested</strong> downstream consumers that read <em>through</em> this one (a report reading a semantic model).</td>
+</tr>
 </tbody>
 </table>
+<p><strong><code>UpstreamSource</code></strong> — the mirror: an origin with no OLC file (source system, landing zone),
+nesting via <code>upstream_sources</code> (<code>landing ← source_system</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code> <strong>(req)</strong> / <code>name</code> <strong>(req)</strong></td>
+<td>Kind of origin (landing / source_system / api / file / database / stream) and its name.</td>
+</tr>
+<tr>
+<td><code>system</code> / <code>catalog_path</code></td>
+<td>Owning system / vendor, and its address in the source.</td>
+</tr>
+<tr>
+<td><code>path</code> / <code>format</code></td>
+<td>Landing path or source URI, and its format.</td>
+</tr>
+<tr>
+<td><code>owner</code> / <code>description</code> / <code>note</code></td>
+<td>Who owns it, what it is, free-form provenance.</td>
+</tr>
+<tr>
+<td><code>columns_used</code></td>
+<td>Which columns this contract draws from the origin.</td>
+</tr>
+<tr>
+<td><code>upstream_sources</code></td>
+<td><strong>Nested</strong> origins that feed this one (the source system behind a landing zone).</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>When to use which upstream field:</strong> if the producer <em>has</em> an OLC contract, reference it
+with <code>upstream</code> / <code>upstream_contracts</code> and let the graph walk resolve the chain. If it
+does <strong>not</strong> (a raw source, a landing zone), record it inline with <code>upstream_sources</code> —
+the same reason <code>downstream</code> records BI consumers that have no contract of their own.</p>
+</blockquote>
 <hr />
 <h2 id="3-pipeline-dependencies-airflow-style-dag">3. Pipeline dependencies (Airflow-style DAG)</h2>
 <p>The execution order across a whole system is a <strong>DAG</strong>: each contract declares which other entities it <code>depends_on</code>, and the system declares its <code>external_sources</code> (the roots — the systems outside the mesh that feed it). The reference framework turns this into an Airflow / Dagster / Cloud Composer schedule, running parents before children with maximum safe parallelism.</p>

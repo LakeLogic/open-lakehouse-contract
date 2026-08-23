@@ -2427,6 +2427,22 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">deduplicate</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="s">"on"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_id</span><span class="p p-Indicator">],</span><span class="nt"> sort_by</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">updated_at</span><span class="p p-Indicator">],</span><span class="nt"> order</span><span class="p">:</span><span class="w"> </span><span class="nv">desc</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># quote 'on' (YAML keyword)</span>
 <a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="w">  </span><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pre</span>
 </code></pre></div></p>
+<p><code>sort_by</code> is <strong>required</strong>. A deduplicate discards rows, so which duplicate survives
+is a business decision the contract must state; without it an implementation has to
+invent a survivor, and different engines invent different ones — the same contract
+would then produce different tables on different platforms. A contract omitting it
+is refused (conformance case <code>OLC-T-002</code>).</p>
+<p>Order by the column that identifies the newest <em>record version</em> (<code>updated_at</code>), not
+a business-event column: duplicates are usually re-deliveries of one row, and the
+event columns are identical across them.</p>
+<blockquote>
+<p><strong>Deprecated:</strong> <code>deduplicate_by_latest: { key_columns, timestamp_column }</code> is
+exactly <code>deduplicate</code> with <code>sort_by: [timestamp_column], order: desc</code>. It adds no
+expressiveness — it cannot express "keep the earliest" or a multi-column
+tie-break — and its separate <code>timestamp_column</code> spelling is silently ignored if
+written on <code>deduplicate</code>. It still parses for contracts already published; use
+<code>deduplicate</code> in new work.</p>
+</blockquote>
 <h3 id="explode-one-row-per-array-element"><code>explode</code> — one row per array element</h3>
 <p><div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">UNNEST</span><span class="p">(</span><span class="n">tag_array</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="k">source</span>
 </code></pre></div>
