@@ -3297,7 +3297,19 @@
       "additionalProperties": false
     },
     "TransformationDeduplicate": {
-      "description": "Deduplication rule configuration.",
+      "anyOf": [
+        {
+          "required": [
+            "on"
+          ]
+        },
+        {
+          "required": [
+            "by"
+          ]
+        }
+      ],
+      "description": "Deduplication rule configuration.\n\n``sort_by`` is REQUIRED. A deduplicate discards rows, so \"which duplicate\nsurvives\" is a business decision the contract must state. When it is absent an\nimplementation has to invent a survivor \u2014 first row read, lexicographically\nsmallest, newest file \u2014 and every such choice silently destroys data on the\nstrength of a rule nobody wrote down. Worse, the choice differs between engines,\nso the same contract yields different tables on different platforms, which is\nprecisely what this specification exists to prevent.\n\nConformance: OLC-T-002 requires a contract without ``sort_by`` to be REFUSED.",
       "properties": {
         "on": {
           "items": {
@@ -3307,19 +3319,13 @@
           "type": "array"
         },
         "sort_by": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Sort By"
+          "description": "Columns determining which duplicate survives, applied with `order`. Required: without it the survivor is undefined and engine-dependent.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Sort By",
+          "type": "array"
         },
         "order": {
           "default": "desc",
@@ -3334,14 +3340,16 @@
           "type": "array"
         }
       },
-      "required": [],
+      "required": [
+        "sort_by"
+      ],
       "title": "TransformationDeduplicate",
       "type": "object",
       "additionalProperties": false
     },
     "TransformationDeduplicateByLatest": {
       "additionalProperties": false,
-      "description": "Keep the latest row per key by a timestamp column (dedup shorthand).",
+      "description": "DEPRECATED \u2014 use ``deduplicate`` with ``sort_by``.\n\nThis shorthand adds no expressiveness: it is exactly\n``deduplicate(on=key_columns, sort_by=[timestamp_column], order=\"desc\")``, with\n``order`` pinned so it cannot express \"keep the earliest row\", \"keep the highest\nversion\", or a multi-column tie-break.\n\nWhat it did add was a SECOND spelling of the ordering field \u2014\n``timestamp_column`` here versus ``sort_by`` there \u2014 and authors reliably reach\nfor the wrong one on the wrong op, where it is dropped at parse time. One\noperation, one spelling.\n\nRetained (and still covered by OLC-T-001) because published contracts use it;\nit is no longer recommended anywhere.",
       "properties": {
         "key_columns": {
           "items": {
@@ -4165,6 +4173,124 @@
       ],
       "title": "UpstreamContractRef",
       "type": "object"
+    },
+    "UpstreamSource": {
+      "additionalProperties": false,
+      "description": "An upstream *origin* of a contract's data that is **not** itself an OLC contract \u2014\na source system, a landing zone, an external file / API / database / stream, etc.\n\nThis is the upstream mirror of :class:`DownstreamConsumer`: where downstream captures\nconsumers with no contract of their own (a BI report reading through a semantic model),\n``upstream_sources`` captures producers with no contract of their own. It records the\ningestion provenance the mesh cannot otherwise express \u2014 most commonly the\n``source system \u2192 landing zone \u2192 bronze`` chain, since neither the source nor the\nlanding zone has an OLC file.\n\nSelf-referential: each hop may declare its own ``upstream_sources``, so a bronze\ncontract can nest ``landing \u2190 source_system`` end to end. The strict OLC v1 path\nrecurses into these and enforces the same key rules.\n\nExample YAML::\n\n    upstream_sources:\n      - type: landing                       # the direct producer of this contract\n        name: GA4 app_events landing\n        path: \"{landing_root}/app_events\"\n        format: json\n        upstream_sources:\n          - type: source_system             # where the landing data came from\n            name: Google Analytics 4\n            system: Google LLC",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "System"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "catalog_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Catalog Path"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "columns_used": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns Used",
+          "type": "array"
+        },
+        "upstream_sources": {
+          "items": {
+            "$ref": "#/$defs/UpstreamSource"
+          },
+          "title": "Upstream Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "UpstreamSource",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -4337,6 +4463,13 @@
         "$ref": "#/$defs/UpstreamContractRef"
       },
       "title": "Upstream Contracts",
+      "type": "array"
+    },
+    "upstream_sources": {
+      "items": {
+        "$ref": "#/$defs/UpstreamSource"
+      },
+      "title": "Upstream Sources",
       "type": "array"
     },
     "downstream": {

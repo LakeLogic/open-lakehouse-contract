@@ -35,6 +35,7 @@ from olc.models._nested import (
     SourceConfig,
     Transformation,
     UpstreamContractRef,
+    UpstreamSource,
 )
 from olc.models._strict_keys import collect_unknown_nested_keys
 
@@ -123,6 +124,7 @@ class OLCContractV1(BaseModel):
     extraction: Optional[ExtractionConfig] = None
     upstream: List[str] = Field(default_factory=list)
     upstream_contracts: List[UpstreamContractRef] = Field(default_factory=list)
+    upstream_sources: List[UpstreamSource] = Field(default_factory=list)
     downstream: List[DownstreamConsumer] = Field(default_factory=list)
     schedule: Optional[str] = None
     schema_policy: Optional[SchemaPolicy] = None

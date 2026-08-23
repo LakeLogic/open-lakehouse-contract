@@ -105,15 +105,28 @@ def test_all_case_contracts_are_strict_valid():
     Guards against future cases sneaking in through the lenient runtime path: a
     conformance contract that isn't itself a valid canonical OLC contract is not a
     legitimate case. Uses the PUBLIC model, so this holds independent of the runtime.
+
+    Exception: cases asserting ``expects_error`` carry a DELIBERATELY invalid
+    contract — proving that an invalid contract is refused requires an invalid
+    contract. Those are inverted below: they must FAIL strict validation, so the
+    exemption can't be used to smuggle in a broken case that merely happens to be
+    broken.
     """
     from olc.models import load_strict
 
     failures = []
     for case in CASES:
+        must_be_refused = bool(case.assertions.get("expects_error"))
         try:
             load_strict(case.contract)
+            if must_be_refused:
+                failures.append(
+                    f"{case.id}: declares expects_error but its contract is VALID — "
+                    f"the case cannot prove a refusal"
+                )
         except Exception as exc:  # noqa: BLE001 - report, don't abort
-            failures.append(f"{case.id}: {type(exc).__name__}: {str(exc)[:160]}")
+            if not must_be_refused:
+                failures.append(f"{case.id}: {type(exc).__name__}: {str(exc)[:160]}")
     assert not failures, "case contracts fail strict validation:\n" + "\n".join(
         failures
     )

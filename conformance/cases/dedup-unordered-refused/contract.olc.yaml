@@ -1,0 +1,16 @@
+version: 1.0.0
+info:
+  title: Unordered deduplicate (must be refused)
+  target_layer: silver
+dataset: source
+model:
+  fields:
+    - name: id
+      type: int
+    - name: v
+      type: string
+transformations:
+  # Deliberately no sort_by / order: this contract is INVALID and every conforming
+  # implementation must refuse it rather than invent a survivor.
+  - deduplicate:
+      on: [id]

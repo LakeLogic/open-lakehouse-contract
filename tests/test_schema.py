@@ -54,3 +54,52 @@ class PublishedSchemaTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DeduplicateSchemaTests(unittest.TestCase):
+    """The PUBLISHED schema must enforce the dedup rules on its own.
+
+    These held in pydantic already; the point is that a third-party implementation
+    validating against the schema alone gets the same guarantees. Before `anyOf`,
+    the alias pair (`on`/`by`) meant NEITHER appeared in `required`, so the schema
+    accepted a deduplicate with no key at all — weaker than the model it publishes.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        full = json.loads(
+            (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        sub = dict(full["$defs"]["TransformationDeduplicate"])
+        sub["$defs"] = full["$defs"]
+        cls.validator = Draft202012Validator(sub)
+
+    def _errors(self, doc):
+        return [e.message for e in self.validator.iter_errors(doc)]
+
+    def test_both_key_spellings_are_accepted(self) -> None:
+        self.assertEqual(self._errors({"on": ["id"], "sort_by": ["ts"]}), [])
+        self.assertEqual(self._errors({"by": ["id"], "sort_by": ["ts"]}), [])
+
+    def test_a_deduplicate_with_no_key_is_rejected(self) -> None:
+        self.assertTrue(self._errors({"sort_by": ["ts"]}))
+
+    def test_a_deduplicate_with_no_ordering_is_rejected(self) -> None:
+        # The survivor would be engine-dependent; see conformance case OLC-T-002.
+        self.assertTrue(self._errors({"on": ["id"]}))
+
+    def test_bundled_schema_matches_the_published_one(self) -> None:
+        """The bundled copy is what pip users validate against — it must not lag.
+
+        The generator writes only `schema/`, so a regenerated schema ships stale
+        unless the bundled copy is synced too.
+        """
+        published = (
+            ROOT / "schema" / "open-lakehouse-contract.schema.json"
+        ).read_text(encoding="utf-8")
+        bundled = (
+            ROOT / "olc" / "_bundled" / "schema" / "open-lakehouse-contract.schema.json"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(json.loads(published), json.loads(bundled))

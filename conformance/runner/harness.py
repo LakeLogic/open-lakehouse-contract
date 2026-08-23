@@ -168,12 +168,25 @@ def compare_result(
     comp = case.comparison
 
     # An exception is only acceptable if the case explicitly expects one.
-    if result.exception is not None and not case.assertions.get("expects_error"):
+    expects_error = case.assertions.get("expects_error")
+    if result.exception is not None and not expects_error:
         return Outcome(
             case.id,
             adapter.name,
             FAIL,
             [f"unexpected error: {result.exception.code}"],
+        )
+
+    # ...and a case that expects one MUST get one. Without this, `expects_error`
+    # only *tolerated* an error, so a refusal case would report PASS against an
+    # adapter that happily ran the contract it was supposed to reject — the exact
+    # false-green a conformance suite exists to prevent.
+    if expects_error and result.exception is None:
+        return Outcome(
+            case.id,
+            adapter.name,
+            FAIL,
+            ["expected the contract to be REFUSED, but it ran successfully"],
         )
 
     # accepted rows

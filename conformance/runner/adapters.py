@@ -258,7 +258,8 @@ class DuckDBAdapter(LakeLogicAdapter):
         "transformations.pre",
         "transformations.post",
         "transformations.filter",
-        "transformations.deduplicate_by_latest",
+        "transformations.deduplicate",
+        "transformations.deduplicate_by_latest",  # deprecated shorthand
         "transformations.lower",
         "transformations.trim",
         "transformations.cast",
@@ -293,7 +294,8 @@ class PolarsAdapter(LakeLogicAdapter):
         "transformations.pre",
         "transformations.post",
         "transformations.filter",
-        "transformations.deduplicate_by_latest",
+        "transformations.deduplicate",
+        "transformations.deduplicate_by_latest",  # deprecated shorthand
         "transformations.lower",
         "transformations.trim",
         "transformations.cast",

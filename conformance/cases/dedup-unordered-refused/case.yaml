@@ -1,0 +1,12 @@
+id: OLC-T-002
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.deduplicate
+description: >
+  A deduplicate with no sort_by must be REFUSED, not silently resolved. Which
+  duplicate row survives is a business decision; an implementation that picks one
+  on the author's behalf (first row read, lexicographically smallest, newest file)
+  is making that decision invisibly and discarding data on the strength of it.
+input: input.jsonl
+assertions:
+  expects_error: true

@@ -66,16 +66,29 @@ links:                                                   # reference datasets jo
 
 upstream: [silver_rideflow_trips, silver_rideflow_rider_profiles]   # declared upstream products
 
-# consumers (edges OUT)
+# non-contract origins (edges IN, nested) — the source→landing→bronze chain, since
+# neither the source system nor the landing zone has an OLC file of its own.
+upstream_sources:
+  - type: landing                       # the direct producer of this contract
+    name: GA4 app_events landing
+    path: "{landing_root}/app_events"
+    format: json
+    upstream_sources:
+      - type: source_system             # where the landing data came from
+        name: Google Analytics 4
+        system: Google LLC
+
+# consumers (edges OUT, nested) — the table→semantic_model→report chain
 downstream:
-  - type: dashboard
-    name: "Finance — Daily Revenue"
+  - type: semantic_model
+    name: "RideFlow Gold"
     platform: powerbi
-    url: "https://app.powerbi.com/…"
-    owner: finance-team@example.com
-    refresh: daily
-    columns_used: [kpi_date, city_code, gross_revenue_amount]
-    sla: "available by 07:00 UTC"
+    consumers:
+      - type: report
+        name: "Finance — Daily Revenue"
+        platform: powerbi
+        columns_used: [kpi_date, city_code, gross_revenue_amount]
+        sla: "available by 07:00 UTC"
 ```
 
 | Field | Model | Purpose |
@@ -83,19 +96,41 @@ downstream:
 | `source` | `SourceConfig` | The primary input — an edge *in*. See [Ingestion](ingestion.md). |
 | `links` | `[Link]` | Reference datasets joined during transformation (`name`, `path`/`table`, `type`, `broadcast`, `columns`). See [Transformation → Joins](transformation.md#joins-lookups). |
 | `upstream` | `[string]` | Declared upstream data products (names/paths) this one derives from. |
-| `downstream` | `[DownstreamConsumer]` | Declared consumers — dashboards, models, exports — that read this product. |
+| `upstream_contracts` | `[UpstreamContractRef]` | Structured refs to upstream products that **have their own OLC contract** — carries their mesh coordinates (`contract`, `layer`, `domain`, `system`) so the chain is walked via the graph, not restated. |
+| `upstream_sources` | `[UpstreamSource]` | Nested origins with **no** contract of their own — a source system, landing zone, external file/API. Captures the `source → landing → bronze` chain inline. |
+| `downstream` | `[DownstreamConsumer]` | Declared consumers — dashboards, models, exports — that read this product. Nested via `consumers`. |
 
-**`DownstreamConsumer`** makes consumers first-class, so impact analysis ("if I change this column, what breaks?") is answerable from the contract:
+**Two nestable, first-class edge shapes** make impact analysis answerable from the contract
+in both directions — `upstream_sources` for producers and `downstream` for consumers.
+
+**`DownstreamConsumer`** — a consumer that reads this product; nests via `consumers`
+(`table → semantic_model → report`):
 
 | Field | Purpose |
 |---|---|
-| `type` **(req)** / `name` **(req)** | Kind of consumer (dashboard / model / export / api) and its name. |
+| `type` **(req)** / `name` **(req)** | Kind of consumer (dashboard / model / report / export / api) and its name. |
 | `platform` / `url` | Where it lives (Power BI, Tableau, a feature store…). |
-| `owner` | Who owns the consumer. |
-| `description` | What it's for. |
-| `refresh` | How often it reads (daily, hourly…). |
+| `owner` / `description` / `refresh` | Who owns it, what it's for, how often it reads. |
 | `columns_used` | Exactly which columns it depends on — the impact-analysis edge. |
 | `sla` | The consumer's expectation of this product. |
+| `consumers` | **Nested** downstream consumers that read *through* this one (a report reading a semantic model). |
+
+**`UpstreamSource`** — the mirror: an origin with no OLC file (source system, landing zone),
+nesting via `upstream_sources` (`landing ← source_system`):
+
+| Field | Purpose |
+|---|---|
+| `type` **(req)** / `name` **(req)** | Kind of origin (landing / source_system / api / file / database / stream) and its name. |
+| `system` / `catalog_path` | Owning system / vendor, and its address in the source. |
+| `path` / `format` | Landing path or source URI, and its format. |
+| `owner` / `description` / `note` | Who owns it, what it is, free-form provenance. |
+| `columns_used` | Which columns this contract draws from the origin. |
+| `upstream_sources` | **Nested** origins that feed this one (the source system behind a landing zone). |
+
+> **When to use which upstream field:** if the producer *has* an OLC contract, reference it
+> with `upstream` / `upstream_contracts` and let the graph walk resolve the chain. If it
+> does **not** (a raw source, a landing zone), record it inline with `upstream_sources` —
+> the same reason `downstream` records BI consumers that have no contract of their own.
 
 ---
 

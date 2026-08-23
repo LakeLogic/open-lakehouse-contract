@@ -282,17 +282,63 @@ class TransformationFilter(BaseModel):
 
 
 class TransformationDeduplicate(BaseModel):
-    """Deduplication rule configuration."""
+    """Deduplication rule configuration.
 
-    model_config = ConfigDict(populate_by_name=True)
+    ``sort_by`` is REQUIRED. A deduplicate discards rows, so "which duplicate
+    survives" is a business decision the contract must state. When it is absent an
+    implementation has to invent a survivor — first row read, lexicographically
+    smallest, newest file — and every such choice silently destroys data on the
+    strength of a rule nobody wrote down. Worse, the choice differs between engines,
+    so the same contract yields different tables on different platforms, which is
+    precisely what this specification exists to prevent.
+
+    Conformance: OLC-T-002 requires a contract without ``sort_by`` to be REFUSED.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        # `on` accepts the alias `by`, which pydantic cannot express in the emitted
+        # `required` list — it drops the field entirely, so a raw JSON-Schema
+        # validator would accept a deduplicate with NO key at all. Only pydantic
+        # enforced it, meaning the published schema was weaker than the model and
+        # any third-party implementation validating against the schema alone would
+        # let a keyless dedup through. `anyOf` states the real rule: one spelling or
+        # the other must be present.
+        json_schema_extra={
+            "anyOf": [{"required": ["on"]}, {"required": ["by"]}],
+        },
+    )
     on: List[str] = Field(validation_alias=AliasChoices("on", "by"))
-    sort_by: Optional[List[str]] = None
+    sort_by: List[str] = Field(
+        min_length=1,
+        description=(
+            "Columns determining which duplicate survives, applied with `order`. "
+            "Required: without it the survivor is undefined and engine-dependent."
+        ),
+    )
     order: str = "desc"
 
 
 class TransformationDeduplicateByLatest(BaseModel):
-    """Keep the latest row per key by a timestamp column (dedup shorthand)."""
+    """DEPRECATED — use ``deduplicate`` with ``sort_by``.
 
+    This shorthand adds no expressiveness: it is exactly
+    ``deduplicate(on=key_columns, sort_by=[timestamp_column], order="desc")``, with
+    ``order`` pinned so it cannot express "keep the earliest row", "keep the highest
+    version", or a multi-column tie-break.
+
+    What it did add was a SECOND spelling of the ordering field —
+    ``timestamp_column`` here versus ``sort_by`` there — and authors reliably reach
+    for the wrong one on the wrong op, where it is dropped at parse time. One
+    operation, one spelling.
+
+    Retained (and still covered by OLC-T-001) because published contracts use it;
+    it is no longer recommended anywhere.
+    """
+
+    # `extra="allow"` is deliberate ONLY for backward compatibility with contracts
+    # already in the wild — do not copy this to new shapes; it silently accepts
+    # misspelled fields.
     model_config = ConfigDict(extra="allow")
     key_columns: List[str] = Field(default_factory=list)
     timestamp_column: Optional[str] = None
@@ -911,6 +957,53 @@ class UpstreamContractRef(BaseModel):
     domain: Optional[str] = None
     system: Optional[str] = None
     note: Optional[str] = None
+
+
+class UpstreamSource(BaseModel):
+    """An upstream *origin* of a contract's data that is **not** itself an OLC contract —
+    a source system, a landing zone, an external file / API / database / stream, etc.
+
+    This is the upstream mirror of :class:`DownstreamConsumer`: where downstream captures
+    consumers with no contract of their own (a BI report reading through a semantic model),
+    ``upstream_sources`` captures producers with no contract of their own. It records the
+    ingestion provenance the mesh cannot otherwise express — most commonly the
+    ``source system → landing zone → bronze`` chain, since neither the source nor the
+    landing zone has an OLC file.
+
+    Self-referential: each hop may declare its own ``upstream_sources``, so a bronze
+    contract can nest ``landing ← source_system`` end to end. The strict OLC v1 path
+    recurses into these and enforces the same key rules.
+
+    Example YAML::
+
+        upstream_sources:
+          - type: landing                       # the direct producer of this contract
+            name: GA4 app_events landing
+            path: "{landing_root}/app_events"
+            format: json
+            upstream_sources:
+              - type: source_system             # where the landing data came from
+                name: Google Analytics 4
+                system: Google LLC
+    """
+
+    model_config = ConfigDict(extra="allow")
+    type: str
+    name: str
+    system: Optional[str] = None  # owning system / vendor (e.g. "Google LLC")
+    path: Optional[str] = None  # landing path / source URI
+    format: Optional[str] = None
+    catalog_path: Optional[str] = None
+    owner: Optional[str] = None
+    description: Optional[str] = None
+    note: Optional[str] = None
+    columns_used: List[str] = Field(default_factory=list)
+    # Nested origins that feed THIS source (e.g. the source system behind a landing zone).
+    upstream_sources: List["UpstreamSource"] = Field(default_factory=list)
+
+
+# Resolve the self-referential ``upstream_sources`` forward ref above.
+UpstreamSource.model_rebuild()
 
 
 class DownstreamConsumer(BaseModel):

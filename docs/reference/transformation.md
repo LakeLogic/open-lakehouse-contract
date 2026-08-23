@@ -189,6 +189,23 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY updated_at DESC) = 
   phase: pre
 ```
 
+`sort_by` is **required**. A deduplicate discards rows, so which duplicate survives
+is a business decision the contract must state; without it an implementation has to
+invent a survivor, and different engines invent different ones — the same contract
+would then produce different tables on different platforms. A contract omitting it
+is refused (conformance case `OLC-T-002`).
+
+Order by the column that identifies the newest *record version* (`updated_at`), not
+a business-event column: duplicates are usually re-deliveries of one row, and the
+event columns are identical across them.
+
+> **Deprecated:** `deduplicate_by_latest: { key_columns, timestamp_column }` is
+> exactly `deduplicate` with `sort_by: [timestamp_column], order: desc`. It adds no
+> expressiveness — it cannot express "keep the earliest" or a multi-column
+> tie-break — and its separate `timestamp_column` spelling is silently ignored if
+> written on `deduplicate`. It still parses for contracts already published; use
+> `deduplicate` in new work.
+
 ### `explode` — one row per array element
 
 ```sql
