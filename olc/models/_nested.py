@@ -829,11 +829,52 @@ class RowCountSLO(BaseModel):
 
 
 class ServiceLevel(BaseModel):
-    """Service-level settings for freshness, availability, and row counts."""
+    """Service-level settings for freshness, availability, row counts, and
+    partition completeness.
+
+    These are four different *units of measurement* and are easy to confuse, so each
+    states what it is evaluated against:
+
+    * ``freshness``    — how old the newest record may be (a time delta).
+    * ``availability`` — **row-level**. The percentage of ROWS whose ``field`` is
+      non-null, evaluated per run against the rows that run actually read. It says
+      nothing about whether a file, an interval or a partition ever arrived.
+    * ``row_count``    — run-level row-count bounds (see :class:`RowCountSLO`).
+    * ``completeness`` — **partition-level**. The fraction of EXPECTED partitions
+      that arrived for a partitioned source. It says nothing about the contents of
+      the partitions that did arrive.
+
+    ``availability`` and ``completeness`` are the pair most often mistaken for one
+    another, and they are independent: a source can deliver every expected partition
+    with a wholly null column (completeness 1.0, availability 0.0), or deliver one
+    flawless hour out of twenty-four (availability 1.0, completeness ~0.04).
+    """
 
     freshness: Optional[Union[str, ServiceLevelObjective]] = None
     availability: Optional[Union[float, ServiceLevelObjective]] = None
     row_count: Optional[RowCountSLO] = None
+    completeness: Optional[Union[float, ServiceLevelObjective]] = Field(
+        default=None,
+        description=(
+            "Partition completeness: the fraction (0.0-1.0) of EXPECTED partitions that "
+            "must arrive for a partitioned source. Unlike `availability`, which is "
+            "row-level, this is about whether an interval arrived at all -- the hole in "
+            "the middle of a series that a check looking only at the newest record "
+            "cannot see. "
+            "DENOMINATOR: 'expected' means the intervals a seasonal baseline says ALWAYS "
+            "deliver -- NOT every interval enumerated in the declared window. A source "
+            "with genuinely idle intervals (a rideshare feed at 03:00) can therefore "
+            "declare 1.0 and mean it. Were the denominator raw enumeration, every such "
+            "contract would be forced to write 0.9 purely to stay quiet, and the number "
+            "would stop meaning anything. "
+            "GRAIN comes from `source.partition.format` (an `%H` token means hourly); "
+            "there is no separate grain field. "
+            "This is a COMMITMENT, not monitor tuning. Lookback, minimum history, "
+            "tolerance for flaky intervals and alert routing are stateful and temporal, "
+            "so they deliberately live in monitor configuration rather than in the "
+            "contract, where a schedule change would silently make them wrong."
+        ),
+    )
 
 
 class FieldDefinition(BaseModel):
