@@ -8,6 +8,7 @@ the SAME normalised outcome.
 
 from __future__ import annotations
 
+import os
 import re
 import tempfile
 from collections import Counter
@@ -278,6 +279,7 @@ class DuckDBAdapter(LakeLogicAdapter):
         "transformations.pre",
         "transformations.post",
         "transformations.filter",
+        "transformations.rename",
         "transformations.deduplicate",
         "transformations.deduplicate_by_latest",  # deprecated shorthand
         "transformations.lower",
@@ -318,6 +320,7 @@ class PolarsAdapter(LakeLogicAdapter):
         "transformations.pre",
         "transformations.post",
         "transformations.filter",
+        "transformations.rename",
         "transformations.deduplicate",
         "transformations.deduplicate_by_latest",  # deprecated shorthand
         "transformations.lower",
@@ -405,7 +408,36 @@ class SparkAdapter(LakeLogicAdapter):
                 pass
             cls._spark = builder.getOrCreate()
             cls._spark.sparkContext.setLogLevel("ERROR")
+            cls._cases_on_session = 0
         return cls._spark
+
+    # Cases served by the current JVM before it is recycled.
+    #
+    # A single local[2] session used to serve the WHOLE corpus — ~950 Spark stages in
+    # one driver over an hour, with each case's temp views never dropped. The driver
+    # ran out of headroom and cases began failing with "Python worker failed to
+    # connect back" / TaskKilled. The giveaway that it was exhaustion rather than a
+    # defect: the failing set MOVED between runs (SCD2-001/T-005/T-006/T-013 one
+    # sweep, T-003/T-014 the next) and every one passed in a fresh process.
+    #
+    # Recycling bounds the accumulation while keeping most of the JVM-startup saving
+    # that made the session shared in the first place. DuckDB and Polars need none of
+    # this — they are in-process and stateless per case, and have never flaked.
+    _MAX_CASES_PER_SESSION = int(os.environ.get("OLC_CONFORMANCE_SPARK_RECYCLE", "25"))
+    _cases_on_session = 0
+
+    @classmethod
+    def _recycle_session(cls) -> None:
+        """Tear the JVM down so the next case starts with a clean driver."""
+        spark = cls._spark
+        cls._spark = None
+        cls._cases_on_session = 0
+        if spark is None:
+            return
+        try:
+            spark.stop()
+        except Exception:  # pragma: no cover - best effort; a dead JVM is fine too
+            pass
 
     def _isession(self):
         """A per-case Spark session (``newSession``) that shares the JVM/cluster but
@@ -416,7 +448,13 @@ class SparkAdapter(LakeLogicAdapter):
         session per case makes view namespaces disjoint and the run deterministic."""
         s = getattr(self, "_inst_session", None)
         if s is None:
+            cls = type(self)
+            # One case = one instance session. Recycle BEFORE handing out a new one,
+            # so a case never starts on a driver that is already at its limit.
+            if cls._spark is not None and cls._cases_on_session >= cls._MAX_CASES_PER_SESSION:
+                cls._recycle_session()
             s = self._session().newSession()
+            cls._cases_on_session += 1
             self._inst_session = s
         return s
 

@@ -1,0 +1,17 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: status, type: string }
+quality:
+  row_rules:
+    # Names the POST-rename column. If the rename is skipped this cannot even
+    # resolve, which is exactly how the silent no-op used to surface: a rule
+    # failing on a column that was never created.
+    - { name: status_not_null, sql: "status IS NOT NULL" }
+transformations:
+  # from_name/to_name — canonical OLC, and the form DuckDB silently ignored: it read
+  # `trans.rename.mappings` directly instead of iter_pairs(), so it honoured exactly
+  # one of the three declared forms and dropped the other two without a word.
+  - rename: { from_name: old_status, to_name: status }

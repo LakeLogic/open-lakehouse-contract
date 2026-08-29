@@ -1,0 +1,15 @@
+id: OLC-T-019
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.rename
+description: "rename via from_name/to_name is honoured on every engine"
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+comparison:
+  sort_by: [id]
