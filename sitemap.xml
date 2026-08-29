@@ -2,142 +2,142 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/index.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/contributing.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/getting-started.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/concepts/agent-native.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/concepts/agent-workflow.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/concepts/ai-data-agents.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/concepts/vs-odcs.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/concepts/what-is-olc.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/concepts/why-pydantic.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/providers/index.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/providers/aws.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/providers/bigquery.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/providers/databricks.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/providers/duckdb-ducklake.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/providers/fabric.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/providers/motherduck.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/providers/snowflake.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/anatomy.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/cli.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/compliance.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/conformance.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/execution-order.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/external-logic.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/extraction.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/ingestion.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/lifecycle.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/lineage.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/materialization.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/notifications.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/quality.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/schema.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/security.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/server.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/slo.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
     <url>
          <loc>https://lakelogic.github.io/open-lakehouse-contract/reference/transformation.html</loc>
-         <lastmod>2026-08-23</lastmod>
+         <lastmod>2026-08-29</lastmod>
     </url>
 </urlset>

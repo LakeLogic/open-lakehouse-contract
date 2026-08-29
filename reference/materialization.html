@@ -1327,6 +1327,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="SCD2 history">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scd2-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scd2 keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1680,6 +1697,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="SCD2 history">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scd2-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scd2 keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1842,17 +1876,180 @@
 </tbody>
 </table>
 <h2 id="scd2-history">SCD2 history</h2>
-<p><code>strategy: scd2</code> keeps history with validity columns instead of overwriting:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">materialization</span><span class="p">:</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scd2</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">scd2</span><span class="p">:</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">business_key</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_id</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">effective_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valid_from</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">effective_to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">valid_to</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">current_flag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">is_current</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">hash_columns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">name</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">tier</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">address</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># change detection</span>
+<p><code>strategy: scd2</code> keeps history with validity columns instead of overwriting. The
+version key is the contract's <code>primary_key</code> — there is no separate business-key
+setting inside the <code>scd2</code> block:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">primary_key</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_id</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">materialization</span><span class="p">:</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scd2</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">scd2</span><span class="p">:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">track_columns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">name</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">tier</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">address</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># change detection</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">timestamp_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">updated_at</span><span class="w">            </span><span class="c1"># SOURCE column holding the change date</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">effective_from_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">effective_from</span><span class="w">   </span><span class="c1"># names of the injected columns</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="nt">effective_to_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">effective_to</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">current_flag_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">is_current</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">version_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">_version</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">effective_from_default</span><span class="p">:</span><span class="w"> </span><span class="s">"1900-01-01"</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">effective_to_default</span><span class="p">:</span><span class="w"> </span><span class="s">"9999-12-31"</span>
 </code></pre></div>
 <p>The framework injects the surrogate key + audit columns; <a href="quality.html#dataset-rules">quality rules that reference them</a> are enforced at materialization, not validation.</p>
+<h3 id="scd2-keys"><code>scd2</code> keys</h3>
+<p>Every key is optional and has a default. The strict OLC v1 model rejects any key
+not on this list, because an undeclared key is silently ignored — and the most
+expensive case is a misspelled <code>track_columns</code>, which does not mean "no tracking"
+but "compare every column", cutting a new version on every load.</p>
+<p><strong>Injected column names</strong> — these name columns in the <em>target</em> dimension; they do
+not select source columns.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>surrogate_key</code></td>
+<td><code>_sk</code></td>
+<td>Name of the injected surrogate-key column.</td>
+</tr>
+<tr>
+<td><code>surrogate_key_strategy</code></td>
+<td><code>hash</code></td>
+<td><code>hash</code> (deterministic, from <code>primary_key</code> + version start) or <code>uuid</code>.</td>
+</tr>
+<tr>
+<td><code>effective_from_field</code></td>
+<td><code>effective_from</code></td>
+<td>Version-start column.</td>
+</tr>
+<tr>
+<td><code>effective_to_field</code></td>
+<td><code>effective_to</code></td>
+<td>Version-end column.</td>
+</tr>
+<tr>
+<td><code>current_flag_field</code></td>
+<td><code>is_current</code></td>
+<td>Boolean column marking the live row.</td>
+</tr>
+<tr>
+<td><code>version_column</code></td>
+<td><code>_version</code></td>
+<td>1-based version counter per key.</td>
+</tr>
+<tr>
+<td><code>change_reason_column</code></td>
+<td><code>_change_reason</code></td>
+<td>Holds <code>initial_load</code>, or the comma-joined names of the columns that changed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Change detection</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>track_columns</code></td>
+<td><em>(none)</em></td>
+<td>Only open a new version when one of these columns actually changed. Omit it and <strong>every</strong> incoming row for a known key is treated as a change.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Aliased keys</strong> — each group below is one setting with two accepted spellings.
+Both are load-bearing for contracts already in the wild; neither is deprecated.</p>
+<table>
+<thead>
+<tr>
+<th>Alias group</th>
+<th>Which wins</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>timestamp_field</code> · <code>change_date_field</code></td>
+<td><code>timestamp_field</code></td>
+<td>the value of <code>effective_from_field</code></td>
+<td>The <strong>source</strong> column whose value is the change-event date.</td>
+</tr>
+<tr>
+<td><code>end_date_default</code> · <code>effective_to_default</code></td>
+<td><code>end_date_default</code>, by key presence (an explicit <code>null</code> still wins)</td>
+<td><code>9999-12-31</code></td>
+<td>Sentinel written to the end column of an open row.</td>
+</tr>
+<tr>
+<td><code>start_date_default</code> · <code>effective_from_default</code></td>
+<td><code>start_date_default</code>, by key presence</td>
+<td><code>1900-01-01</code></td>
+<td>Start date for an initial load, or a key's first appearance.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Other</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>default_effective_from</code></td>
+<td><em>(current UTC time)</em></td>
+<td>Despite the name, <strong>not</strong> an alias of the start defaults: it is the value substituted for "now", used when the incoming data carries neither the effective-from column nor a usable change-date column, and to close rows superseded within a single batch. Pin it to make a load reproducible.</td>
+</tr>
+<tr>
+<td><code>merge_dedup_guard</code></td>
+<td><code>false</code></td>
+<td>Deduplicate incoming rows by primary key (latest change-date wins) before applying SCD2. Some writer paths take this from the materialization-level <code>merge_dedup_guard</code> flag instead.</td>
+</tr>
+<tr>
+<td><code>unknown_member</code></td>
+<td><em>(see below)</em></td>
+<td>Kimball unknown-member row.</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>scd2.unknown_member</code></strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td><code>true</code></td>
+<td>Inject the unknown-member row. (The Spark already-written-table path treats a missing value as <code>false</code>.)</td>
+</tr>
+<tr>
+<td><code>surrogate_key_value</code></td>
+<td><code>-1</code></td>
+<td>Surrogate-key value for the unknown row.</td>
+</tr>
+<tr>
+<td><code>default_values</code></td>
+<td><code>{}</code></td>
+<td>Column → value for the unknown row's remaining columns.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="facts-dimensions">Facts &amp; dimensions</h2>
 <p><code>fact</code> (<code>FactConfig</code>) marks a table as a fact and declares milestone-date semantics (e.g. accumulating snapshot facts):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">materialization</span><span class="p">:</span>
