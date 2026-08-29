@@ -1,13 +1,13 @@
-id: OLC-T-018
+id: OLC-N-001
 spec_version: 1.0.0
 level: core-runtime
-feature: transformations.filter
-description: A post-phase filter drops non-matching rows (regression for a DuckDB crash).
+feature: model.nested_types
+description: A model field typed string over a native struct column carries the struct as JSON text
 input: input.jsonl
 expected:
   accepted: expected/accepted.jsonl
 assertions:
-  rows_input: 2
+  rows_input: 1
   rows_accepted: 1
 comparison:
   sort_by: [id]

@@ -1,0 +1,15 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: payload, type: string }
+    - { name: lat, type: float }
+transformations:
+  - phase: pre
+    json_extract: { field: lat, source: payload, path: "$.lat", cast: float }
+quality:
+  row_rules:
+    - name: lat_nonneg
+      phase: pre
+      sql: lat >= 0

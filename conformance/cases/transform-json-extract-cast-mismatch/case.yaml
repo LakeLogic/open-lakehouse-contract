@@ -1,0 +1,13 @@
+id: OLC-T-010g
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.json_extract
+description: A value that cannot be cast to the declared type yields NULL and does not abort the run
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+comparison:
+  sort_by: [id]

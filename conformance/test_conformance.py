@@ -65,10 +65,115 @@ ADAPTER_NAMES = list(ADAPTERS)
 # here rather than papered over. strict xfail: the day the engine is fixed, the
 # xpass fails this test and prompts removing the entry. Never turn a FAIL into PASS.
 #
-# (Empty: OLC-EO-001's Polars pre-phase ordering bug — the corpus's first find —
-# was fixed in engines/polars.py by guarding the post-pass derive against re-running
-# pre-phase transforms. Left here as the tracking mechanism for the next gap.)
-KNOWN_GAPS: dict[tuple[str, str], str] = {}
+# Each entry names the ACTUAL wrong behaviour and where it lives, so the entry is a
+# bug report rather than a mute. A gap is not the same as a disagreement about
+# mechanism: where the spec genuinely permits more than one enforcement, that
+# belongs in the case (see OLC-N-004's `refusal_conforms`), NOT here — otherwise an
+# engine gets recorded as deviant for being stricter than its peers.
+KNOWN_GAPS: dict[tuple[str, str], str] = {
+    # ── json_extract: path syntax ────────────────────────────────────────────
+    (
+        "OLC-T-010i",
+        "polars",
+    ): "Polars cannot COMPILE a quoted JSON path key ($.\"my key\") and aborts the run "
+    "(ComputeError: 'error compiling JSON path expression path error: Eof'). Keys "
+    "containing spaces are unreachable on this engine.",
+    # ── json_extract: casts ──────────────────────────────────────────────────
+    (
+        "OLC-T-010k",
+        "polars",
+    ): "Polars returns NULL for cast: timestamp — the extracted JSON string is not "
+    "parsed into a timestamp (str.to_datetime is never applied), so a declared "
+    "timestamp column silently arrives empty. cast: decimal works.",
+    # ── nested types: serialising a native container into a string field ─────
+    (
+        "OLC-N-001",
+        "duckdb",
+    ): "DuckDB renders a native struct into a string field as a DuckDB struct literal "
+    "(\"{'a': 1, 'b': x}\") — not JSON: keys are single-quoted and the string member "
+    "is unquoted, so the result cannot be parsed back by any JSON reader.",
+    (
+        "OLC-N-001",
+        "polars",
+    ): "Polars renders a native struct into a string field POSITIONALLY ('{1,\"x\"}'), "
+    "DISCARDING the field names. This is lossy: the struct's keys cannot be "
+    "recovered from the stored value.",
+    (
+        "OLC-N-002",
+        "duckdb",
+    ): "DuckDB renders a native array into a string field as '[a, b, c]' — the string "
+    "elements are unquoted, so the value is not valid JSON and does not round-trip.",
+    # ── nested types: drift INSIDE a struct ──────────────────────────────────
+    (
+        "OLC-N-004",
+        "duckdb",
+    ): "Struct-internal drift is UNDETECTED: the declared member 'b' is absent from "
+    "the incoming struct and the row is accepted. LakeLogic's drift check compares "
+    "top-level column names only, so a struct that lost half its members still "
+    "satisfies a struct<a:int,b:string> declaration.",
+    (
+        "OLC-N-004",
+        "polars",
+    ): "Struct-internal drift is UNDETECTED: the declared member 'b' is absent from "
+    "the incoming struct and the row is accepted. LakeLogic's drift check compares "
+    "top-level column names only, so a struct that lost half its members still "
+    "satisfies a struct<a:int,b:string> declaration.",
+    # NOTE: Spark is deliberately NOT listed for OLC-N-004. It is the only engine
+    # that detects the drift at all — it refuses the run rather than quarantining
+    # the row, which the case accepts via `refusal_conforms`. Listing it here would
+    # rank the one correct behaviour as the deviant one.
+    # ── Spark: json_extract ──────────────────────────────────────────────────
+    (
+        "OLC-T-010e",
+        "spark",
+    ): "Spark also silently DROPS a phase:pre json_extract: the pre-phase quality "
+    "rule sees a NULL 'lat' and quarantines BOTH rows instead of one. engines/spark.py "
+    "never applies json_extract in the pre pass, and nothing reports the unhonoured "
+    "phase.",
+    (
+        "OLC-T-010g",
+        "spark",
+    ): "Spark ABORTS the run on a value that does not fit the declared cast "
+    "(CAST_INVALID_INPUT: \"The value 'abc' ... cannot be cast to 'DOUBLE'\"). "
+    "engines/spark.py:694 uses the ANSI .cast() rather than try_cast.",
+    (
+        "OLC-T-010i",
+        "spark",
+    ): "Spark returns NULL for a quoted JSON path key ($.\"my key\") and reports no "
+    "error — the WORST failure mode of the three engines: get_json_object does not "
+    "accept quoted keys, so the column is SILENTLY empty and a pipeline reading it "
+    "cannot tell an absent key from an unsupported path syntax.",
+    (
+        "OLC-T-010k",
+        "spark",
+    ): "Spark leaves cast: decimal UNAPPLIED — 'amt' arrives as the STRING '12.34' "
+    "rather than a number. The cast map at engines/spark.py:684-693 has no decimal "
+    "entry (nor date/timestamp/datetime), and an unmapped cast is skipped silently "
+    "instead of being refused.",
+    # ── Spark: read-path JSON flattening ─────────────────────────────────────
+    (
+        "OLC-S-001",
+        "spark",
+    ): "Spark does NOT honour source.flatten_nested: the declared payload_a/payload_b "
+    "arrive as NULL on every row and the rows are ACCEPTED anyway — silent data loss, "
+    "the worst of the failure modes. processor._flatten_json_df (~:3129) converts the "
+    "frame via df.to_dict(orient='records') inside a bare `except Exception: return "
+    "df`; a Spark DataFrame has no .to_dict, so the flattening is skipped without a "
+    "warning and the contract's declared columns are filled with nulls. Works on "
+    "DuckDB and Polars.",
+    # ── Spark: nested type serialisation ─────────────────────────────────────
+    (
+        "OLC-N-001",
+        "spark",
+    ): "Spark renders a native struct into a string field POSITIONALLY ('{1, x}') — "
+    "field names are DISCARDED and the string member is unquoted, so the value is "
+    "neither valid JSON nor round-trippable.",
+    (
+        "OLC-N-002",
+        "spark",
+    ): "Spark renders a native array into a string field as '[a, b, c]' — elements "
+    "unquoted, so the value is not valid JSON and does not round-trip.",
+}
 
 
 def _needs_delta(case) -> bool:
@@ -165,6 +270,24 @@ def test_public_model_matches_runtime_model():
 
 def test_corpus_is_nonempty():
     assert CASES, "no conformance cases discovered"
+
+
+def test_case_ids_are_unique():
+    """Two cases sharing an id makes the corpus unciteable.
+
+    Case ids are the citation handle used by the spec, the schema descriptions and
+    the docs ("conformance case OLC-T-002"). When two directories claim the same id
+    a reader cannot tell which behaviour is actually pinned, and KNOWN_GAPS keys —
+    which are (case_id, adapter) — silently apply to both. ``filter-post`` and
+    ``dedup-unordered-refused`` both claimed OLC-T-002 until this guard was added.
+    """
+    seen: dict[str, list[str]] = {}
+    for case in CASES:
+        seen.setdefault(case.id, []).append(case.directory.name)
+    dupes = {cid: dirs for cid, dirs in seen.items() if len(dirs) > 1}
+    assert not dupes, "duplicate conformance case ids: " + "; ".join(
+        f"{cid} -> {sorted(dirs)}" for cid, dirs in sorted(dupes.items())
+    )
 
 
 def test_cross_engine_agreement():

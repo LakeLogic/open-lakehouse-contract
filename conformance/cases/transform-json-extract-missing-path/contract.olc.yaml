@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: payload, type: string }
+    - { name: missing, type: string }
+transformations:
+  - phase: post
+    json_extract: { field: missing, source: payload, path: "$.nope", cast: string }

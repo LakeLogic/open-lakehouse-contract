@@ -1,0 +1,17 @@
+id: OLC-T-010e
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.json_extract
+description: A pre-phase json_extract feeds a pre-phase quality rule (extract runs before quality)
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  failed_rules:
+    lat_nonneg: 1
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+comparison:
+  sort_by: [id]

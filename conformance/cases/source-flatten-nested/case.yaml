@@ -1,0 +1,18 @@
+id: OLC-S-001
+spec_version: 1.0.0
+level: core-runtime
+feature: source.flatten_nested
+description: A JSON-string column declared flatten_nested expands into parent_child columns at read time
+input: input.jsonl
+# The behaviour under test lives in the READ path, so the input must arrive as a
+# real file rather than an in-memory frame. See ConformanceCase.input_via.
+input_via: source
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

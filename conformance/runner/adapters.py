@@ -119,6 +119,23 @@ class LakeLogicAdapter:
     def _to_rows(self, frame) -> list[dict]:
         return frame.to_dicts()
 
+    def _materialise_source(self, case: ConformanceCase) -> str:
+        """Write the case input to a real parquet file for ``input_via: source``.
+
+        The read path is where ``source.flatten_nested`` (and anything else applied
+        while loading) actually runs. ``run()`` takes an already-loaded frame and so
+        skips it entirely — which is why those behaviours were untestable here.
+
+        Parquet, not JSONL: every engine reads it natively, so the case measures the
+        runtime rather than a text parser. Values are written as authored, so a JSON
+        *string* column stays a string — that is the input flatten_nested exists for.
+        """
+        import polars as pl
+
+        path = Path(tempfile.mkdtemp()) / "source.parquet"
+        pl.DataFrame(case.input_rows).write_parquet(path)
+        return str(path)
+
     def execute(self, case: ConformanceCase) -> ExecutionResult:
         import polars as pl
         from lakelogic import DataProcessor
@@ -132,7 +149,10 @@ class LakeLogicAdapter:
                     case, input_df, cols, pl, DataProcessor
                 )
             processor = self._make_processor(DataProcessor, case)
-            good, bad = processor.run(input_df)
+            if case.reads_from_source:
+                good, bad = processor.run_source(self._materialise_source(case))
+            else:
+                good, bad = processor.run(input_df)
             good_rows = self._to_rows(good)
             bad_rows = self._to_rows(bad)
             return ExecutionResult(
@@ -280,6 +300,10 @@ class DuckDBAdapter(LakeLogicAdapter):
         "external_logic.multi_frame_links",
         "external_logic.deterministic_extraction",
         "extraction.regex",
+        # Nested/complex column types (struct, array) carried through the model.
+        "model.nested_types",
+        # Read-path JSON-string expansion (source.flatten_nested).
+        "source.flatten_nested",
     }
 
 
@@ -316,6 +340,10 @@ class PolarsAdapter(LakeLogicAdapter):
         "external_logic.multi_frame_links",
         "external_logic.deterministic_extraction",
         "extraction.regex",
+        # Nested/complex column types (struct, array) carried through the model.
+        "model.nested_types",
+        # Read-path JSON-string expansion (source.flatten_nested).
+        "source.flatten_nested",
     }
 
 
@@ -337,9 +365,28 @@ class SparkAdapter(LakeLogicAdapter):
         if cls._spark is None:
             from pyspark.sql import SparkSession
 
+            # Give this PROCESS its own warehouse and Derby metastore.
+            #
+            # Without it, every local Spark session in the same working directory
+            # shares ./spark-warehouse and ./metastore_db — and Derby allows a
+            # single writer. Two conformance runs at once (a full sweep plus a
+            # targeted -k re-run, say) then fight over the metastore and cases fail
+            # for reasons that have nothing to do with the engine or the corpus.
+            # That is a nasty failure to debug precisely because it looks like a
+            # real regression: the cases that lose the race are the Delta ones
+            # (SCD2, merge, materialisation), and they pass again in isolation.
+            spark_home = Path(tempfile.mkdtemp(prefix="olc-spark-"))
+            derby_home = spark_home / "derby"
+            derby_home.mkdir(parents=True, exist_ok=True)
+
             builder = (
                 SparkSession.builder.master("local[2]")
                 .appName("olc-conformance")
+                .config("spark.sql.warehouse.dir", str(spark_home / "warehouse"))
+                .config(
+                    "spark.driver.extraJavaOptions",
+                    f"-Dderby.system.home={derby_home}",
+                )
                 # Delta extension so merge/SCD2 materialisation works (as it does on
                 # a real Databricks/Delta cluster).
                 .config(
@@ -388,20 +435,36 @@ class SparkAdapter(LakeLogicAdapter):
 
         # Build an explicit schema — Spark can't infer an all-null column (e.g. a
         # coalesce/lookup input where a source is entirely null).
+        def _infer_value(v):
+            """Spark type for a single JSON value.
+
+            Dicts become a real StructType (not a stringified Map): a case about
+            nested types must hand Spark an actual struct column, otherwise the
+            adapter — not the engine — is what the case measures.
+            """
+            if isinstance(v, bool):
+                return BooleanType()
+            if isinstance(v, int):
+                return LongType()
+            if isinstance(v, float):
+                return DoubleType()
+            if isinstance(v, dict):
+                return StructType(
+                    [StructField(k, _infer_value(x), True) for k, x in v.items()]
+                )
+            if isinstance(v, list):
+                for item in v:
+                    if item is not None:
+                        return ArrayType(_infer_value(item))
+                return ArrayType(StringType())
+            return StringType()
+
         def _infer(col: str):
             for r in rows:
                 v = r.get(col)
                 if v is None:
                     continue
-                if isinstance(v, bool):
-                    return BooleanType()
-                if isinstance(v, int):
-                    return LongType()
-                if isinstance(v, float):
-                    return DoubleType()
-                if isinstance(v, list):
-                    return ArrayType(StringType())
-                return StringType()
+                return _infer_value(v)
             return StringType()  # all-null -> string
 
         cols = list(rows[0].keys())
@@ -411,15 +474,26 @@ class SparkAdapter(LakeLogicAdapter):
     def _to_rows(self, frame) -> list[dict]:
         import math
 
+        from pyspark.sql import Row
+
+        def _plain(v):
+            """Physical Spark containers -> plain Python, so a struct column compares
+            against the authored JSONL. A pyspark ``Row`` is not a dict, so without
+            this a correctly-preserved struct looks like a mismatch — a harness
+            artefact, not an engine defect."""
+            if isinstance(v, Row):
+                return {k: _plain(x) for k, x in v.asDict(recursive=False).items()}
+            if isinstance(v, dict):
+                return {k: _plain(x) for k, x in v.items()}
+            if isinstance(v, (list, tuple)):
+                return [_plain(x) for x in v]
+            # pandas represents SQL NULL as NaN — restore None so comparisons match.
+            if isinstance(v, float) and math.isnan(v):
+                return None
+            return v
+
         records = frame.toPandas().to_dict("records")
-        # pandas represents SQL NULL as NaN — restore None so comparisons match.
-        return [
-            {
-                k: (None if isinstance(v, float) and math.isnan(v) else v)
-                for k, v in rec.items()
-            }
-            for rec in records
-        ]
+        return [{k: _plain(v) for k, v in rec.items()} for rec in records]
 
 
 _ADAPTER_REGISTRY: dict[str, type[LakeLogicAdapter]] = {

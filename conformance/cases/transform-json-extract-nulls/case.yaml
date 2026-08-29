@@ -1,0 +1,13 @@
+id: OLC-T-010h
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.json_extract
+description: A NULL source column and a JSON null value both yield NULL
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 3
+comparison:
+  sort_by: [id]

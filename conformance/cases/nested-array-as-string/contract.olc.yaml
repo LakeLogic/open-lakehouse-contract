@@ -1,0 +1,6 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: tags, type: string }
