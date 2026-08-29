@@ -10,15 +10,29 @@ key the model does not declare — without disturbing how those models parse.
 Free-form regions are never descended into: a field annotated ``Dict[str, Any]``
 (or plain ``Any`` / ``dict``) is treated as an opaque bag, so vendor metadata,
 compliance blocks, extensions, etc. are left alone.
+
+**Named bags.** A few ``Dict[str, Any]`` fields are not really free-form — they are
+a fixed vocabulary the runtime reads by key, kept as a dict only because the runtime
+calls ``.get()`` on the value and cannot be handed a model. Those are registered in
+:data:`_BAG_SPECS` with their declared key set, so the same strict pass that catches
+a misspelled model field also catches a misspelled bag key. Registration is opt-in
+per field: every unregistered ``Dict[str, Any]`` stays opaque exactly as before.
 """
 
 from __future__ import annotations
 
+import difflib
 import typing
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from typing import Any
 
 from pydantic import BaseModel
+
+from olc.models._nested import (
+    SCD2_KNOWN_KEYS,
+    SCD2_UNKNOWN_MEMBER_KNOWN_KEYS,
+    Materialization,
+)
 
 _NoneType = type(None)
 
@@ -101,6 +115,55 @@ def _accepted_input_keys(model_cls: type[BaseModel]) -> dict[str, Any]:
     return accepted
 
 
+class _BagSpec:
+    """The declared key vocabulary of one ``Dict[str, Any]`` field.
+
+    ``children`` maps a known key whose value is itself a keyed bag to that bag's
+    spec (e.g. ``scd2.unknown_member``).
+    """
+
+    __slots__ = ("known", "children")
+
+    def __init__(
+        self,
+        known: frozenset,
+        children: Mapping[str, "_BagSpec"] | None = None,
+    ) -> None:
+        self.known = known
+        self.children = dict(children or {})
+
+
+# (owning model, field name) -> declared keys. ONLY these bags are strict-checked.
+_BAG_SPECS: dict[tuple[type, str], _BagSpec] = {
+    (Materialization, "scd2"): _BagSpec(
+        SCD2_KNOWN_KEYS,
+        {"unknown_member": _BagSpec(SCD2_UNKNOWN_MEMBER_KNOWN_KEYS)},
+    ),
+}
+
+
+def _suggestion(key: str, known: frozenset) -> str:
+    """`` (did you mean 'x'?)`` when ``key`` is a near-miss of a declared key."""
+    close = difflib.get_close_matches(key, sorted(known), n=1, cutoff=0.7)
+    return f" (did you mean '{close[0]}'?)" if close else ""
+
+
+def _collect_unknown_bag_keys(data: Any, spec: _BagSpec, path: str) -> list[str]:
+    """Return dotted paths of keys the bag's declared vocabulary does not contain."""
+    if not isinstance(data, dict):
+        return []
+
+    unknown: list[str] = []
+    for key, value in data.items():
+        if key not in spec.known:
+            unknown.append(f"{path}{key}{_suggestion(key, spec.known)}")
+            continue
+        child = spec.children.get(key)
+        if child is not None:
+            unknown.extend(_collect_unknown_bag_keys(value, child, f"{path}{key}."))
+    return unknown
+
+
 def collect_unknown_nested_keys(
     data: dict, model_cls: type[BaseModel], path: str = ""
 ) -> list[str]:
@@ -120,6 +183,9 @@ def collect_unknown_nested_keys(
         if key not in accepted:
             unknown.append(f"{path}{key}")
             continue
+        bag_spec = _BAG_SPECS.get((model_cls, key))
+        if bag_spec is not None:
+            unknown.extend(_collect_unknown_bag_keys(value, bag_spec, f"{path}{key}."))
         for child_dict, child_cls in _iter_child_models(accepted[key], value):
             unknown.extend(
                 collect_unknown_nested_keys(child_dict, child_cls, f"{path}{key}.")

@@ -660,13 +660,20 @@ class ForeignKeyRef(BaseModel):
             column:   agent_id        # PK column in that contract
 
     # Quality rule (validation)
+    #
+    # `reference` names a `links:` entry — a reference dataset the runtime loads and
+    # makes queryable — and `key` is the column in it. These are the ONLY spellings the
+    # engine reads. `contract:`/`column:` here produce NO rule: the block is dropped
+    # (with a warning) and nothing is enforced, so a contract can look like it checks
+    # referential integrity and check nothing. A contract name is not a reference;
+    # nothing resolves one to a queryable table at rule-expansion time.
     quality:
       row_rules:
         - referential_integrity:
-            field:    agent_id
-            contract: silver_agents
-            column:   agent_id
-            severity: critical
+            field:     agent_id
+            reference: silver_agents   # a links: entry name
+            key:       agent_id        # the column in it
+            severity:  critical
 
     dbt equivalent
     ---------------
@@ -936,6 +943,87 @@ class FactConfig(BaseModel):
     milestone_dates: List[str] = Field(default_factory=list)
 
 
+# ── SCD2 vocabulary ─────────────────────────────────────────────────────────
+#
+# `materialization.scd2` is typed `Dict[str, Any]` and MUST stay that way: the
+# reference runtime calls `scd2_cfg.get(...)` on this value directly, so turning it
+# into a model would break a published package. The key set is therefore declared
+# here as data instead, and the strict OLC v1 path checks incoming keys against it
+# (`olc.models._strict_keys`). The lenient runtime model is untouched.
+#
+# Every key is optional — each one has a runtime default. The hazard this closes is
+# the silent typo: an undeclared `track_column` (singular) is not "no tracking", it
+# is *compare every column*, which cuts a new version on every load and grows the
+# dimension without bound, from a contract that reads correctly and lints clean.
+#
+# Meanings below were read out of the reference runtime
+# (`lakelogic/core/materialization.py`), not inferred from the names.
+
+SCD2_KNOWN_KEYS: frozenset = frozenset(
+    {
+        # ── destination column NAMES (what the materializer injects) ──────────
+        # These name columns in the target dimension; they do not select source
+        # columns to read.
+        "surrogate_key",  # SK column name. Default "_sk".
+        "surrogate_key_strategy",  # "hash" (sha256 of pk|effective_from, 16 hex
+        #                            chars — deterministic) or "uuid". Default "hash".
+        "effective_from_field",  # version-start column name. Default "effective_from".
+        "effective_to_field",  # version-end column name. Default "effective_to".
+        "current_flag_field",  # boolean live-row column. Default "is_current".
+        "version_column",  # 1-based per-key version counter. Default "_version".
+        "change_reason_column",  # holds "initial_load" or the comma-joined names of
+        #                          the columns that changed. Default "_change_reason".
+        # ── change detection ──────────────────────────────────────────────────
+        "track_columns",  # list[str]: only open a new version when one of these
+        #                   columns actually changed. OMITTED (or misspelled) means
+        #                   "every incoming row for a known key is a change".
+        # ── which SOURCE column carries the change-event date ─────────────────
+        # ALIAS GROUP (same meaning): `timestamp_field` and `change_date_field`.
+        # `timestamp_field` wins when both are present; when neither is given the
+        # value of `effective_from_field` is used as the source column name.
+        "timestamp_field",
+        "change_date_field",
+        # ── sentinel written to the END column of an open/current row ─────────
+        # ALIAS GROUP (same meaning): `end_date_default` and `effective_to_default`.
+        # `end_date_default` wins by KEY PRESENCE (so an explicit null wins too).
+        # Default "9999-12-31".
+        "end_date_default",
+        "effective_to_default",
+        # ── start date for an initial load / a key's first appearance ─────────
+        # ALIAS GROUP (same meaning): `start_date_default` and
+        # `effective_from_default`. `start_date_default` wins by KEY PRESENCE.
+        # Default "1900-01-01".
+        "start_date_default",
+        "effective_from_default",
+        # ── determinism knob ──────────────────────────────────────────────────
+        # NOT an alias of the start defaults, despite the name. This is the value
+        # substituted for `datetime.now(UTC)`: it stamps `effective_from` when the
+        # incoming frame carries neither the effective-from column nor a usable
+        # change-date column, and closes rows superseded within a single batch.
+        # Pin it to make a load reproducible.
+        "default_effective_from",
+        # ── batch hygiene ─────────────────────────────────────────────────────
+        "merge_dedup_guard",  # bool: deduplicate incoming by primary key (latest by
+        #                       change-date wins) before applying SCD2. Default false.
+        #                       NOTE: some writer paths override this from the
+        #                       materialization-level `merge_dedup_guard` flag.
+        # ── nested block ──────────────────────────────────────────────────────
+        "unknown_member",  # Kimball unknown-member row. Keys: see below.
+    }
+)
+
+SCD2_UNKNOWN_MEMBER_KNOWN_KEYS: frozenset = frozenset(
+    {
+        # Keys of the nested `scd2.unknown_member` block (NOT top-level `scd2` keys).
+        "enabled",  # bool: inject the unknown-member row. Default true in the
+        #             dataframe paths; the Spark already-written-table path treats a
+        #             missing value as false.
+        "surrogate_key_value",  # SK value for the unknown row. Default "-1".
+        "default_values",  # dict[column, value] for the unknown row's other columns.
+    }
+)
+
+
 class Materialization(BaseModel):
     """Materialization settings for writing outputs."""
 
@@ -948,7 +1036,24 @@ class Materialization(BaseModel):
     target_path: Optional[str] = None
     format: Optional[str] = None
     location: Optional[str] = None
-    scd2: Optional[Dict[str, Any]] = None
+    scd2: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description=(
+            "Slowly-changing-dimension (type 2) settings, used when "
+            "`strategy: scd2`. All keys are optional; each has a runtime default. "
+            "Known keys: surrogate_key, surrogate_key_strategy, "
+            "effective_from_field, effective_to_field, current_flag_field, "
+            "version_column, change_reason_column, track_columns, "
+            "timestamp_field / change_date_field (aliases), "
+            "end_date_default / effective_to_default (aliases), "
+            "start_date_default / effective_from_default (aliases), "
+            "default_effective_from, merge_dedup_guard, and unknown_member "
+            "(nested: enabled, surrogate_key_value, default_values). "
+            "The strict OLC v1 path rejects any other key: omitting "
+            "`track_columns` means 'treat every incoming row as a change', so a "
+            "misspelling of it silently produces unbounded version history."
+        ),
+    )
     fact: Optional[FactConfig] = None
     soft_delete_column: Optional[str] = None
     soft_delete_value: Any = True
