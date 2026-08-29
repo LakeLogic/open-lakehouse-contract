@@ -530,8 +530,38 @@ class SparkAdapter(LakeLogicAdapter):
                 return None
             return v
 
-        records = frame.toPandas().to_dict("records")
-        return [{k: _plain(v) for k, v in rec.items()} for rec in records]
+        # Retry toPandas: it is the operation that actually flakes, and it flakes for
+        # reasons outside this corpus.
+        #
+        # A 30-line script with no LakeLogic and no harness — createDataFrame +
+        # toPandas in a loop — fails roughly once in 300 calls on a long-lived local
+        # session, with:
+        #
+        #   PySparkRuntimeError: [CANNOT_OPEN_SOCKET] tried to connect to
+        #   ('127.0.0.1', 49674), but an error occurred: timed out
+        #
+        # a Python worker failing to connect back to the driver over local TCP. The
+        # arithmetic matches what the sweeps showed: 159 cases x 2 frames is ~318
+        # calls, so ~1 expected failure per run — and every run failed 2-3 cases,
+        # a DIFFERENT pair each time, each passing in a fresh process.
+        #
+        # This was previously misdiagnosed as accumulated driver state (hence session
+        # recycling, which did not help). Retrying the one call that fails turns a
+        # transient into nothing, without per-case process isolation. It cannot mask
+        # a real defect: a genuine failure fails all three attempts, and DuckDB and
+        # Polars — which never flake — still have to agree with the result.
+        last_exc = None
+        for attempt in range(3):
+            try:
+                records = frame.toPandas().to_dict("records")
+                if attempt:
+                    print(f"  (toPandas succeeded on attempt {attempt + 1} after a transient Spark error)")
+                return [{k: _plain(v) for k, v in rec.items()} for rec in records]
+            except Exception as exc:  # noqa: PERF203 - retry is the point
+                last_exc = exc
+                if "SOCKET" not in str(exc).upper() and "collectToPython" not in str(exc):
+                    raise  # not the known transient — surface it immediately
+        raise last_exc
 
 
 _ADAPTER_REGISTRY: dict[str, type[LakeLogicAdapter]] = {
