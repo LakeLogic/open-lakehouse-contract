@@ -109,7 +109,9 @@ class Scd2StrictPathTests(unittest.TestCase):
         load_strict(document)
 
 
-@unittest.skipIf(DataContract is None, f"reference runtime unavailable: {_RUNTIME_ERROR}")
+@unittest.skipIf(
+    DataContract is None, f"reference runtime unavailable: {_RUNTIME_ERROR}"
+)
 class Scd2LenientPathTests(unittest.TestCase):
     """Backward compatibility: the lenient runtime model must not get stricter."""
 

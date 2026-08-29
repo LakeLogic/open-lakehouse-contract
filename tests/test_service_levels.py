@@ -129,9 +129,7 @@ class CompletenessPublishedSchemaTests(unittest.TestCase):
 
     def test_schema_accepts_scalar_and_object_forms(self) -> None:
         self.assertEqual(self._errors(_contract(completeness=1.0)), [])
-        self.assertEqual(
-            self._errors(_contract(completeness={"threshold": 0.9})), []
-        )
+        self.assertEqual(self._errors(_contract(completeness={"threshold": 0.9})), [])
 
     def test_schema_rejects_an_unknown_sibling(self) -> None:
         self.assertTrue(self._errors(_contract(completeness=1.0, bogus=1.0)))

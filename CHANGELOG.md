@@ -6,6 +6,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.7.0] — 2026-08-29
+
+### Added
+
+- **models**: Add the completeness service level
+- Enhance SCD2 configuration with detailed key vocabulary and validation tests
 ## [0.6.0] — 2026-08-23
 
 ### Added
@@ -108,6 +114,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.7.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.4.0...v0.6.0
 [0.4.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.3.0...v0.3.1
