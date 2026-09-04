@@ -1024,6 +1024,27 @@ SCD2_UNKNOWN_MEMBER_KNOWN_KEYS: frozenset = frozenset(
 )
 
 
+class SecondaryTarget(BaseModel):
+    """A dual-write destination executed after the primary materialization.
+
+    Implemented by the reference runtime (``_run_secondary_targets``) since before this
+    model existed, and used by real contracts — but never declared, so the canonical
+    standard rejected the very files the runtime writes. Modelling it is the alignment,
+    not a new feature.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    format: Optional[str] = None
+    table_name: Optional[str] = None
+    fail_on_error: Optional[bool] = None
+    dlt_destination: Optional[str] = None
+    dlt_credentials: Optional[Any] = None
+    dlt_dataset_name: Optional[str] = None
+    path: Optional[str] = None
+    mode: Optional[str] = None
+
+
 class Materialization(BaseModel):
     """Materialization settings for writing outputs."""
 
@@ -1063,6 +1084,14 @@ class Materialization(BaseModel):
     compaction: Optional[Dict[str, Any]] = None
     unknown_member: Optional[Dict[str, Any]] = None
     merge_dedup_guard: Optional[bool] = False
+    # Declared, not merely tolerated. `_MAT_KNOWN_KEYS` below already listed these — the
+    # lenient runtime accepted them — but the canonical strict path walks DECLARED FIELDS,
+    # so a contract using the runtime's own dual-write feature was rejected by the
+    # standard that is supposed to describe it.
+    secondary_targets: Optional[List[SecondaryTarget]] = None
+    dlt_destination: Optional[str] = None
+    dlt_credentials: Optional[Any] = None
+    dlt_dataset_name: Optional[str] = None
     _MAT_KNOWN_KEYS: set = {
         "strategy",
         "partition_by",

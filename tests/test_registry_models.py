@@ -18,7 +18,8 @@ import glob
 from pathlib import Path
 
 import pytest
-import yaml
+
+from olc.yaml_compat import safe_load
 
 from olc.models.registry_v1 import (
     OLCDomainV1,
@@ -32,6 +33,9 @@ from olc.models.registry_v1 import (
 _CORPORA = [
     Path("C:/_Personal/_SaaS/LakeLogic_SaaS/src/api/demo_assets"),
     Path("C:/_Personal/_SaaS/lakelogic/examples"),
+    Path("C:/_Personal/_SaaS/lakelogic-databricks-data-mesh-lakehouse"),
+    Path("C:/_Personal/_SaaS/lakelogic-microsoft-fabric-data-mesh-lakehouse"),
+    Path("C:/_Personal/_SaaS/lakelogic-snowflake-data-mesh-lakehouse"),
 ]
 
 
@@ -44,8 +48,10 @@ def _files(kind: str):
 
 
 def _load(path: str) -> dict:
+    # `safe_load` from olc.yaml_compat, not PyYAML's: the standard has to read a
+    # document the way the runtime does, or it validates a file nobody actually runs.
     with open(path, encoding="utf-8") as handle:
-        return yaml.safe_load(handle) or {}
+        return safe_load(handle) or {}
 
 
 @pytest.mark.parametrize("path", _files("domain") or [pytest.param("", marks=pytest.mark.skip(reason="no corpus"))])
@@ -158,3 +164,39 @@ class TestFormsThatMustKeepWorking:
         assert doc.materialization["bronze"].strategy == "append"
         # No `path` required: a system declares layer behaviour, not a dataset location.
         assert doc.server["bronze"].cast_to_string is True
+
+
+class TestEventVocabulary:
+    """One list of event names, readable by the router, the editor and the file.
+
+    It was written down three times and agreed nowhere: the routing service kept an alias
+    table, the config editor offered a chip list, and the files used a third set. `failed`
+    fires but is missing from the chips (so it renders unselected and is dropped on save);
+    `slo_recovery`, `dataset_rule_failed` and `partial` are offered by the chips and
+    matched by nothing (so choosing one produces a channel that never fires).
+    """
+
+    def _doc(self, token):
+        return {
+            "domain": "d",
+            "notifications": [{"type": "email", "targets": ["a@b.c"], "on_events": [token]}],
+        }
+
+    @pytest.mark.parametrize("token", ["failed", "failure", "slo_breach", "quarantine", "all", "*"])
+    def test_spellings_the_router_honours_are_accepted(self, token):
+        # 24 real files say `failed`. A standard that invalidates a working estate to
+        # tidy its own spelling is not stricter, it is wrong.
+        load_strict_domain(self._doc(token))
+
+    @pytest.mark.parametrize("token", ["faled", "slo_recovery", "dataset_rule_failed", "partial", "nonsense"])
+    def test_tokens_nothing_matches_are_refused(self, token):
+        # Including the three the editor currently offers: a chip that cannot fire is a
+        # label promising a capability the surface does not have.
+        with pytest.raises(Exception):
+            load_strict_domain(self._doc(token))
+
+    def test_canonical_event_maps_every_accepted_spelling(self):
+        from olc.models.registry_v1 import NOTIFICATION_EVENT_TOKENS, canonical_event
+
+        for token in NOTIFICATION_EVENT_TOKENS - {"all", "*"}:
+            assert canonical_event(token) is not None, token

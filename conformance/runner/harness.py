@@ -29,10 +29,13 @@ class _NoBoolOnLoader(yaml.SafeLoader):
     """
 
 
-for _key, _mappings in list(_NoBoolOnLoader.yaml_implicit_resolvers.items()):
-    _NoBoolOnLoader.yaml_implicit_resolvers[_key] = [
-        (tag, regex) for tag, regex in _mappings if tag != "tag:yaml.org,2002:bool"
-    ]
+# REBIND, never mutate in place: the dict is inherited from SafeLoader, so assigning
+# into it reconfigured PyYAML for the whole process — importing this harness silently
+# changed what `yaml.safe_load` meant for every other module in the test run.
+_NoBoolOnLoader.yaml_implicit_resolvers = {
+    _key: [(tag, regex) for tag, regex in _mappings if tag != "tag:yaml.org,2002:bool"]
+    for _key, _mappings in _NoBoolOnLoader.yaml_implicit_resolvers.items()
+}
 _NoBoolOnLoader.add_implicit_resolver(
     "tag:yaml.org,2002:bool",
     re.compile(r"^(?:true|false)$", re.IGNORECASE),

@@ -61,6 +61,10 @@ __all__ = [
     "RegistryQuarantine",
     "LayerServer",
     "LayerPostIngestion",
+    "RegistryNotification",
+    "NOTIFICATION_EVENTS",
+    "NOTIFICATION_EVENT_TOKENS",
+    "canonical_event",
     "load_strict_domain",
     "load_strict_system",
 ]
@@ -308,6 +312,70 @@ class DomainObservatory(_Base):
 # ── Notifications ─────────────────────────────────────────────────────────────
 
 
+# ── Notification events ───────────────────────────────────────────────────────
+
+#: Canonical event names, and every spelling a consumer accepts for each.
+#:
+#: The vocabulary was written down three times and agreed nowhere: the routing service
+#: kept an alias table, the config editor offered a chip list, and the files used a third
+#: set. `failed` fires at runtime but is missing from the chips, so it renders unselected
+#: and is dropped on save; `slo_recovery`, `dataset_rule_failed` and `partial` are offered
+#: by the chips and matched by nothing, so choosing one produces a channel that never
+#: fires. Declaring it here gives all three surfaces one list to read.
+#:
+#: Aliases are accepted rather than deprecated: 24 real files say `failed`, and a standard
+#: that invalidates a working estate to tidy its own spelling is not stricter, it is wrong.
+NOTIFICATION_EVENTS: Dict[str, frozenset] = {
+    "pipeline_failure": frozenset({"pipeline_failure", "failure", "failed"}),
+    "quarantine": frozenset({"quarantine", "quarantined"}),
+    "schema_drift": frozenset({"schema_drift", "drift"}),
+    "sla_breach": frozenset({"sla_breach", "slo_breach", "slo"}),
+    "scan_failed": frozenset({"scan_failed"}),
+    "scan_completed": frozenset({"scan_completed", "success"}),
+    "contract_changes": frozenset({"contract_changes"}),
+}
+
+#: Every accepted spelling, plus the two wildcards the router honours.
+NOTIFICATION_EVENT_TOKENS: frozenset = frozenset(
+    {token for tokens in NOTIFICATION_EVENTS.values() for token in tokens} | {"all", "*"}
+)
+
+
+def canonical_event(token: str) -> Optional[str]:
+    """The canonical name for an accepted spelling, or ``None`` if unknown."""
+    lowered = str(token).strip().lower()
+    for canonical, tokens in NOTIFICATION_EVENTS.items():
+        if lowered in tokens:
+            return canonical
+    return None
+
+
+class RegistryNotification(Notification):
+    """A notification channel whose events are checked against the vocabulary.
+
+    Subclassed rather than constraining the contract's own ``Notification``: that model is
+    part of the contract standard and a contract carrying an unrecognised token would
+    start failing for a registry problem.
+    """
+
+    @field_validator("on_events", mode="after")
+    @classmethod
+    def _events_must_be_recognised(cls, value: Any) -> Any:
+        if not value:
+            return value
+        unknown = [
+            token
+            for token in value
+            if str(token).strip().lower() not in NOTIFICATION_EVENT_TOKENS
+        ]
+        if unknown:
+            raise ValueError(
+                f"unrecognised event(s) {', '.join(sorted(unknown))} — a channel only "
+                f"fires on: {', '.join(sorted(NOTIFICATION_EVENT_TOKENS))}"
+            )
+        return value
+
+
 class NotificationsBlock(_Base):
     """The object form: a switch beside the routes it switches.
 
@@ -320,7 +388,7 @@ class NotificationsBlock(_Base):
     """
 
     enabled: Optional[bool] = None
-    channels: List[Notification] = Field(default_factory=list)
+    channels: List[RegistryNotification] = Field(default_factory=list)
 
 
 # ── System-only blocks ────────────────────────────────────────────────────────
@@ -349,12 +417,31 @@ class SystemMetadata(_Base):
 
     ``Dict[str, Any]`` on the contract, so a misspelled ``run_log_backend`` validates
     today and the run log lands nowhere.
+
+    **A live divergence, declared rather than hidden.** Warehouse backends need a
+    database and schema to qualify those tables. The Snowflake estate spells that
+    ``snowflake_database`` / ``snowflake_schema``, and those names are load-bearing —
+    ``lakelogic/core/quarantine.py`` and ``lakelogic/engines/snowflake.py`` read them
+    directly — so the standard cannot simply rename them without breaking the engine.
+
+    The backend-neutral ``database`` / ``schema`` are declared as the spelling every
+    backend can share. Both are accepted: rejecting the Snowflake names would invalidate
+    a working estate to tidy a spelling, and accepting only them would bless a
+    per-vendor key in a standard meant to be vendor-neutral. The alignment is a
+    follow-up in the engine (read generic first, fall back), not a schema decree.
     """
 
     run_log_table: Optional[str] = None
     run_log_backend: Optional[str] = None
     slo_checks_table: Optional[str] = None
     slo_checks_backend: Optional[str] = None
+    # Backend-neutral qualification for the tables above.
+    catalog: Optional[str] = None
+    database: Optional[str] = None
+    schema_name: Optional[str] = Field(default=None, alias="schema")
+    # The Snowflake estate's existing spelling, read by name in the engine today.
+    snowflake_database: Optional[str] = None
+    snowflake_schema: Optional[str] = None
 
 
 class SystemStorage(_Base):
@@ -463,7 +550,7 @@ class _RegistryDocument(_Base):
     compliance: Optional[DomainCompliance] = None
     observatory: Optional[DomainObservatory] = None
     retention: Optional[DomainRetention] = None
-    notifications: Optional[Union[NotificationsBlock, List[Notification]]] = None
+    notifications: Optional[Union[NotificationsBlock, List[RegistryNotification]]] = None
     bronze_layer: Optional[str] = None
     silver_layer: Optional[str] = None
     gold_layer: Optional[str] = None
@@ -485,7 +572,7 @@ class _RegistryDocument(_Base):
             return value
         return {} if info.field_name in ("environments", "materialization", "server") else []
 
-    def notification_channels(self) -> List[Notification]:
+    def notification_channels(self) -> List[RegistryNotification]:
         """The channels, whichever form the file used.
 
         One reader for two shapes, so a caller never has to ask which it got — the

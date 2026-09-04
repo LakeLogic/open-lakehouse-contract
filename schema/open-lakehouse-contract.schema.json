@@ -1443,6 +1443,55 @@
           ],
           "default": false,
           "title": "Merge Dedup Guard"
+        },
+        "secondary_targets": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/SecondaryTarget"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Secondary Targets"
+        },
+        "dlt_destination": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Destination"
+        },
+        "dlt_credentials": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Credentials"
+        },
+        "dlt_dataset_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Dataset Name"
         }
       },
       "title": "Materialization",
@@ -2231,6 +2280,108 @@
       "title": "SchemaPolicy",
       "type": "object",
       "additionalProperties": false
+    },
+    "SecondaryTarget": {
+      "additionalProperties": false,
+      "description": "A dual-write destination executed after the primary materialization.\n\nImplemented by the reference runtime (``_run_secondary_targets``) since before this\nmodel existed, and used by real contracts \u2014 but never declared, so the canonical\nstandard rejected the very files the runtime writes. Modelling it is the alignment,\nnot a new feature.",
+      "properties": {
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "table_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Name"
+        },
+        "fail_on_error": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fail On Error"
+        },
+        "dlt_destination": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Destination"
+        },
+        "dlt_credentials": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Credentials"
+        },
+        "dlt_dataset_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Dataset Name"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mode"
+        }
+      },
+      "title": "SecondaryTarget",
+      "type": "object"
     },
     "ServiceLevel": {
       "description": "Service-level settings for freshness, availability, row counts, and\npartition completeness.\n\nThese are four different *units of measurement* and are easy to confuse, so each\nstates what it is evaluated against:\n\n* ``freshness``    \u2014 how old the newest record may be (a time delta).\n* ``availability`` \u2014 **row-level**. The percentage of ROWS whose ``field`` is\n  non-null, evaluated per run against the rows that run actually read. It says\n  nothing about whether a file, an interval or a partition ever arrived.\n* ``row_count``    \u2014 run-level row-count bounds (see :class:`RowCountSLO`).\n* ``completeness`` \u2014 **partition-level**. The fraction of EXPECTED partitions\n  that arrived for a partitioned source. It says nothing about the contents of\n  the partitions that did arrive.\n\n``availability`` and ``completeness`` are the pair most often mistaken for one\nanother, and they are independent: a source can deliver every expected partition\nwith a wholly null column (completeness 1.0, availability 0.0), or deliver one\nflawless hour out of twenty-four (availability 1.0, completeness ~0.04).",
