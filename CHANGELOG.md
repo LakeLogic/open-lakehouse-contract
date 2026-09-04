@@ -6,6 +6,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.8.0] — 2026-09-04
+
+### Added
+
+- **conformance**: Close every known gap, add rename coverage
+- **models**: Validate _domain.yaml and _system.yaml against the standard
+- **registry**: Add canonical and deprecated notification event mappings
+- **tests**: Refactor test cases to use unittest and improve readability
+- Bump version to 0.8.0 in pyproject.toml
+- Read contract YAML the way the runtime does, and declare what it writes
+
+### Documentation
+
+- Update changelog for v0.7.0
+
+### Fixed
+
+- **conformance**: Retry toPandas, the call that actually flakes
 ## [0.7.0] — 2026-08-29
 
 ### Added
@@ -109,6 +127,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.8.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.4.0...v0.6.0
 [0.4.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.3.1...v0.4.0
