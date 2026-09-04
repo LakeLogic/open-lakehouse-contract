@@ -15,6 +15,7 @@ Two things have to hold together, and one without the other is worthless:
 unittest, not pytest: ``tests/`` runs under ``python -m unittest discover`` with only
 ``pip install -e .[models]``; pytest is installed for ``conformance/`` alone.
 """
+
 from __future__ import annotations
 
 import glob
@@ -46,7 +47,9 @@ def _files(kind: str) -> list:
     found: list = []
     for root in _CORPORA:
         if root.exists():
-            found += sorted(glob.glob(str(root / "**" / f"_{kind}.yaml"), recursive=True))
+            found += sorted(
+                glob.glob(str(root / "**" / f"_{kind}.yaml"), recursive=True)
+            )
     return found
 
 
@@ -81,9 +84,18 @@ class RejectsWhatIsActuallyWrongTests(unittest.TestCase):
     def test_malformed_domain_values_are_refused(self) -> None:
         cases = {
             "retention-not-a-duration": {"domain": "d", "retention": {"bronze": 7}},
-            "contacts-not-a-list": {"domain": "d", "ownership": {"contacts": "me@x.com"}},
-            "budget-not-a-number": {"domain": "d", "cost": {"budget": {"daily_limit": "forty"}}},
-            "enabled-not-a-bool": {"domain": "d", "observatory": {"enabled": "yes-please"}},
+            "contacts-not-a-list": {
+                "domain": "d",
+                "ownership": {"contacts": "me@x.com"},
+            },
+            "budget-not-a-number": {
+                "domain": "d",
+                "cost": {"budget": {"daily_limit": "forty"}},
+            },
+            "enabled-not-a-bool": {
+                "domain": "d",
+                "observatory": {"enabled": "yes-please"},
+            },
         }
         for label, document in cases.items():
             with self.subTest(case=label):
@@ -92,7 +104,10 @@ class RejectsWhatIsActuallyWrongTests(unittest.TestCase):
 
     def test_malformed_system_values_are_refused(self) -> None:
         cases = {
-            "backend-not-a-string": {"system": "s", "metadata": {"run_log_backend": {"a": 1}}},
+            "backend-not-a-string": {
+                "system": "s",
+                "metadata": {"run_log_backend": {"a": 1}},
+            },
             "contracts-not-a-list": {"system": "s", "contracts": {"layer": "bronze"}},
         }
         for label, document in cases.items():
@@ -107,7 +122,9 @@ class RejectsWhatIsActuallyWrongTests(unittest.TestCase):
         which is why the strict key pass exists rather than being optional polish.
         """
         with self.assertRaisesRegex(ValueError, "row_rules"):
-            load_strict_domain({"domain": "d", "slo": {"quality": {"row_rules": [{"name": "x"}]}}})
+            load_strict_domain(
+                {"domain": "d", "slo": {"quality": {"row_rules": [{"name": "x"}]}}}
+            )
 
     def test_a_misspelled_key_is_named(self) -> None:
         with self.assertRaisesRegex(ValueError, "ownership.jira_porject"):
@@ -125,7 +142,9 @@ class FormsThatMustKeepWorkingTests(unittest.TestCase):
     def test_a_declared_but_empty_block_is_not_an_error(self) -> None:
         # `contracts:` with nothing under it says "none yet" — more informative than
         # omitting the key, and it must not validate worse than omitting it.
-        self.assertEqual(load_strict_system({"system": "s", "contracts": None}).contracts, [])
+        self.assertEqual(
+            load_strict_system({"system": "s", "contracts": None}).contracts, []
+        )
 
     def test_both_notification_forms_read_the_same(self) -> None:
         channel = {"type": "slack", "target": "#x", "on_events": ["failure"]}
@@ -164,7 +183,9 @@ class FormsThatMustKeepWorkingTests(unittest.TestCase):
         doc = load_strict_system(
             {
                 "system": "s",
-                "materialization": {"bronze": {"strategy": "append", "format": "delta"}},
+                "materialization": {
+                    "bronze": {"strategy": "append", "format": "delta"}
+                },
                 "server": {"bronze": {"cast_to_string": True}},
             }
         )
@@ -186,7 +207,9 @@ class EventVocabularyTests(unittest.TestCase):
     def _doc(self, token: str) -> dict:
         return {
             "domain": "d",
-            "notifications": [{"type": "email", "targets": ["a@b.c"], "on_events": [token]}],
+            "notifications": [
+                {"type": "email", "targets": ["a@b.c"], "on_events": [token]}
+            ],
         }
 
     def test_spellings_the_router_honours_are_accepted(self) -> None:
@@ -199,7 +222,13 @@ class EventVocabularyTests(unittest.TestCase):
     def test_tokens_nothing_matches_are_refused(self) -> None:
         # Including the three the editor used to offer: a chip that cannot fire is a label
         # promising a capability the surface does not have.
-        for token in ("faled", "slo_recovery", "dataset_rule_failed", "partial", "nonsense"):
+        for token in (
+            "faled",
+            "slo_recovery",
+            "dataset_rule_failed",
+            "partial",
+            "nonsense",
+        ):
             with self.subTest(token=token):
                 with self.assertRaises(Exception):
                     load_strict_domain(self._doc(token))

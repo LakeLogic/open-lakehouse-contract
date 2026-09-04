@@ -20,6 +20,7 @@ living in one repo's CLI is how the two answers appeared in the first place.
 Only ``true`` and ``false`` (any case) are booleans here. Everything else stays the string
 it was written as.
 """
+
 from __future__ import annotations
 
 import re
@@ -43,7 +44,9 @@ def _install_strict_bool_resolver(loader: type) -> None:
     remove.
     """
     loader.yaml_implicit_resolvers = {
-        key: [(tag, regexp) for tag, regexp in mappings if tag != "tag:yaml.org,2002:bool"]
+        key: [
+            (tag, regexp) for tag, regexp in mappings if tag != "tag:yaml.org,2002:bool"
+        ]
         for key, mappings in loader.yaml_implicit_resolvers.items()
     }
     loader.add_implicit_resolver(

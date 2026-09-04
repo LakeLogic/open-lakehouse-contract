@@ -27,6 +27,7 @@ keys (``x-`` vendor blocks are legitimate), and :func:`olc.models.collect_unknow
 overlays the unknown-key report. Validating shape and reporting unknown keys are different
 questions and stay separate.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
@@ -373,7 +374,8 @@ DEPRECATED_NOTIFICATION_EVENTS: Dict[str, str] = {
 
 #: Every accepted spelling, plus the two wildcards the router honours.
 NOTIFICATION_EVENT_TOKENS: frozenset = frozenset(
-    {token for tokens in NOTIFICATION_EVENTS.values() for token in tokens} | {"all", "*"}
+    {token for tokens in NOTIFICATION_EVENTS.values() for token in tokens}
+    | {"all", "*"}
 )
 
 
@@ -615,14 +617,20 @@ class _RegistryDocument(_Base):
     compliance: Optional[DomainCompliance] = None
     observatory: Optional[DomainObservatory] = None
     retention: Optional[DomainRetention] = None
-    notifications: Optional[Union[NotificationsBlock, List[RegistryNotification]]] = None
+    notifications: Optional[Union[NotificationsBlock, List[RegistryNotification]]] = (
+        None
+    )
     active_gates: Optional[ActiveGates] = None
     bronze_layer: Optional[str] = None
     silver_layer: Optional[str] = None
     gold_layer: Optional[str] = None
 
     @field_validator(
-        "contracts", "external_sources", "environments", "materialization", "server",
+        "contracts",
+        "external_sources",
+        "environments",
+        "materialization",
+        "server",
         mode="before",
         check_fields=False,
     )
@@ -636,7 +644,11 @@ class _RegistryDocument(_Base):
         """
         if value is not None:
             return value
-        return {} if info.field_name in ("environments", "materialization", "server") else []
+        return (
+            {}
+            if info.field_name in ("environments", "materialization", "server")
+            else []
+        )
 
     def notification_channels(self) -> List[RegistryNotification]:
         """The channels, whichever form the file used.
@@ -705,7 +717,9 @@ def _load_strict(document: Any, model_cls: type, kind: str):
     extra key. That is precisely the confusion this file was written to end.
     """
     if not isinstance(document, dict):
-        raise ValueError(f"{kind} document must be a mapping, got {type(document).__name__}")
+        raise ValueError(
+            f"{kind} document must be a mapping, got {type(document).__name__}"
+        )
     model = model_cls.model_validate(document)
     unknown = [
         key

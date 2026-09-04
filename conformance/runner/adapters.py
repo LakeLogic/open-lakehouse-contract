@@ -451,7 +451,10 @@ class SparkAdapter(LakeLogicAdapter):
             cls = type(self)
             # One case = one instance session. Recycle BEFORE handing out a new one,
             # so a case never starts on a driver that is already at its limit.
-            if cls._spark is not None and cls._cases_on_session >= cls._MAX_CASES_PER_SESSION:
+            if (
+                cls._spark is not None
+                and cls._cases_on_session >= cls._MAX_CASES_PER_SESSION
+            ):
                 cls._recycle_session()
             s = self._session().newSession()
             cls._cases_on_session += 1
@@ -555,11 +558,15 @@ class SparkAdapter(LakeLogicAdapter):
             try:
                 records = frame.toPandas().to_dict("records")
                 if attempt:
-                    print(f"  (toPandas succeeded on attempt {attempt + 1} after a transient Spark error)")
+                    print(
+                        f"  (toPandas succeeded on attempt {attempt + 1} after a transient Spark error)"
+                    )
                 return [{k: _plain(v) for k, v in rec.items()} for rec in records]
             except Exception as exc:  # noqa: PERF203 - retry is the point
                 last_exc = exc
-                if "SOCKET" not in str(exc).upper() and "collectToPython" not in str(exc):
+                if "SOCKET" not in str(exc).upper() and "collectToPython" not in str(
+                    exc
+                ):
                     raise  # not the known transient — surface it immediately
         raise last_exc
 

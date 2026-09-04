@@ -12,6 +12,7 @@ meanings, decided by which import you happened to use.
 unittest, not pytest: `tests/` runs under `python -m unittest discover` with only
 `pip install -e .[models]`, and pytest is installed for `conformance/` alone.
 """
+
 from __future__ import annotations
 
 import unittest
