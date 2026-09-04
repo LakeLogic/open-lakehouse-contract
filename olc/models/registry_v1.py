@@ -61,6 +61,7 @@ __all__ = [
     "RegistryQuarantine",
     "LayerServer",
     "LayerPostIngestion",
+    "ActiveGates",
     "RegistryNotification",
     "NOTIFICATION_EVENTS",
     "NOTIFICATION_EVENT_TOKENS",
@@ -573,6 +574,23 @@ class LayerServer(_Base):
     post_ingestion: Optional[LayerPostIngestion] = None
 
 
+class ActiveGates(_Base):
+    """Which of the organisation's quality gates run for this domain or system.
+
+    An allow-list, not a switch: absent or empty means inherit every org-enabled gate,
+    which is the common case. Consumed by the gate evaluator, so a name that does not
+    match the live gate library drops that gate — hence the legacy spellings below are
+    accepted rather than silently ignored.
+    """
+
+    #: Canonical: plain gate names.
+    enabled_gates: Optional[List[Any]] = None
+    #: Legacy shapes the parser still accepts; the writer never emits them.
+    enabled_gate_names: Optional[List[str]] = None
+    disabled_gates: Optional[List[Any]] = None
+    disabled_gate_names: Optional[List[str]] = None
+
+
 class RegistryQuarantine(Quarantine):
     """The contract's quarantine plus ``mode``.
 
@@ -598,6 +616,7 @@ class _RegistryDocument(_Base):
     observatory: Optional[DomainObservatory] = None
     retention: Optional[DomainRetention] = None
     notifications: Optional[Union[NotificationsBlock, List[RegistryNotification]]] = None
+    active_gates: Optional[ActiveGates] = None
     bronze_layer: Optional[str] = None
     silver_layer: Optional[str] = None
     gold_layer: Optional[str] = None
