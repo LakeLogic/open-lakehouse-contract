@@ -13,7 +13,8 @@ REM
 REM What it does:
 REM   0.  uv lock --upgrade   - pull latest patched dependency versions
 REM   0b. pytest              - unit tests (abort if they fail)
-REM   0c. conformance         - OLC cross-engine conformance corpus (abort on fail)
+REM   0c. conformance         - structural: fixtures vs JSON Schema (abort on fail)
+REM   0c2 conformance         - executable: cross-engine corpus (abort on fail)
 REM   0d. ruff check/format   - auto-fix lint & formatting
 REM   1.  cz bump             - bumps [project].version in pyproject.toml + git tag
 REM   2.  git cliff           - regenerates CHANGELOG.md from all tags (cliff.toml)
@@ -47,9 +48,20 @@ REM     fix(models): make resource_key optional in the strict model
 REM     docs: expand the Databricks materialization example
 REM -----------------------------------------------------------------------
 
+REM Always operate on THIS repo, never on whatever directory the caller happens to
+REM be standing in. Every step below uses relative paths (tests/, conformance/,
+REM pyproject.toml), so running this from another repo silently pointed all of them
+REM somewhere else: invoked from the lakelogic checkout it ran LAKELOGIC's pytest
+REM suite as the OLC gate (1814 tests passed, none of them OLC's), then died on
+REM "can't open file 'lakelogic\tests\conformance.py'". The failure was the lucky
+REM part — the preceding steps had already reported green for the wrong repo.
+cd /d "%~dp0"
+
 echo.
 echo ======================================================
 echo   Open Lakehouse Contract Release
+echo ======================================================
+echo   Repo: %CD%
 echo ======================================================
 
 REM Step 0: Upgrade dependencies (pull latest security patches)
@@ -72,14 +84,39 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Step 0c: Conformance corpus — the OLC cross-engine gate the publish workflow runs
+REM Step 0c: Structural conformance — fixtures vs the published JSON Schema.
+REM
+REM NOT the cross-engine gate, though this step used to say it was. tests/conformance.py
+REM validates examples/ and tests/valid|invalid/ against the schema; it never executes
+REM a contract, so no engine defect can fail it. The behavioural corpus is step 0c2.
 echo.
-echo [0c/6] Running conformance corpus...
+echo [0c/6] Running structural conformance (fixtures vs JSON Schema)...
 python tests/conformance.py
 if errorlevel 1 (
     echo.
-    echo ERROR: Conformance corpus failed. Do not release with a broken corpus.
+    echo ERROR: Structural conformance failed. Do not release with broken fixtures.
     exit /b 1
+)
+
+REM Step 0c2: Executable conformance — the actual cross-engine gate.
+REM
+REM Runs every case through the real engines and compares normalised outcomes, which
+REM is the only step here that can catch an engine regression. Skipped (not failed)
+REM when the private runtime is absent, so a docs-only checkout can still cut a
+REM release — but it says so out loud rather than passing silently, because "gate did
+REM not run" and "gate passed" must never look the same.
+echo.
+echo [0c2/6] Running executable conformance corpus (cross-engine)...
+python -c "import lakelogic" 2>NUL
+if errorlevel 1 (
+    echo   SKIPPED: LakeLogic runtime not installed - the cross-engine gate did NOT run.
+) else (
+    python -m pytest conformance -q
+    if errorlevel 1 (
+        echo.
+        echo ERROR: Executable conformance failed. Do not release with a broken corpus.
+        exit /b 1
+    )
 )
 
 REM Step 0d: Lint and format (auto-fix safe issues)

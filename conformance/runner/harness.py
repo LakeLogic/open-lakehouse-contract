@@ -29,10 +29,13 @@ class _NoBoolOnLoader(yaml.SafeLoader):
     """
 
 
-for _key, _mappings in list(_NoBoolOnLoader.yaml_implicit_resolvers.items()):
-    _NoBoolOnLoader.yaml_implicit_resolvers[_key] = [
-        (tag, regex) for tag, regex in _mappings if tag != "tag:yaml.org,2002:bool"
-    ]
+# REBIND, never mutate in place: the dict is inherited from SafeLoader, so assigning
+# into it reconfigured PyYAML for the whole process — importing this harness silently
+# changed what `yaml.safe_load` meant for every other module in the test run.
+_NoBoolOnLoader.yaml_implicit_resolvers = {
+    _key: [(tag, regex) for tag, regex in _mappings if tag != "tag:yaml.org,2002:bool"]
+    for _key, _mappings in _NoBoolOnLoader.yaml_implicit_resolvers.items()
+}
 _NoBoolOnLoader.add_implicit_resolver(
     "tag:yaml.org,2002:bool",
     re.compile(r"^(?:true|false)$", re.IGNORECASE),
@@ -116,6 +119,7 @@ def load_case(directory: Path) -> ConformanceCase:
         expected_quarantined=_exp("quarantined"),
         expected_target=_exp("target"),
         assertions=manifest.get("assertions") or {},
+        input_via=manifest.get("input_via", "frame"),
         comparison=Comparison(
             sort_by=comp.get("sort_by", []),
             numeric_tolerance=float(comp.get("numeric_tolerance", 1e-6)),
@@ -166,6 +170,27 @@ def compare_result(
 
     reasons: list[str] = []
     comp = case.comparison
+
+    # Some cases pin THAT a breach must be enforced without mandating HOW. A struct
+    # that lost a declared member is the motivating example: quarantining the row and
+    # refusing the run are both honest enforcements of the same contract, and the
+    # spec does not choose between them — only silent acceptance is wrong.
+    #
+    # Without this, the case had to pin one mechanism, which listed the engine that
+    # refuses the run as non-conforming while the engines that accept the bad row
+    # silently were merely "gaps" — ranking the safest behaviour as the deviant one.
+    # This is deliberately narrow: it is opt-in per case, and it still cannot turn a
+    # row that was ACCEPTED into a pass.
+    if case.assertions.get("refusal_conforms") and result.exception is not None:
+        return Outcome(
+            case.id,
+            adapter.name,
+            PASS,
+            [
+                f"run refused ({result.exception.code}) — a conforming enforcement "
+                "for this case; see the case README"
+            ],
+        )
 
     # An exception is only acceptable if the case explicitly expects one.
     expects_error = case.assertions.get("expects_error")

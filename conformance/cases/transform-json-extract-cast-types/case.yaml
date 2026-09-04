@@ -1,0 +1,13 @@
+id: OLC-T-010k
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.json_extract
+description: json_extract honours timestamp and decimal casts
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 1
+comparison:
+  sort_by: [id]

@@ -1,0 +1,11 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+source:
+  type: parquet
+  path: source.parquet
+  flatten_nested: true
+model:
+  fields:
+    - { name: id, type: string }
+    - { name: payload_a, type: string }
+    - { name: payload_b, type: string }

@@ -68,7 +68,19 @@ class ConformanceCase:
     assertions: dict[str, Any] = field(default_factory=dict)
     comparison: Comparison = field(default_factory=Comparison)
     materialization: Optional[Materialization] = None
+    # How the input reaches the runtime.
+    #   "frame"  — hand DataProcessor.run() an in-memory frame (the default, and
+    #              what every case did before source-read cases existed).
+    #   "source" — write the input to a file, point contract.source.path at it and
+    #              call DataProcessor.run_source(). Required for any behaviour that
+    #              lives in the READ path (e.g. source.flatten_nested), which
+    #              run() never executes and so could not previously be tested.
+    input_via: str = "frame"
 
     @property
     def is_materialization(self) -> bool:
         return self.materialization is not None
+
+    @property
+    def reads_from_source(self) -> bool:
+        return self.input_via == "source"

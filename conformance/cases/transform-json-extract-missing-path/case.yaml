@@ -1,0 +1,13 @@
+id: OLC-T-010d
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.json_extract
+description: A json_extract path that does not exist yields NULL, not an error
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 1
+comparison:
+  sort_by: [id]

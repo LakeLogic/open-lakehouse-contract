@@ -1,0 +1,19 @@
+id: OLC-N-004
+spec_version: 1.0.0
+level: core-runtime
+feature: model.nested_types
+description: A struct missing a declared member is a contract breach, not a silent pass
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 0
+  rows_quarantined: 1
+  # The spec requires that the breach be ENFORCED, not that it be enforced one
+  # particular way: quarantining the row and refusing the run are both honest.
+  # Only silent acceptance is wrong. See README.md.
+  refusal_conforms: true
+comparison:
+  sort_by: [id]

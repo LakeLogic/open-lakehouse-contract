@@ -65,10 +65,20 @@ ADAPTER_NAMES = list(ADAPTERS)
 # here rather than papered over. strict xfail: the day the engine is fixed, the
 # xpass fails this test and prompts removing the entry. Never turn a FAIL into PASS.
 #
-# (Empty: OLC-EO-001's Polars pre-phase ordering bug — the corpus's first find —
-# was fixed in engines/polars.py by guarding the post-pass derive against re-running
-# pre-phase transforms. Left here as the tracking mechanism for the next gap.)
-KNOWN_GAPS: dict[tuple[str, str], str] = {}
+# Each entry names the ACTUAL wrong behaviour and where it lives, so the entry is a
+# bug report rather than a mute. A gap is not the same as a disagreement about
+# mechanism: where the spec genuinely permits more than one enforcement, that
+# belongs in the case (see OLC-N-004's `refusal_conforms`), NOT here — otherwise an
+# engine gets recorded as deviant for being stricter than its peers.
+KNOWN_GAPS: dict[tuple[str, str], str] = {
+    # ── nested types: serialising a native container into a string field ─────
+    # ── nested types: drift INSIDE a struct ──────────────────────────────────
+    # NOTE: Spark is deliberately NOT listed for OLC-N-004. It is the only engine
+    # that detects the drift at all — it refuses the run rather than quarantining
+    # the row, which the case accepts via `refusal_conforms`. Listing it here would
+    # rank the one correct behaviour as the deviant one.
+    # ── Spark: nested type serialisation ─────────────────────────────────────
+}
 
 
 def _needs_delta(case) -> bool:
@@ -165,6 +175,24 @@ def test_public_model_matches_runtime_model():
 
 def test_corpus_is_nonempty():
     assert CASES, "no conformance cases discovered"
+
+
+def test_case_ids_are_unique():
+    """Two cases sharing an id makes the corpus unciteable.
+
+    Case ids are the citation handle used by the spec, the schema descriptions and
+    the docs ("conformance case OLC-T-002"). When two directories claim the same id
+    a reader cannot tell which behaviour is actually pinned, and KNOWN_GAPS keys —
+    which are (case_id, adapter) — silently apply to both. ``filter-post`` and
+    ``dedup-unordered-refused`` both claimed OLC-T-002 until this guard was added.
+    """
+    seen: dict[str, list[str]] = {}
+    for case in CASES:
+        seen.setdefault(case.id, []).append(case.directory.name)
+    dupes = {cid: dirs for cid, dirs in seen.items() if len(dirs) > 1}
+    assert not dupes, "duplicate conformance case ids: " + "; ".join(
+        f"{cid} -> {sorted(dirs)}" for cid, dirs in sorted(dupes.items())
+    )
 
 
 def test_cross_engine_agreement():

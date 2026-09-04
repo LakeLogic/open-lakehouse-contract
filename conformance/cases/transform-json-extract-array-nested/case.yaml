@@ -1,0 +1,13 @@
+id: OLC-T-010c
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.json_extract
+description: json_extract resolves a nested path through an array element ($.items[1].meta.code)
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 1
+comparison:
+  sort_by: [id]

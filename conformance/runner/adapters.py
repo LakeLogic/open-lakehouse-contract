@@ -8,6 +8,7 @@ the SAME normalised outcome.
 
 from __future__ import annotations
 
+import os
 import re
 import tempfile
 from collections import Counter
@@ -119,6 +120,23 @@ class LakeLogicAdapter:
     def _to_rows(self, frame) -> list[dict]:
         return frame.to_dicts()
 
+    def _materialise_source(self, case: ConformanceCase) -> str:
+        """Write the case input to a real parquet file for ``input_via: source``.
+
+        The read path is where ``source.flatten_nested`` (and anything else applied
+        while loading) actually runs. ``run()`` takes an already-loaded frame and so
+        skips it entirely — which is why those behaviours were untestable here.
+
+        Parquet, not JSONL: every engine reads it natively, so the case measures the
+        runtime rather than a text parser. Values are written as authored, so a JSON
+        *string* column stays a string — that is the input flatten_nested exists for.
+        """
+        import polars as pl
+
+        path = Path(tempfile.mkdtemp()) / "source.parquet"
+        pl.DataFrame(case.input_rows).write_parquet(path)
+        return str(path)
+
     def execute(self, case: ConformanceCase) -> ExecutionResult:
         import polars as pl
         from lakelogic import DataProcessor
@@ -132,7 +150,10 @@ class LakeLogicAdapter:
                     case, input_df, cols, pl, DataProcessor
                 )
             processor = self._make_processor(DataProcessor, case)
-            good, bad = processor.run(input_df)
+            if case.reads_from_source:
+                good, bad = processor.run_source(self._materialise_source(case))
+            else:
+                good, bad = processor.run(input_df)
             good_rows = self._to_rows(good)
             bad_rows = self._to_rows(bad)
             return ExecutionResult(
@@ -258,6 +279,7 @@ class DuckDBAdapter(LakeLogicAdapter):
         "transformations.pre",
         "transformations.post",
         "transformations.filter",
+        "transformations.rename",
         "transformations.deduplicate",
         "transformations.deduplicate_by_latest",  # deprecated shorthand
         "transformations.lower",
@@ -280,6 +302,10 @@ class DuckDBAdapter(LakeLogicAdapter):
         "external_logic.multi_frame_links",
         "external_logic.deterministic_extraction",
         "extraction.regex",
+        # Nested/complex column types (struct, array) carried through the model.
+        "model.nested_types",
+        # Read-path JSON-string expansion (source.flatten_nested).
+        "source.flatten_nested",
     }
 
 
@@ -294,6 +320,7 @@ class PolarsAdapter(LakeLogicAdapter):
         "transformations.pre",
         "transformations.post",
         "transformations.filter",
+        "transformations.rename",
         "transformations.deduplicate",
         "transformations.deduplicate_by_latest",  # deprecated shorthand
         "transformations.lower",
@@ -316,6 +343,10 @@ class PolarsAdapter(LakeLogicAdapter):
         "external_logic.multi_frame_links",
         "external_logic.deterministic_extraction",
         "extraction.regex",
+        # Nested/complex column types (struct, array) carried through the model.
+        "model.nested_types",
+        # Read-path JSON-string expansion (source.flatten_nested).
+        "source.flatten_nested",
     }
 
 
@@ -337,9 +368,28 @@ class SparkAdapter(LakeLogicAdapter):
         if cls._spark is None:
             from pyspark.sql import SparkSession
 
+            # Give this PROCESS its own warehouse and Derby metastore.
+            #
+            # Without it, every local Spark session in the same working directory
+            # shares ./spark-warehouse and ./metastore_db — and Derby allows a
+            # single writer. Two conformance runs at once (a full sweep plus a
+            # targeted -k re-run, say) then fight over the metastore and cases fail
+            # for reasons that have nothing to do with the engine or the corpus.
+            # That is a nasty failure to debug precisely because it looks like a
+            # real regression: the cases that lose the race are the Delta ones
+            # (SCD2, merge, materialisation), and they pass again in isolation.
+            spark_home = Path(tempfile.mkdtemp(prefix="olc-spark-"))
+            derby_home = spark_home / "derby"
+            derby_home.mkdir(parents=True, exist_ok=True)
+
             builder = (
                 SparkSession.builder.master("local[2]")
                 .appName("olc-conformance")
+                .config("spark.sql.warehouse.dir", str(spark_home / "warehouse"))
+                .config(
+                    "spark.driver.extraJavaOptions",
+                    f"-Dderby.system.home={derby_home}",
+                )
                 # Delta extension so merge/SCD2 materialisation works (as it does on
                 # a real Databricks/Delta cluster).
                 .config(
@@ -358,7 +408,36 @@ class SparkAdapter(LakeLogicAdapter):
                 pass
             cls._spark = builder.getOrCreate()
             cls._spark.sparkContext.setLogLevel("ERROR")
+            cls._cases_on_session = 0
         return cls._spark
+
+    # Cases served by the current JVM before it is recycled.
+    #
+    # A single local[2] session used to serve the WHOLE corpus — ~950 Spark stages in
+    # one driver over an hour, with each case's temp views never dropped. The driver
+    # ran out of headroom and cases began failing with "Python worker failed to
+    # connect back" / TaskKilled. The giveaway that it was exhaustion rather than a
+    # defect: the failing set MOVED between runs (SCD2-001/T-005/T-006/T-013 one
+    # sweep, T-003/T-014 the next) and every one passed in a fresh process.
+    #
+    # Recycling bounds the accumulation while keeping most of the JVM-startup saving
+    # that made the session shared in the first place. DuckDB and Polars need none of
+    # this — they are in-process and stateless per case, and have never flaked.
+    _MAX_CASES_PER_SESSION = int(os.environ.get("OLC_CONFORMANCE_SPARK_RECYCLE", "25"))
+    _cases_on_session = 0
+
+    @classmethod
+    def _recycle_session(cls) -> None:
+        """Tear the JVM down so the next case starts with a clean driver."""
+        spark = cls._spark
+        cls._spark = None
+        cls._cases_on_session = 0
+        if spark is None:
+            return
+        try:
+            spark.stop()
+        except Exception:  # pragma: no cover - best effort; a dead JVM is fine too
+            pass
 
     def _isession(self):
         """A per-case Spark session (``newSession``) that shares the JVM/cluster but
@@ -369,7 +448,13 @@ class SparkAdapter(LakeLogicAdapter):
         session per case makes view namespaces disjoint and the run deterministic."""
         s = getattr(self, "_inst_session", None)
         if s is None:
+            cls = type(self)
+            # One case = one instance session. Recycle BEFORE handing out a new one,
+            # so a case never starts on a driver that is already at its limit.
+            if cls._spark is not None and cls._cases_on_session >= cls._MAX_CASES_PER_SESSION:
+                cls._recycle_session()
             s = self._session().newSession()
+            cls._cases_on_session += 1
             self._inst_session = s
         return s
 
@@ -388,20 +473,36 @@ class SparkAdapter(LakeLogicAdapter):
 
         # Build an explicit schema — Spark can't infer an all-null column (e.g. a
         # coalesce/lookup input where a source is entirely null).
+        def _infer_value(v):
+            """Spark type for a single JSON value.
+
+            Dicts become a real StructType (not a stringified Map): a case about
+            nested types must hand Spark an actual struct column, otherwise the
+            adapter — not the engine — is what the case measures.
+            """
+            if isinstance(v, bool):
+                return BooleanType()
+            if isinstance(v, int):
+                return LongType()
+            if isinstance(v, float):
+                return DoubleType()
+            if isinstance(v, dict):
+                return StructType(
+                    [StructField(k, _infer_value(x), True) for k, x in v.items()]
+                )
+            if isinstance(v, list):
+                for item in v:
+                    if item is not None:
+                        return ArrayType(_infer_value(item))
+                return ArrayType(StringType())
+            return StringType()
+
         def _infer(col: str):
             for r in rows:
                 v = r.get(col)
                 if v is None:
                     continue
-                if isinstance(v, bool):
-                    return BooleanType()
-                if isinstance(v, int):
-                    return LongType()
-                if isinstance(v, float):
-                    return DoubleType()
-                if isinstance(v, list):
-                    return ArrayType(StringType())
-                return StringType()
+                return _infer_value(v)
             return StringType()  # all-null -> string
 
         cols = list(rows[0].keys())
@@ -411,15 +512,56 @@ class SparkAdapter(LakeLogicAdapter):
     def _to_rows(self, frame) -> list[dict]:
         import math
 
-        records = frame.toPandas().to_dict("records")
-        # pandas represents SQL NULL as NaN — restore None so comparisons match.
-        return [
-            {
-                k: (None if isinstance(v, float) and math.isnan(v) else v)
-                for k, v in rec.items()
-            }
-            for rec in records
-        ]
+        from pyspark.sql import Row
+
+        def _plain(v):
+            """Physical Spark containers -> plain Python, so a struct column compares
+            against the authored JSONL. A pyspark ``Row`` is not a dict, so without
+            this a correctly-preserved struct looks like a mismatch — a harness
+            artefact, not an engine defect."""
+            if isinstance(v, Row):
+                return {k: _plain(x) for k, x in v.asDict(recursive=False).items()}
+            if isinstance(v, dict):
+                return {k: _plain(x) for k, x in v.items()}
+            if isinstance(v, (list, tuple)):
+                return [_plain(x) for x in v]
+            # pandas represents SQL NULL as NaN — restore None so comparisons match.
+            if isinstance(v, float) and math.isnan(v):
+                return None
+            return v
+
+        # Retry toPandas: it is the operation that actually flakes, and it flakes for
+        # reasons outside this corpus.
+        #
+        # A 30-line script with no LakeLogic and no harness — createDataFrame +
+        # toPandas in a loop — fails roughly once in 300 calls on a long-lived local
+        # session, with:
+        #
+        #   PySparkRuntimeError: [CANNOT_OPEN_SOCKET] tried to connect to
+        #   ('127.0.0.1', 49674), but an error occurred: timed out
+        #
+        # a Python worker failing to connect back to the driver over local TCP. The
+        # arithmetic matches what the sweeps showed: 159 cases x 2 frames is ~318
+        # calls, so ~1 expected failure per run — and every run failed 2-3 cases,
+        # a DIFFERENT pair each time, each passing in a fresh process.
+        #
+        # This was previously misdiagnosed as accumulated driver state (hence session
+        # recycling, which did not help). Retrying the one call that fails turns a
+        # transient into nothing, without per-case process isolation. It cannot mask
+        # a real defect: a genuine failure fails all three attempts, and DuckDB and
+        # Polars — which never flake — still have to agree with the result.
+        last_exc = None
+        for attempt in range(3):
+            try:
+                records = frame.toPandas().to_dict("records")
+                if attempt:
+                    print(f"  (toPandas succeeded on attempt {attempt + 1} after a transient Spark error)")
+                return [{k: _plain(v) for k, v in rec.items()} for rec in records]
+            except Exception as exc:  # noqa: PERF203 - retry is the point
+                last_exc = exc
+                if "SOCKET" not in str(exc).upper() and "collectToPython" not in str(exc):
+                    raise  # not the known transient — surface it immediately
+        raise last_exc
 
 
 _ADAPTER_REGISTRY: dict[str, type[LakeLogicAdapter]] = {

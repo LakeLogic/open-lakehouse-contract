@@ -1,0 +1,13 @@
+id: OLC-N-002
+spec_version: 1.0.0
+level: core-runtime
+feature: model.nested_types
+description: A model field typed string over a native array column carries the array as JSON text
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 1
+comparison:
+  sort_by: [id]

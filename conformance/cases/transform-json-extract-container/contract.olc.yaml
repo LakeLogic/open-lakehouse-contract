@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: payload, type: string }
+    - { name: v, type: string }
+transformations:
+  - phase: post
+    json_extract: { field: v, source: payload, path: "$.items", cast: string }

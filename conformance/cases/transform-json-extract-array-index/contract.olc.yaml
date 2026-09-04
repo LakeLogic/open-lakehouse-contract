@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: T, table_name: t }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: payload, type: string }
+    - { name: price, type: float }
+transformations:
+  - phase: post
+    json_extract: { field: price, source: payload, path: "$.items[0].price", cast: float }
