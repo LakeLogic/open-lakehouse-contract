@@ -11,11 +11,6 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Documentation
 
 - Update changelog for v0.10.0
-## [0.8.0] — 2026-09-04
-
-### Documentation
-
-- Update changelog for v0.7.0
 ## [0.10.0] — 2026-09-04
 
 ### Added
@@ -36,6 +31,11 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 - **conformance**: Retry toPandas, the call that actually flakes
+## [0.8.0] — 2026-09-04
+
+### Documentation
+
+- Update changelog for v0.7.0
 ## [0.7.0] — 2026-08-29
 
 ### Added

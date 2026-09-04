@@ -1,5 +1,12 @@
 # Automatically regenerates CHANGELOG.md when a version tag is pushed.
 # Triggered by: cz bump → git push --follow-tags
+#
+# RUN `cz bump` ON main, NEVER ON A FEATURE BRANCH.
+# A tag cut on a branch is not a linear ancestor of the tags cut later on main, so
+# git-cliff's graph walk interleaves the releases: v0.8.0 came out BETWEEN v0.11.0 and
+# v0.10.0 in the generated file. It also guarantees a CHANGELOG.md conflict on every open
+# PR, because main and the branch then each hold an independently generated copy of a file
+# neither of them edits by hand.
 # Mirrors the LakeLogic (LL) changelog workflow so both repos behave identically.
 # They had drifted: LL was fixed for the detached-HEAD / non-fast-forward failure and this
 # copy was not, so the same tag push succeeded there and failed here. If you change one,
