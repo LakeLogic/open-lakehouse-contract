@@ -65,6 +65,9 @@ __all__ = [
     "NOTIFICATION_EVENTS",
     "NOTIFICATION_EVENT_TOKENS",
     "canonical_event",
+    "CANONICAL_NOTIFICATION_EVENTS",
+    "DEPRECATED_NOTIFICATION_EVENTS",
+    "preferred_spelling",
     "load_strict_domain",
     "load_strict_system",
 ]
@@ -335,10 +338,54 @@ NOTIFICATION_EVENTS: Dict[str, frozenset] = {
     "contract_changes": frozenset({"contract_changes"}),
 }
 
+#: The ONE spelling to write in a file, per event. Everything else in
+#: :data:`NOTIFICATION_EVENTS` is a deprecated synonym kept so existing files keep
+#: working — accepted on read, never generated, and never offered in a picker.
+#:
+#: One event currently has four spellings: files say ``failed`` (24 of them), the config
+#: editor's chips say ``failure``, the router's internal key is ``pipeline_failure``, and
+#: ``scan_failed`` shares the first two. Four names for one idea is how a channel gets
+#: configured against a token some other surface does not recognise.
+#:
+#: ``failure`` is canonical over the more common ``failed`` deliberately: every other
+#: token is a noun (``quarantine``, ``schema_drift``, ``slo_breach``) and ``failed`` is
+#: the only past participle, so it is the odd one out in any list a human reads. The
+#: majority spelling is a migration, not an argument.
+CANONICAL_NOTIFICATION_EVENTS: Dict[str, str] = {
+    "pipeline_failure": "failure",
+    "quarantine": "quarantine",
+    "schema_drift": "schema_drift",
+    "sla_breach": "slo_breach",
+    "scan_failed": "scan_failed",
+    "scan_completed": "success",
+    "contract_changes": "contract_changes",
+}
+
+#: Accepted, but not what to write. Reported by tooling that wants to nudge, never an error.
+DEPRECATED_NOTIFICATION_EVENTS: Dict[str, str] = {
+    token: canonical
+    for event, tokens in NOTIFICATION_EVENTS.items()
+    for canonical in (CANONICAL_NOTIFICATION_EVENTS[event],)
+    for token in tokens
+    if token != canonical
+}
+
 #: Every accepted spelling, plus the two wildcards the router honours.
 NOTIFICATION_EVENT_TOKENS: frozenset = frozenset(
     {token for tokens in NOTIFICATION_EVENTS.values() for token in tokens} | {"all", "*"}
 )
+
+
+def preferred_spelling(token: str) -> Optional[str]:
+    """The spelling to write for ``token``, or ``None`` if it is not an event.
+
+    ``preferred_spelling("failed") == "failure"``. Deliberately separate from
+    :func:`canonical_event`, which answers the different question of which internal event
+    a token routes to — conflating "what should I write" with "what does this mean" is
+    how four spellings appeared.
+    """
+    event = canonical_event(token)
+    return CANONICAL_NOTIFICATION_EVENTS.get(event) if event else None
 
 
 def canonical_event(token: str) -> Optional[str]:
