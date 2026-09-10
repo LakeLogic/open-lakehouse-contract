@@ -8,6 +8,7 @@ the SAME normalised outcome.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import tempfile
@@ -121,21 +122,55 @@ class LakeLogicAdapter:
         return frame.to_dicts()
 
     def _materialise_source(self, case: ConformanceCase) -> str:
-        """Write the case input to a real parquet file for ``input_via: source``.
+        """Write the case input to a real file for ``input_via: source``.
 
         The read path is where ``source.flatten_nested`` (and anything else applied
         while loading) actually runs. ``run()`` takes an already-loaded frame and so
         skips it entirely — which is why those behaviours were untestable here.
 
-        Parquet, not JSONL: every engine reads it natively, so the case measures the
-        runtime rather than a text parser. Values are written as authored, so a JSON
-        *string* column stays a string — that is the input flatten_nested exists for.
+        PARQUET IS THE DEFAULT, and was once the only option: every engine reads it
+        natively, so the case measures the runtime rather than a text parser. Values are
+        written as authored, so a JSON *string* column stays a string — that is the input
+        flatten_nested exists for.
+
+        THAT DISTINCTION TURNED OUT TO BE FALSE FOR JSON, which is why ``source_format``
+        now exists. The parser IS the runtime: Spark read a JSON landing zone with
+        ``multiLine=true`` (one row per FILE) while polars auto-detected the shape, so ten
+        JSON Lines files were 200 rows on one engine and 10 on the other — same contract,
+        same bytes, and the local dry run passed. A parquet-only corpus cannot see that
+        class of divergence at all.
+
+        Several files, not one, for the text formats: reading a DIRECTORY is where the
+        per-file semantics of ``multiLine`` actually bite. A single file hides it.
         """
         import polars as pl
 
-        path = Path(tempfile.mkdtemp()) / "source.parquet"
-        pl.DataFrame(case.input_rows).write_parquet(path)
-        return str(path)
+        fmt = (case.source_format or "parquet").lower()
+        directory = Path(tempfile.mkdtemp())
+
+        if fmt == "parquet":
+            path = directory / "source.parquet"
+            pl.DataFrame(case.input_rows).write_parquet(path)
+            return str(path)
+
+        if fmt not in ("json", "jsonl"):
+            raise ValueError(f"unsupported source_format {case.source_format!r}")
+
+        rows = list(case.input_rows)
+        # Two files, so a reader that takes one value PER FILE is visibly different from one
+        # that takes one per line. With a single file the two agree by accident.
+        halves = [
+            rows[: len(rows) // 2 or len(rows)],
+            rows[len(rows) // 2 or len(rows) :],
+        ]
+        for i, chunk in enumerate(h for h in halves if h):
+            body = (
+                json.dumps(chunk)
+                if fmt == "json"
+                else "\n".join(json.dumps(r) for r in chunk)
+            )
+            (directory / f"part_{i:02d}.json").write_text(body, encoding="utf-8")
+        return str(directory / "*.json")
 
     def execute(self, case: ConformanceCase) -> ExecutionResult:
         import polars as pl
@@ -306,6 +341,11 @@ class DuckDBAdapter(LakeLogicAdapter):
         "model.nested_types",
         # Read-path JSON-string expansion (source.flatten_nested).
         "source.flatten_nested",
+        # Reading a JSON source, whichever shape the files are in — one value per FILE
+        # (an array) or one per LINE. An engine declaring this must return the same rows
+        # for both: a landing zone's byte layout is not a property of the contract, and an
+        # engine that reads one shape and silently truncates the other is not conformant.
+        "source.json.shape",
     }
 
 
@@ -347,6 +387,11 @@ class PolarsAdapter(LakeLogicAdapter):
         "model.nested_types",
         # Read-path JSON-string expansion (source.flatten_nested).
         "source.flatten_nested",
+        # Reading a JSON source, whichever shape the files are in — one value per FILE
+        # (an array) or one per LINE. An engine declaring this must return the same rows
+        # for both: a landing zone's byte layout is not a property of the contract, and an
+        # engine that reads one shape and silently truncates the other is not conformant.
+        "source.json.shape",
     }
 
 

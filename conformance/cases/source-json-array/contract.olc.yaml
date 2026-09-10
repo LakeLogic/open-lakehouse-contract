@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: Locations, table_name: locations }
+source:
+  type: file
+  path: "*.json"
+  format: json
+model:
+  fields:
+    - { name: id, type: string }
+    - { name: city_code, type: string }

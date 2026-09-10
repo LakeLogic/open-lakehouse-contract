@@ -120,6 +120,7 @@ def load_case(directory: Path) -> ConformanceCase:
         expected_target=_exp("target"),
         assertions=manifest.get("assertions") or {},
         input_via=manifest.get("input_via", "frame"),
+        source_format=manifest.get("source_format", "parquet"),
         comparison=Comparison(
             sort_by=comp.get("sort_by", []),
             numeric_tolerance=float(comp.get("numeric_tolerance", 1e-6)),

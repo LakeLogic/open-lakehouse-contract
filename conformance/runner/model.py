@@ -76,6 +76,20 @@ class ConformanceCase:
     #              lives in the READ path (e.g. source.flatten_nested), which
     #              run() never executes and so could not previously be tested.
     input_via: str = "frame"
+    # WHAT THE SOURCE FILE IS WRITTEN AS, when ``input_via: source``.
+    #
+    #   "parquet"     — the default, and what every source case did before. Every engine
+    #                   reads it natively, so the case measures the runtime rather than a
+    #                   text parser.
+    #   "json"        — one JSON VALUE per file: an array of rows.
+    #   "jsonl"       — one JSON value per LINE.
+    #
+    # The text formats exist because "measures the runtime rather than a text parser" turned
+    # out to be a false distinction for JSON. The parser IS the runtime: Spark read a landing
+    # zone with ``multiLine=true`` (one row per FILE) while polars auto-detected, so ten JSON
+    # Lines files were 200 rows on one engine and 10 on the other — from the same contract,
+    # with the local dry run passing. No amount of parquet cases can see that.
+    source_format: str = "parquet"
 
     @property
     def is_materialization(self) -> bool:

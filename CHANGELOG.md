@@ -8,8 +8,14 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 ## [Unreleased]
 
+### Documentation
+
+- Update changelog for v0.12.0
+## [0.12.0] — 2026-09-10
+
 ### Added
 
+- Support multiple source formats for conformance cases
 - Add .gitattributes for CHANGELOG.md merge strategy and update changelog format
 
 ### Documentation
@@ -20,6 +26,11 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Documentation
 
 - Update changelog for v0.10.0
+## [0.8.0] — 2026-09-04
+
+### Documentation
+
+- Update changelog for v0.7.0
 ## [0.10.0] — 2026-09-04
 
 ### Added
@@ -29,21 +40,13 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **registry**: Add ActiveGates model and integrate into RegistryDocument
-## [0.8.0] — 2026-09-04
-
-### Added
-
 - **conformance**: Close every known gap, add rename coverage
 - **models**: Validate _domain.yaml and _system.yaml against the standard
+- **registry**: Add ActiveGates model and integrate into RegistryDocument
 - **registry**: Add canonical and deprecated notification event mappings
 - **tests**: Refactor test cases to use unittest and improve readability
 - Bump version to 0.8.0 in pyproject.toml
 - Read contract YAML the way the runtime does, and declare what it writes
-
-### Documentation
-
-- Update changelog for v0.7.0
 
 ### Fixed
 
@@ -92,23 +95,28 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **release**: Annotate the re-attached tag so --follow-tags pushes it
 ## [0.3.1] — 2026-08-18
 
+### CI/CD
+
+- **publish**: Switch to PyPI Trusted Publishing (OIDC)
+- Skip runtime-conformance until LAKELOGIC_REF is pinned
+## [0.3.0] — 2026-08-18
+
+### Added
+
+- Add changelog generation workflow and update related configurations
+- Add new conformance cases for dataset uniqueness, external logic extraction, regex extraction, and SCD2 dimension handling
+## [0.2.0] — 2026-08-15
+
 ### Added
 
 - **skills**: Expand agent integrations to 11 assistants
 - **skills**: Agent integrations for 7 assistants (add Cursor/Copilot/Gemini/Windsurf/Cline)
-- Add changelog generation workflow and update related configurations
-- Add new conformance cases for dataset uniqueness, external logic extraction, regex extraction, and SCD2 dimension handling
 - Implement strict OLC v1 model with nested key validation
 - Real olc CLI + Claude/Codex agent integrations (skills/)
 
 ### Build
 
 - Self-contained wheel + PyPI publish workflow
-
-### CI/CD
-
-- **publish**: Switch to PyPI Trusted Publishing (OIDC)
-- Skip runtime-conformance until LAKELOGIC_REF is pinned
 
 ### Documentation
 
@@ -151,13 +159,16 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
-[Unreleased]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.11.0...HEAD
-[0.11.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.10.0...v0.11.0
+[Unreleased]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.8.0...v0.11.0
+[0.8.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.10.0...v0.8.0
 [0.10.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.9.0...v0.10.0
-[0.9.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.8.0...v0.9.0
-[0.8.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.7.0...v0.8.0
+[0.9.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.7.0...v0.9.0
 [0.7.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.4.0...v0.6.0
 [0.4.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.3.1...v0.4.0
-[0.3.1]: https://github.com/LakeLogic/open-lakehouse-contract/releases/tag/v0.3.1
+[0.3.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/LakeLogic/open-lakehouse-contract/releases/tag/v0.2.0
 
