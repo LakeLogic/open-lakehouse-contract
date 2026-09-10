@@ -1,0 +1,21 @@
+id: OLC-S-002
+spec_version: 1.0.0
+level: core-runtime
+feature: source.json.shape
+description: A JSON source written as one array per file yields every row on every engine.
+input: input.jsonl
+# The behaviour under test lives in the READ path — specifically in the TEXT PARSER, which
+# source cases deliberately avoided by always writing parquet. That avoidance is what let a
+# real divergence ship: Spark read JSON with multiLine=true (one row per FILE) while polars
+# auto-detected the shape, so the same landing zone was 200 rows on one engine and 10 on the
+# other, and the local dry run passed.
+input_via: source
+source_format: json
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 4
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

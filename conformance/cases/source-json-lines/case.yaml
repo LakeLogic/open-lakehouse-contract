@@ -1,0 +1,19 @@
+id: OLC-S-003
+spec_version: 1.0.0
+level: core-runtime
+feature: source.json.shape
+description: The SAME rows written as JSON Lines yield the same result as the array form.
+input: input.jsonl
+# The pair is the point. OLC-S-002 and this case carry identical rows and an identical
+# contract, differing only in how the bytes are laid out on disk. An engine that reads one
+# shape and silently truncates the other fails here rather than in someone's lakehouse.
+input_via: source
+source_format: jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 4
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]
