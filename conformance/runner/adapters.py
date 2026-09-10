@@ -159,7 +159,10 @@ class LakeLogicAdapter:
         rows = list(case.input_rows)
         # Two files, so a reader that takes one value PER FILE is visibly different from one
         # that takes one per line. With a single file the two agree by accident.
-        halves = [rows[: len(rows) // 2 or len(rows)], rows[len(rows) // 2 or len(rows):]]
+        halves = [
+            rows[: len(rows) // 2 or len(rows)],
+            rows[len(rows) // 2 or len(rows) :],
+        ]
         for i, chunk in enumerate(h for h in halves if h):
             body = (
                 json.dumps(chunk)
