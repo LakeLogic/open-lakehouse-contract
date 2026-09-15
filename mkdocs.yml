@@ -90,6 +90,7 @@ nav:
       - Materialization & Storage: reference/materialization.md
       - Server & Output: reference/server.md
       - Lineage: reference/lineage.md
+      - Data Products: reference/data-products.md
       - Service Levels (SLOs): reference/slo.md
       - Notifications: reference/notifications.md
       - Unstructured (LLM Extraction): reference/extraction.md

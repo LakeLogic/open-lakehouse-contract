@@ -99,6 +99,29 @@ class OLCContractV1(BaseModel):
                 )
         return data
 
+    @model_validator(mode="after")
+    def _data_product_reference_is_well_formed(self) -> "OLCContractV1":
+        """``info.data_product`` / ``info.data_product_output`` are product and output ids.
+
+        Checked here, not on ``Info``: the lenient runtime re-uses ``Info``, and a format rule
+        there would fail existing runtime parses. An output id without a product id names an
+        output of nothing, so it is refused.
+        """
+        import re
+
+        from olc.models.registry_v1 import PRODUCT_ID_PATTERN
+
+        product = self.info.data_product
+        output = self.info.data_product_output
+        for label, value in (("info.data_product", product), ("info.data_product_output", output)):
+            if value is not None and not re.fullmatch(PRODUCT_ID_PATTERN, value):
+                raise ValueError(
+                    f"{label} must be a lowercase id ({PRODUCT_ID_PATTERN}), got {value!r}"
+                )
+        if output is not None and product is None:
+            raise ValueError("info.data_product_output requires info.data_product")
+        return self
+
     # ── required identity ────────────────────────────────────────────────────
     version: SemVer
     info: Info

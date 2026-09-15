@@ -30,7 +30,7 @@ questions and stay separate.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -59,6 +59,9 @@ __all__ = [
     "SystemStorage",
     "SystemContractEntry",
     "ExternalSource",
+    "DataProductEntry",
+    "ExpectedOutputEntry",
+    "PRODUCT_ID_PATTERN",
     "RegistryQuarantine",
     "LayerServer",
     "LayerPostIngestion",
@@ -547,6 +550,71 @@ class ExternalSource(_Base):
     consumed_by: Optional[List[str]] = None
 
 
+# ── Data products ─────────────────────────────────────────────────────────────
+
+#: A product or expected-output ``id``: a lowercase slug, set once and never changed. The
+#: display ``name`` is a separate field, so a rename never breaks a contract's
+#: ``info.data_product`` reference.
+PRODUCT_ID_PATTERN = r"^[a-z][a-z0-9_]{1,62}$"
+
+
+def _duplicate_ids(entries: List[Any]) -> List[str]:
+    seen: set = set()
+    dupes: List[str] = []
+    for entry in entries:
+        entry_id = getattr(entry, "id", None)
+        if entry_id in seen and entry_id not in dupes:
+            dupes.append(entry_id)
+        seen.add(entry_id)
+    return dupes
+
+
+class ExpectedOutputEntry(_Base):
+    """An output a data product promises: a table, view, API or semantic model.
+
+    Declared on the product, not derived from contracts, so an output that has been promised
+    but never contracted is visible. A contract implements one by setting
+    ``info.data_product_output`` to this ``id``.
+    """
+
+    id: str = Field(pattern=PRODUCT_ID_PATTERN)
+    name: str
+    kind: Literal["table", "view", "api", "semantic_model"] = "table"
+    required: bool = True
+    description: Optional[str] = None
+
+
+class DataProductEntry(_Base):
+    """One data product the domain is accountable for.
+
+    A product groups contracted outputs around a shared business purpose. It is defined once,
+    here; contracts reference it by ``id`` from ``info.data_product``. Shared dependencies are
+    lineage, not membership: a table belongs to the product that publishes it, or to none.
+    """
+
+    id: str = Field(pattern=PRODUCT_ID_PATTERN)
+    name: str
+    description: Optional[str] = None
+    #: Falls back to the domain's ownership when absent.
+    owner: Optional[str] = None
+    lifecycle: Literal["proposed", "active", "deprecated", "retired"] = "proposed"
+    expected_outputs: List[ExpectedOutputEntry] = Field(default_factory=list)
+
+    @field_validator("expected_outputs", mode="before")
+    @classmethod
+    def _declared_but_empty_is_empty(cls, value: Any) -> Any:
+        """``expected_outputs:`` with nothing under it means none, as ``contracts:`` does."""
+        return [] if value is None else value
+
+    @field_validator("expected_outputs")
+    @classmethod
+    def _output_ids_are_unique(cls, value: List[ExpectedOutputEntry]) -> List[ExpectedOutputEntry]:
+        dupes = _duplicate_ids(value)
+        if dupes:
+            raise ValueError(f"expected output id declared more than once: {', '.join(dupes)}")
+        return value
+
+
 class LayerPostIngestion(PostIngestionConfig):
     """The contract's post-ingestion settings plus the system-only retry flag.
 
@@ -628,6 +696,7 @@ class _RegistryDocument(_Base):
     @field_validator(
         "contracts",
         "external_sources",
+        "products",
         "environments",
         "materialization",
         "server",
@@ -674,9 +743,20 @@ class _RegistryDocument(_Base):
 
 
 class OLCDomainV1(_RegistryDocument):
-    """``_domain.yaml`` — a domain's ownership, service levels, budget and routing."""
+    """``_domain.yaml`` — a domain's ownership, service levels, budget, routing and products."""
 
     cost: Optional[DomainCost] = None
+    #: The data products this domain defines. Domain-only: a ``_system.yaml`` does not declare or
+    #: override products.
+    products: List[DataProductEntry] = Field(default_factory=list)
+
+    @field_validator("products")
+    @classmethod
+    def _product_ids_are_unique(cls, value: List[DataProductEntry]) -> List[DataProductEntry]:
+        dupes = _duplicate_ids(value)
+        if dupes:
+            raise ValueError(f"data product id declared more than once: {', '.join(dupes)}")
+        return value
 
 
 class OLCSystemV1(_RegistryDocument):

@@ -15,6 +15,8 @@ from typing import Any
 from olc.models._strict_keys import collect_unknown_nested_keys
 from olc.models.olc_v1 import OLCContractV1, StrictServer
 from olc.models.registry_v1 import (
+    DataProductEntry,
+    ExpectedOutputEntry,
     OLCDomainV1,
     OLCSystemV1,
     load_strict_domain,
@@ -25,6 +27,8 @@ __all__ = [
     "OLCContractV1",
     "OLCDomainV1",
     "OLCSystemV1",
+    "DataProductEntry",
+    "ExpectedOutputEntry",
     "StrictServer",
     "collect_unknown_nested_keys",
     "load_strict",

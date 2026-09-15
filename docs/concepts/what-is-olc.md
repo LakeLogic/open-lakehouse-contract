@@ -1,6 +1,6 @@
 # What is OLC?
 
-The Open Lakehouse Contract is **an executable contract for a data product**. One human-readable YAML file declares everything about a dataset — and a conforming framework *runs* that declaration.
+The Open Lakehouse Contract is **an executable contract for a dataset**. One human-readable YAML file declares everything about that dataset — and a conforming framework *runs* that declaration. A contract names the data product that publishes it (`info.data_product`); the product itself, which usually groups several contracted outputs, is defined once in its domain's `_domain.yaml`. See [Data Products](../reference/data-products.md).
 
 ## Descriptive vs executable
 
@@ -89,11 +89,11 @@ Two levels of pluggability: the **framework** that interprets the contract, and 
 
 OLC answers exactly one question:
 
-> **What must be true about this data product and its execution?**
+> **What must be true about this dataset and its execution?**
 
-That question bounds the spec. Schema, quality, PII, lineage, materialization, and SLOs all answer it — they describe *the data product itself*. The discipline that keeps OLC coherent (and adoptable) is refusing to grow beyond it.
+That question bounds the spec. Schema, quality, PII, lineage, materialization, and SLOs all answer it — they describe *the contracted dataset itself*. The discipline that keeps OLC coherent (and adoptable) is refusing to grow beyond it.
 
-**In scope** — properties of a single data product: `model` (schema), `quality`, `pii` / masking, `lineage`, `materialization`, `service_levels`, keys, `transformations`, sources, and declared `upstream` / `downstream` edges.
+**In scope** — properties of a single contracted dataset: `model` (schema), `quality`, `pii` / masking, `lineage`, `materialization`, `service_levels`, keys, `transformations`, sources, and declared `upstream` / `downstream` edges.
 
 **Explicit non-goals** — things that belong to *other* tools, not the contract:
 
@@ -108,4 +108,4 @@ That question bounds the spec. Schema, quality, PII, lineage, materialization, a
 | Cost governance | FinOps tooling |
 
 !!! tip "Why the discipline matters"
-    A spec that tries to run the whole data organization becomes a spec no one can implement or agree on. OLC stays *about the data product* — one artifact a human or an agent can read and know exactly what must hold true. Everything else composes *around* it.
+    A spec that tries to run the whole data organization becomes a spec no one can implement or agree on. OLC stays *about the contracted dataset* — one artifact a human or an agent can read and know exactly what must hold true. Everything else composes *around* it.
