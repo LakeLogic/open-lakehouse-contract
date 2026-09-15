@@ -7,7 +7,7 @@ description: Every OLC block in one place — each section annotated with its op
 
 Every OLC block, in one view — each section below is annotated with its common options, and the [**full contract**](#the-full-contract) is assembled at the bottom. For exhaustive field tables, see the [Field Reference](schema.md); each section links to its deep-dive page.
 
-Everything here is one **schema-valid** contract — a silver `orders` data product in the `sales` domain. Download it: [`examples/full.olc.yaml`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/examples/full.olc.yaml).
+Everything here is one **schema-valid** contract — a silver `orders` dataset in the `sales` domain. Download it: [`examples/full.olc.yaml`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/examples/full.olc.yaml).
 
 !!! tip "SQL-first, business shorthands"
     Rules and transforms can be raw `sql: "…"` or business **shorthands** (`unique`, `null_ratio`, `not_null`, `filter`, `derive`) — the shorthands compile to the same SQL. Reach for whichever reads clearer.

@@ -1039,6 +1039,30 @@
           ],
           "default": null,
           "title": "System"
+        },
+        "data_product": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Product"
+        },
+        "data_product_output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Product Output"
         }
       },
       "required": [

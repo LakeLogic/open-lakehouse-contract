@@ -8,7 +8,18 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 ## [Unreleased]
 
+### Added
+
+- `info.data_product` and `info.data_product_output` on contracts: the id of the data product that publishes the
+  contract, and optionally which of its expected outputs it implements. Ids are checked on the strict contract path;
+  the lenient model keeps plain strings.
+- `products:` on `_domain.yaml` (`DataProductEntry`, `ExpectedOutputEntry`): id, name, description, owner, lifecycle
+  and expected outputs, with unique ids and strict unknown-key checks.
+
 ### Documentation
+
+- New Data Products reference page. "What is OLC?" and the contract anatomy now describe a contract as one dataset
+  that a data product publishes.
 
 - Update changelog for v0.12.0
 ## [0.12.0] — 2026-09-10

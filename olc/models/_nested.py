@@ -29,6 +29,14 @@ class Info(BaseModel):
     classification: Optional[str] = None
     domain: Optional[str] = None
     system: Optional[str] = None
+    # The data product that PUBLISHES this contracted output: a product ``id`` declared in the
+    # owning domain's ``_domain.yaml`` ``products:`` list. A stable id, not the display name, so
+    # renaming a product never breaks a contract. Optional: unassigned and supporting assets are
+    # legitimate. Plain strings here because the lenient runtime re-uses this model; the slug
+    # format is enforced on the strict ``OLCContractV1`` path.
+    data_product: Optional[str] = None
+    # Which of that product's ``expected_outputs`` this contract implements (an output ``id``).
+    data_product_output: Optional[str] = None
 
 
 class SchemaPolicy(BaseModel):
