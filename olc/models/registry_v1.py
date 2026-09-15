@@ -608,10 +608,14 @@ class DataProductEntry(_Base):
 
     @field_validator("expected_outputs")
     @classmethod
-    def _output_ids_are_unique(cls, value: List[ExpectedOutputEntry]) -> List[ExpectedOutputEntry]:
+    def _output_ids_are_unique(
+        cls, value: List[ExpectedOutputEntry]
+    ) -> List[ExpectedOutputEntry]:
         dupes = _duplicate_ids(value)
         if dupes:
-            raise ValueError(f"expected output id declared more than once: {', '.join(dupes)}")
+            raise ValueError(
+                f"expected output id declared more than once: {', '.join(dupes)}"
+            )
         return value
 
 
@@ -752,10 +756,14 @@ class OLCDomainV1(_RegistryDocument):
 
     @field_validator("products")
     @classmethod
-    def _product_ids_are_unique(cls, value: List[DataProductEntry]) -> List[DataProductEntry]:
+    def _product_ids_are_unique(
+        cls, value: List[DataProductEntry]
+    ) -> List[DataProductEntry]:
         dupes = _duplicate_ids(value)
         if dupes:
-            raise ValueError(f"data product id declared more than once: {', '.join(dupes)}")
+            raise ValueError(
+                f"data product id declared more than once: {', '.join(dupes)}"
+            )
         return value
 
 

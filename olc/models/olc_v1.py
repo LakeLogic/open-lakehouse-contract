@@ -113,7 +113,10 @@ class OLCContractV1(BaseModel):
 
         product = self.info.data_product
         output = self.info.data_product_output
-        for label, value in (("info.data_product", product), ("info.data_product_output", output)):
+        for label, value in (
+            ("info.data_product", product),
+            ("info.data_product_output", output),
+        ):
             if value is not None and not re.fullmatch(PRODUCT_ID_PATTERN, value):
                 raise ValueError(
                     f"{label} must be a lowercase id ({PRODUCT_ID_PATTERN}), got {value!r}"

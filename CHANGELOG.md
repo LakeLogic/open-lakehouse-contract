@@ -6,21 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [Unreleased]
+## [0.14.0] — 2026-09-15
 
 ### Added
 
-- `info.data_product` and `info.data_product_output` on contracts: the id of the data product that publishes the
-  contract, and optionally which of its expected outputs it implements. Ids are checked on the strict contract path;
-  the lenient model keeps plain strings.
-- `products:` on `_domain.yaml` (`DataProductEntry`, `ExpectedOutputEntry`): id, name, description, owner, lifecycle
-  and expected outputs, with unique ids and strict unknown-key checks.
+- Introduce data product and expected output references in contracts
 
 ### Documentation
 
-- New Data Products reference page. "What is OLC?" and the contract anatomy now describe a contract as one dataset
-  that a data product publishes.
-
+- Reorganize changelog for clarity and update versioning
 - Update changelog for v0.12.0
 ## [0.12.0] — 2026-09-10
 
@@ -170,7 +164,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
-[Unreleased]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.12.0...HEAD
+[0.14.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.12.0...v0.14.0
 [0.12.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.8.0...v0.11.0
 [0.8.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.10.0...v0.8.0
