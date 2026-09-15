@@ -1035,6 +1035,8 @@
       
         
       
+        
+      
     
     
     
@@ -1451,6 +1453,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../reference/data-products.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Products
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../reference/slo.html" class="md-nav__link">
         
   
@@ -1748,7 +1778,7 @@
 
 
 <h1 id="what-is-olc">What is OLC?</h1>
-<p>The Open Lakehouse Contract is <strong>an executable contract for a data product</strong>. One human-readable YAML file declares everything about a dataset — and a conforming framework <em>runs</em> that declaration.</p>
+<p>The Open Lakehouse Contract is <strong>an executable contract for a dataset</strong>. One human-readable YAML file declares everything about that dataset — and a conforming framework <em>runs</em> that declaration. A contract names the data product that publishes it (<code>info.data_product</code>); the product itself, which usually groups several contracted outputs, is defined once in its domain's <code>_domain.yaml</code>. See <a href="../reference/data-products.html">Data Products</a>.</p>
 <h2 id="descriptive-vs-executable">Descriptive vs executable</h2>
 <p>Most data-contract specs are <strong>descriptive</strong>: they document a dataset's shape so humans and tools can agree on it. That's useful, but it leaves a gap — the document and the pipeline that actually produces the data are two separate artifacts, and they drift.</p>
 <p>OLC closes the gap by being <strong>executable</strong>. The same file that says <em>"<code>amount</code> must be positive, <code>customer_email</code> is PII, materialize as a merge into Iceberg"</em> is the file a framework reads to <strong>enforce</strong> those rules. There is no second implementation to keep in sync — the contract <em>is</em> the pipeline definition.</p>
@@ -1842,10 +1872,10 @@
 <h2 id="scope-and-non-goals">Scope — and non-goals</h2>
 <p>OLC answers exactly one question:</p>
 <blockquote>
-<p><strong>What must be true about this data product and its execution?</strong></p>
+<p><strong>What must be true about this dataset and its execution?</strong></p>
 </blockquote>
-<p>That question bounds the spec. Schema, quality, PII, lineage, materialization, and SLOs all answer it — they describe <em>the data product itself</em>. The discipline that keeps OLC coherent (and adoptable) is refusing to grow beyond it.</p>
-<p><strong>In scope</strong> — properties of a single data product: <code>model</code> (schema), <code>quality</code>, <code>pii</code> / masking, <code>lineage</code>, <code>materialization</code>, <code>service_levels</code>, keys, <code>transformations</code>, sources, and declared <code>upstream</code> / <code>downstream</code> edges.</p>
+<p>That question bounds the spec. Schema, quality, PII, lineage, materialization, and SLOs all answer it — they describe <em>the contracted dataset itself</em>. The discipline that keeps OLC coherent (and adoptable) is refusing to grow beyond it.</p>
+<p><strong>In scope</strong> — properties of a single contracted dataset: <code>model</code> (schema), <code>quality</code>, <code>pii</code> / masking, <code>lineage</code>, <code>materialization</code>, <code>service_levels</code>, keys, <code>transformations</code>, sources, and declared <code>upstream</code> / <code>downstream</code> edges.</p>
 <p><strong>Explicit non-goals</strong> — things that belong to <em>other</em> tools, not the contract:</p>
 <table>
 <thead>
@@ -1887,7 +1917,7 @@
 </table>
 <div class="admonition tip">
 <p class="admonition-title">Why the discipline matters</p>
-<p>A spec that tries to run the whole data organization becomes a spec no one can implement or agree on. OLC stays <em>about the data product</em> — one artifact a human or an agent can read and know exactly what must hold true. Everything else composes <em>around</em> it.</p>
+<p>A spec that tries to run the whole data organization becomes a spec no one can implement or agree on. OLC stays <em>about the contracted dataset</em> — one artifact a human or an agent can read and know exactly what must hold true. Everything else composes <em>around</em> it.</p>
 </div>
 
 
