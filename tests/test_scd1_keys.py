@@ -104,7 +104,9 @@ class Scd1StrictPathTests(unittest.TestCase):
         """A type-1 dimension keeps no history. `track_columns` there is not a harmless extra —
         it signals a contract that thinks it is SCD2 and will not get versions."""
         with self.assertRaises(Exception) as caught:
-            load_strict(_contract({"surrogate_key": "city_sk", "track_columns": ["name"]}))
+            load_strict(
+                _contract({"surrogate_key": "city_sk", "track_columns": ["name"]})
+            )
         self.assertIn("materialization.scd1.track_columns", str(caught.exception))
 
     def test_scd2_is_still_checked_independently(self) -> None:
@@ -115,7 +117,9 @@ class Scd1StrictPathTests(unittest.TestCase):
         self.assertIn("materialization.scd2.track_column", str(caught.exception))
 
 
-@unittest.skipIf(DataContract is None, f"reference runtime unavailable: {_RUNTIME_ERROR}")
+@unittest.skipIf(
+    DataContract is None, f"reference runtime unavailable: {_RUNTIME_ERROR}"
+)
 class Scd1LenientPathTests(unittest.TestCase):
     """Backward compatibility: the lenient runtime model must not get stricter."""
 

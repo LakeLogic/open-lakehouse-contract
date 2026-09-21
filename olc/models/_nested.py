@@ -1032,7 +1032,6 @@ SCD2_UNKNOWN_MEMBER_KNOWN_KEYS: frozenset = frozenset(
 )
 
 
-
 # ── SCD1 vocabulary ─────────────────────────────────────────────────────────
 #
 # A TYPE-1 dimension keeps one row per key, overwritten in place — but it still needs a
@@ -1062,6 +1061,7 @@ SCD1_KNOWN_KEYS: frozenset = frozenset(
 #: The nested `scd1.unknown_member` block reads exactly the keys `scd2`'s does — the
 #: runtime injects both through the same unknown-member routine.
 SCD1_UNKNOWN_MEMBER_KNOWN_KEYS: frozenset = SCD2_UNKNOWN_MEMBER_KNOWN_KEYS
+
 
 class SecondaryTarget(BaseModel):
     """A dual-write destination executed after the primary materialization.

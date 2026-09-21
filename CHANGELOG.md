@@ -6,16 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [Unreleased]
+## [0.15.0] — 2026-09-21
 
 ### Added
 
-- Declare `materialization.scd1` — the type-1 dimension surrogate key (`surrogate_key`,
-  `surrogate_key_strategy`, `unknown_member`). The reference runtime already writes it under
-  `strategy: merge`, and `_MAT_KNOWN_KEYS` already listed it, but it was never a declared
-  field — so the strict canonical path rejected contracts using the runtime's own feature.
-  Its keys are strict-checked like `scd2`'s, and a typo is named with a suggestion.
-
+- Add support for SCD1 surrogate key in materialization and update documentation
 ## [0.14.0] — 2026-09-15
 
 ### Added
@@ -174,6 +169,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.15.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.12.0...v0.14.0
 [0.12.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.8.0...v0.11.0
