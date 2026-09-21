@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [Unreleased]
+
+### Added
+
+- Declare `materialization.scd1` — the type-1 dimension surrogate key (`surrogate_key`,
+  `surrogate_key_strategy`, `unknown_member`). The reference runtime already writes it under
+  `strategy: merge`, and `_MAT_KNOWN_KEYS` already listed it, but it was never a declared
+  field — so the strict canonical path rejected contracts using the runtime's own feature.
+  Its keys are strict-checked like `scd2`'s, and a typo is named with a suggestion.
+
 ## [0.14.0] — 2026-09-15
 
 ### Added

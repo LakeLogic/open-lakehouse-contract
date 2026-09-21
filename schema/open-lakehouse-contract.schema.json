@@ -1364,6 +1364,20 @@
           "description": "Slowly-changing-dimension (type 2) settings, used when `strategy: scd2`. All keys are optional; each has a runtime default. Known keys: surrogate_key, surrogate_key_strategy, effective_from_field, effective_to_field, current_flag_field, version_column, change_reason_column, track_columns, timestamp_field / change_date_field (aliases), end_date_default / effective_to_default (aliases), start_date_default / effective_from_default (aliases), default_effective_from, merge_dedup_guard, and unknown_member (nested: enabled, surrogate_key_value, default_values). The strict OLC v1 path rejects any other key: omitting `track_columns` means 'treat every incoming row as a change', so a misspelling of it silently produces unbounded version history.",
           "title": "Scd2"
         },
+        "scd1": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Type-1 dimension surrogate key, used with `strategy: merge`. The table keeps one row per `primary_key`, overwritten in place; this block adds the key facts point at. Known keys: surrogate_key (the column written, placed first), surrogate_key_strategy (`hash` \u2014 sha256 of the primary-key values joined with '|', first 16 hex chars, stable across runs \u2014 or `uuid`, new every run; default `hash`), and unknown_member (nested: enabled, surrogate_key_value, default_values; falls back to `materialization.unknown_member`). The key is a hash of `primary_key`, so a contract stating `natural_key` for a type-1 dimension should state the same columns. The strict OLC v1 path rejects any other key.",
+          "title": "Scd1"
+        },
         "fact": {
           "anyOf": [
             {

@@ -29,6 +29,8 @@ from typing import Any
 from pydantic import BaseModel
 
 from olc.models._nested import (
+    SCD1_KNOWN_KEYS,
+    SCD1_UNKNOWN_MEMBER_KNOWN_KEYS,
     SCD2_KNOWN_KEYS,
     SCD2_UNKNOWN_MEMBER_KNOWN_KEYS,
     Materialization,
@@ -138,6 +140,10 @@ _BAG_SPECS: dict[tuple[type, str], _BagSpec] = {
     (Materialization, "scd2"): _BagSpec(
         SCD2_KNOWN_KEYS,
         {"unknown_member": _BagSpec(SCD2_UNKNOWN_MEMBER_KNOWN_KEYS)},
+    ),
+    (Materialization, "scd1"): _BagSpec(
+        SCD1_KNOWN_KEYS,
+        {"unknown_member": _BagSpec(SCD1_UNKNOWN_MEMBER_KNOWN_KEYS)},
     ),
 }
 
