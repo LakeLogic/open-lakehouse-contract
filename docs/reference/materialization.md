@@ -112,6 +112,40 @@ Both are load-bearing for contracts already in the wild; neither is deprecated.
 | `surrogate_key_value` | `-1` | Surrogate-key value for the unknown row. |
 | `default_values` | `{}` | Column → value for the unknown row's remaining columns. |
 
+## SCD1 surrogate key
+
+A **type-1** dimension keeps one row per key, overwritten in place — no history. It still
+needs a surrogate key for facts to point at, and an unknown-member row for the facts whose
+key does not resolve. Declare both in the `scd1` block, under `strategy: merge`:
+
+```yaml
+primary_key: [city_code]
+natural_key: [city_code]          # what the surrogate key is a hash of — see below
+materialization:
+  strategy: merge
+  scd1:
+    surrogate_key: city_sk
+    surrogate_key_strategy: hash
+    unknown_member:
+      enabled: true
+      surrogate_key_value: '-1'
+```
+
+The key is a hash of **`primary_key`** — the values joined with `|`, sha256, first 16 hex
+characters — so the same city gets the same `city_sk` on every run. A type-1 contract that
+states `natural_key` should therefore state the same columns as `primary_key`; stating
+anything else describes a key the runtime does not compute.
+
+### `scd1` keys
+
+The strict OLC v1 model rejects any key not on this list.
+
+| Key | Default | Purpose |
+|---|---|---|
+| `surrogate_key` | *(none — no key is written without it)* | Name of the surrogate-key column. Written by the materializer and placed first in the table. |
+| `surrogate_key_strategy` | `hash` | `hash` — deterministic, the same key every run. `uuid` — a new value every run, which a fact cannot point at stably; use it only where nothing looks the key up. |
+| `unknown_member` | *(falls back to `materialization.unknown_member`)* | Kimball unknown-member row — the same keys as [`scd2.unknown_member`](#scd2-keys): `enabled`, `surrogate_key_value`, `default_values`. |
+
 ## Facts & dimensions
 
 `fact` (`FactConfig`) marks a table as a fact and declares milestone-date semantics (e.g. accumulating snapshot facts):

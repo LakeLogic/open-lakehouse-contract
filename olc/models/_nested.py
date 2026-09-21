@@ -1032,6 +1032,37 @@ SCD2_UNKNOWN_MEMBER_KNOWN_KEYS: frozenset = frozenset(
 )
 
 
+# ── SCD1 vocabulary ─────────────────────────────────────────────────────────
+#
+# A TYPE-1 dimension keeps one row per key, overwritten in place — but it still needs a
+# surrogate key for facts to point at, and an unknown-member row for the facts whose key
+# does not resolve. The reference runtime has written both from `materialization.scd1`
+# under `strategy: merge` for some time (`_merge_frames`, `_spark_merge_dataframe`), and
+# `_MAT_KNOWN_KEYS` already listed `scd1` — so the LENIENT model tolerated it while the
+# canonical STRICT path, which walks declared fields, rejected the runtime's own feature.
+# Declaring it is the alignment, the same one `secondary_targets` needed.
+#
+# Typed `Dict[str, Any]` for the same reason as `scd2`: the runtime calls `.get()` on it.
+# Meanings read out of `lakelogic/core/materialization.py`, not inferred from the names.
+
+SCD1_KNOWN_KEYS: frozenset = frozenset(
+    {
+        "surrogate_key",  # SK column name the materializer writes, placed FIRST in the
+        #                   table. No default: without it no key is written.
+        "surrogate_key_strategy",  # "hash" — sha256 of the PRIMARY KEY values joined with
+        #                            "|", first 16 hex chars: deterministic, the same key
+        #                            every run. Or "uuid" — a new value every run, which a
+        #                            fact cannot point at stably. Default "hash".
+        "unknown_member",  # Kimball unknown-member row. Keys: `SCD1_UNKNOWN_MEMBER_KNOWN_KEYS`.
+        #                    Falls back to `materialization.unknown_member` when absent.
+    }
+)
+
+#: The nested `scd1.unknown_member` block reads exactly the keys `scd2`'s does — the
+#: runtime injects both through the same unknown-member routine.
+SCD1_UNKNOWN_MEMBER_KNOWN_KEYS: frozenset = SCD2_UNKNOWN_MEMBER_KNOWN_KEYS
+
+
 class SecondaryTarget(BaseModel):
     """A dual-write destination executed after the primary materialization.
 
@@ -1081,6 +1112,21 @@ class Materialization(BaseModel):
             "The strict OLC v1 path rejects any other key: omitting "
             "`track_columns` means 'treat every incoming row as a change', so a "
             "misspelling of it silently produces unbounded version history."
+        ),
+    )
+    scd1: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description=(
+            "Type-1 dimension surrogate key, used with `strategy: merge`. The table keeps "
+            "one row per `primary_key`, overwritten in place; this block adds the key facts "
+            "point at. Known keys: surrogate_key (the column written, placed first), "
+            "surrogate_key_strategy (`hash` — sha256 of the primary-key values joined with "
+            "'|', first 16 hex chars, stable across runs — or `uuid`, new every run; "
+            "default `hash`), and unknown_member (nested: enabled, surrogate_key_value, "
+            "default_values; falls back to `materialization.unknown_member`). The key is "
+            "a hash of `primary_key`, so a contract stating `natural_key` for a type-1 "
+            "dimension should state the same columns. The strict OLC v1 path rejects any "
+            "other key."
         ),
     )
     fact: Optional[FactConfig] = None
