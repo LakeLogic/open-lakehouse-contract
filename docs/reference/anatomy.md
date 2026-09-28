@@ -40,13 +40,13 @@ Where the data comes from — **one primary source**. `type` selects the reader 
 
 ```yaml
 source:
-  type: table                          # table | landing | database | api | stream
+  type: table                          # landing | stream | table | delta | iceberg | database | dlt | sftp
   path: "table:lakehouse.sales.bronze_orders"
   load_mode: incremental               # full | incremental
   watermark_field: ordered_at          # incremental cursor
   empty_behavior: skip                 # skip | fail
   # database:  type: database, query: "SELECT * FROM orders WHERE updated_at > :wm"
-  # api:       type: api, dlt: { source: rest_api, base_url: "https://api.example.com/v2/" }
+  # api:       type: dlt, dlt: { base_url: "https://api.example.com/v2/", endpoints: [...] }
   # files:     type: landing, path: "s3://landing/sales/orders/", format: json
 ```
 

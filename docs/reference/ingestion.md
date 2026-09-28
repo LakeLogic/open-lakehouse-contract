@@ -17,6 +17,18 @@ source:
 
 ## Source kinds
 
+| `type` | Reads | Key fields |
+|---|---|---|
+| `landing` | Files in a landing directory or object store (CSV, JSON, JSONL, Parquet) | `path`, `format`, `pattern` |
+| `stream` | A file or table location read in micro-batches by watermark | `path`, `format`, `watermark_field` |
+| `table` | An upstream lakehouse table (catalog name or `table:` reference) | `path`, `format` |
+| `delta` | A Delta table directory | `path` |
+| `iceberg` | An Iceberg table directory | `path` |
+| `database` | A relational database, by query | `query`, `options`, `watermark_field` |
+| `dlt` | An HTTP API or dlt verified source | `dlt` |
+| `sftp` | Files on an SFTP server | `path`, `pattern`, `format`, `options` |
+
+
 ### Files / landing zone
 
 Read files from a landing directory — the classic bronze source. Formats: CSV, JSON, JSONL, Parquet.
@@ -51,6 +63,8 @@ source:
   format: delta                                 # delta | iceberg | ducklake | ...
 ```
 
+`type: delta` and `type: iceberg` read a table directory by path (`path: "s3://lake/silver/orders/"`) without a catalog.
+
 ### Database / SQL query
 
 Pull from a relational source by query.
@@ -68,18 +82,31 @@ source:
 | `query` | The SQL to execute against the source. |
 | `watermark_field` | Column used to fetch only new/changed rows (see [Load modes](#load-modes)). |
 
-### REST API (via dlt)
+### REST API and dlt sources
 
-Ingest from an HTTP API using an embedded [dlt](https://dlthub.com) source — pagination, auth, and multiple endpoints declared inline (`DltSourceConfig`).
+Ingest from an HTTP API or any [dlt](https://dlthub.com) verified source (`DltSourceConfig`). The source kind is `dlt`. There are two modes, chosen by which fields you set.
+
+**Mode 1: verified source.** Name a dlt verified source and resource.
 
 ```yaml
 source:
-  type: api
+  type: dlt
   dlt:
-    source: rest_api
+    source: stripe_analytics          # dlt verified-source module
+    resource: charges                 # resource within it
+    credentials:
+      api_key: "${STRIPE_API_KEY}"    # resolved from the environment at run time
+```
+
+**Mode 2: declarative REST API.** Declare the base URL and endpoints inline.
+
+```yaml
+source:
+  type: dlt
+  dlt:
     base_url: "https://api.example.com/v2/"
-    write_disposition: merge          # append | replace | merge
-    max_table_nesting: 2
+    write_disposition: merge          # append | replace | merge (default: replace)
+    max_table_nesting: 2              # default: 1
     credentials: { token: "${API_TOKEN}" }   # from env, never inline in the repo
     endpoints:
       - name: orders
@@ -90,12 +117,48 @@ source:
 
 | `DltSourceConfig` | Purpose |
 |---|---|
-| `source` / `resource` | The dlt source/resource to run. |
-| `base_url` | API root. |
-| `endpoints[]` | One `DltEndpointConfig` per endpoint: `name`, `path`, `params`, `paginator`. |
-| `credentials` | Auth material (reference env vars — don't hard-code secrets). |
+| `source` / `resource` | Mode 1: the dlt verified source and resource to run. |
+| `base_url` | Mode 2: API root. |
+| `endpoints[]` | Mode 2: one `DltEndpointConfig` per endpoint: `name`, `path`, `params`, `paginator`. |
+| `credentials` | Auth material. A value written as `${ENV_VAR}` is read from the environment. |
 | `write_disposition` | `append` / `replace` / `merge`. |
 | `max_table_nesting` | How deep to auto-unnest JSON responses. |
+
+The reference framework needs the `dlt` extra (`pip install lakelogic[dlt]`).
+
+### SFTP drop folder
+
+Fetch files from an SFTP server, then validate them like any landing file.
+
+```yaml
+source:
+  type: sftp
+  path: "sftp://ingest@files.example.com:22/inbound/"   # user@host[:port]/remote-dir
+  pattern: "orders_*.csv"          # glob within the remote dir (default: *)
+  format: csv                      # csv | json | parquet (default: csv)
+  load_mode: incremental           # only files modified since the last run
+  options:
+    private_key_path: ~/.ssh/id_ed25519
+    known_hosts: ~/.ssh/known_hosts   # omit to verify against the default known_hosts
+```
+
+| Field | Purpose |
+|---|---|
+| `path` | `sftp://user@host[:port]/dir`. Port defaults to 22. A password in the URI is **rejected**: it would reach logs and run metadata. |
+| `pattern` | Glob for files in the remote directory. Also accepted as `options.pattern`. |
+| `format` | `csv`, `json` or `parquet`. Also accepted as `options.format`. |
+| `load_mode` | `incremental` downloads only files whose server mtime is newer than the last run's watermark. `full` reads every matching file. |
+| `options.username` | Used when the URI has no user. |
+| `options.password` / `options.private_key_path` | Authentication. Use one. |
+| `options.known_hosts` | Host-key file. Omitted means the default `~/.ssh/known_hosts`. Only an explicit `known_hosts: null` turns verification off, and the reference framework warns when it does. |
+
+Credentials can come from the environment instead of the contract:
+
+| Variable | Replaces |
+|---|---|
+| `LAKELOGIC_SFTP_USER` | username (when neither the URI nor `options` has one) |
+| `LAKELOGIC_SFTP_PASSWORD` | `options.password` |
+| `LAKELOGIC_SFTP_KEY` | `options.private_key_path` |
 
 ### Streaming / micro-batch
 
