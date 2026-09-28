@@ -11,6 +11,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Enhance source type handling and documentation; add tests for bundled docs
+## [Unreleased]
 
 ### Documentation
 
@@ -180,6 +181,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- Link definitions -->
 [0.16.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.15.0...v0.16.0
+[Unreleased]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.15.0...HEAD
 [0.15.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.12.0...v0.14.0
 [0.12.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.11.0...v0.12.0
