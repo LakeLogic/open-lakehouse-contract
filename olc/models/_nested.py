@@ -10,7 +10,7 @@ DO NOT hand-edit piecemeal: keep it a faithful projection of the reference shape
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union, get_args
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
@@ -164,11 +164,42 @@ class DltSourceConfig(BaseModel):
     max_table_nesting: int = 1
 
 
+#: The closed set of ``source.type`` values. One definition: the reference framework
+#: imports it (it does not keep its own list), and its dispatch is tested against it.
+SourceType = Literal[
+    "landing", "stream", "table", "delta", "iceberg", "database", "dlt", "sftp"
+]
+
+#: What each ``source.type`` reads. Emitted into the JSON schema next to the ``enum``.
+SOURCE_TYPE_DESCRIPTIONS: Dict[str, str] = {
+    "landing": "Files in a landing directory or object store (CSV, JSON, JSONL, Parquet), "
+    "selected by `path` + `pattern`, parsed per `format`.",
+    "stream": "A file or table location read in micro-batches, advanced by `watermark_field`.",
+    "table": "An upstream lakehouse table: a catalog name or a `table:` reference in `path`.",
+    "delta": "A Delta table directory, read by `path` without a catalog.",
+    "iceberg": "An Iceberg table directory, read by `path` without a catalog.",
+    "database": "A relational database, read by `query` over a connection in `options`.",
+    "dlt": "An HTTP API or a dlt verified source, declared in the `dlt` block.",
+    "sftp": "Files on an SFTP server: `path` is sftp://user@host[:port]/dir; auth in `options`.",
+}
+
+SOURCE_TYPES: Tuple[str, ...] = get_args(SourceType)
+assert set(SOURCE_TYPES) == set(SOURCE_TYPE_DESCRIPTIONS), (
+    "every source type needs a description"
+)
+
+
 class SourceConfig(BaseModel):
-    """Source acquisition settings for landing/stream/table/dlt inputs."""
+    """Source acquisition settings. ``type`` selects the kind (see ``SOURCE_TYPES``)."""
 
     model_config = ConfigDict(extra="allow")
-    type: str
+    type: SourceType = Field(
+        description="The kind of source. One of: "
+        + "; ".join(f"`{k}`: {v}" for k, v in SOURCE_TYPE_DESCRIPTIONS.items()),
+        json_schema_extra={
+            "enumDescriptions": [SOURCE_TYPE_DESCRIPTIONS[k] for k in SOURCE_TYPES]
+        },
+    )
     query: Optional[str] = None
     path: Optional[str] = None
     format: Optional[str] = None
@@ -732,7 +763,9 @@ class QualityRule(BaseModel):
 
     name: str
     sql: str
-    category: str = "correctness"
+    #: One of completeness | uniqueness | validity | consistency | accuracy. No default: a rule
+    #: that names no category is unclassified, and must be visibly so.
+    category: Optional[str] = None
     description: Optional[str] = None
     severity: str = "error"
     phase: str = "pre"

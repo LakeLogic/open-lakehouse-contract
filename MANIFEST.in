@@ -1,5 +1,7 @@
-# Ship schema/ + skills/ in the sdist so a wheel built FROM the sdist can still
+# Ship schema/ + skills/ + docs/{reference,providers} in the sdist so a wheel built FROM the sdist can still
 # vendor them into olc/_bundled/ (see setup.py). The wheel bundles copies directly.
 graft schema
 graft skills
+graft docs/reference
+graft docs/providers
 include pyproject.toml setup.py README.md LICENSE

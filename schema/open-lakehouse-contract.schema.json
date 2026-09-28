@@ -1927,9 +1927,16 @@
           "type": "string"
         },
         "category": {
-          "default": "correctness",
-          "title": "Category",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Category"
         },
         "description": {
           "anyOf": [
@@ -2535,9 +2542,30 @@
     },
     "SourceConfig": {
       "additionalProperties": false,
-      "description": "Source acquisition settings for landing/stream/table/dlt inputs.",
+      "description": "Source acquisition settings. ``type`` selects the kind (see ``SOURCE_TYPES``).",
       "properties": {
         "type": {
+          "description": "The kind of source. One of: `landing`: Files in a landing directory or object store (CSV, JSON, JSONL, Parquet), selected by `path` + `pattern`, parsed per `format`.; `stream`: A file or table location read in micro-batches, advanced by `watermark_field`.; `table`: An upstream lakehouse table: a catalog name or a `table:` reference in `path`.; `delta`: A Delta table directory, read by `path` without a catalog.; `iceberg`: An Iceberg table directory, read by `path` without a catalog.; `database`: A relational database, read by `query` over a connection in `options`.; `dlt`: An HTTP API or a dlt verified source, declared in the `dlt` block.; `sftp`: Files on an SFTP server: `path` is sftp://user@host[:port]/dir; auth in `options`.",
+          "enum": [
+            "landing",
+            "stream",
+            "table",
+            "delta",
+            "iceberg",
+            "database",
+            "dlt",
+            "sftp"
+          ],
+          "enumDescriptions": [
+            "Files in a landing directory or object store (CSV, JSON, JSONL, Parquet), selected by `path` + `pattern`, parsed per `format`.",
+            "A file or table location read in micro-batches, advanced by `watermark_field`.",
+            "An upstream lakehouse table: a catalog name or a `table:` reference in `path`.",
+            "A Delta table directory, read by `path` without a catalog.",
+            "An Iceberg table directory, read by `path` without a catalog.",
+            "A relational database, read by `query` over a connection in `options`.",
+            "An HTTP API or a dlt verified source, declared in the `dlt` block.",
+            "Files on an SFTP server: `path` is sftp://user@host[:port]/dir; auth in `options`."
+          ],
           "title": "Type",
           "type": "string"
         },

@@ -1,8 +1,9 @@
 version: 1.0.0
 info: { title: T, table_name: t }
 source:
-  type: parquet
+  type: landing
   path: source.parquet
+  format: parquet
   flatten_nested: true
 model:
   fields:
