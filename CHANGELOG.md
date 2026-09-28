@@ -6,15 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [Unreleased]
+
+### Documentation
+
+- Update changelog for v0.15.0
+- Update changelog for v0.14.0
 ## [0.15.0] — 2026-09-21
 
 ### Added
 
 - Add support for SCD1 surrogate key in materialization and update documentation
-
-### Documentation
-
-- Update changelog for v0.14.0
 ## [0.14.0] — 2026-09-15
 
 ### Added
@@ -171,6 +173,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[Unreleased]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.15.0...HEAD
 [0.15.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.12.0...v0.14.0
 [0.12.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.11.0...v0.12.0
