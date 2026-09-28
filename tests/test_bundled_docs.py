@@ -18,7 +18,9 @@ class BundledDocsTests(unittest.TestCase):
         src = sorted(p.name for p in (ROOT / "docs" / folder).glob("*.md"))
         dst = sorted(p.name for p in (BUNDLED / folder).glob("*.md"))
         self.assertTrue(src, f"docs/{folder} has no pages")
-        self.assertEqual(src, dst, f"bundled docs/{folder} is missing or has extra pages")
+        self.assertEqual(
+            src, dst, f"bundled docs/{folder} is missing or has extra pages"
+        )
         for name in src:
             self.assertEqual(
                 (ROOT / "docs" / folder / name).read_bytes(),

@@ -166,7 +166,9 @@ class DltSourceConfig(BaseModel):
 
 #: The closed set of ``source.type`` values. One definition: the reference framework
 #: imports it (it does not keep its own list), and its dispatch is tested against it.
-SourceType = Literal["landing", "stream", "table", "delta", "iceberg", "database", "dlt", "sftp"]
+SourceType = Literal[
+    "landing", "stream", "table", "delta", "iceberg", "database", "dlt", "sftp"
+]
 
 #: What each ``source.type`` reads. Emitted into the JSON schema next to the ``enum``.
 SOURCE_TYPE_DESCRIPTIONS: Dict[str, str] = {
@@ -182,7 +184,9 @@ SOURCE_TYPE_DESCRIPTIONS: Dict[str, str] = {
 }
 
 SOURCE_TYPES: Tuple[str, ...] = get_args(SourceType)
-assert set(SOURCE_TYPES) == set(SOURCE_TYPE_DESCRIPTIONS), "every source type needs a description"
+assert set(SOURCE_TYPES) == set(SOURCE_TYPE_DESCRIPTIONS), (
+    "every source type needs a description"
+)
 
 
 class SourceConfig(BaseModel):
@@ -192,7 +196,9 @@ class SourceConfig(BaseModel):
     type: SourceType = Field(
         description="The kind of source. One of: "
         + "; ".join(f"`{k}`: {v}" for k, v in SOURCE_TYPE_DESCRIPTIONS.items()),
-        json_schema_extra={"enumDescriptions": [SOURCE_TYPE_DESCRIPTIONS[k] for k in SOURCE_TYPES]},
+        json_schema_extra={
+            "enumDescriptions": [SOURCE_TYPE_DESCRIPTIONS[k] for k in SOURCE_TYPES]
+        },
     )
     query: Optional[str] = None
     path: Optional[str] = None

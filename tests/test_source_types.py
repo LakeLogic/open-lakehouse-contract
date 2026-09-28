@@ -16,14 +16,27 @@ from pydantic import ValidationError
 from olc.models._nested import SOURCE_TYPE_DESCRIPTIONS, SOURCE_TYPES, SourceConfig
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = json.loads((ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(encoding="utf-8"))
+SCHEMA = json.loads(
+    (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+        encoding="utf-8"
+    )
+)
 
 
 class SourceTypeTests(unittest.TestCase):
     def test_the_set_is_exactly_the_eight_the_engine_reads(self) -> None:
         self.assertEqual(
             set(SOURCE_TYPES),
-            {"landing", "stream", "table", "delta", "iceberg", "database", "dlt", "sftp"},
+            {
+                "landing",
+                "stream",
+                "table",
+                "delta",
+                "iceberg",
+                "database",
+                "dlt",
+                "sftp",
+            },
         )
 
     def test_every_value_loads(self) -> None:
@@ -41,7 +54,10 @@ class SourceTypeTests(unittest.TestCase):
     def test_schema_enum_matches_the_model_with_a_description_per_value(self) -> None:
         prop = SCHEMA["$defs"]["SourceConfig"]["properties"]["type"]
         self.assertEqual(prop["enum"], list(SOURCE_TYPES))
-        self.assertEqual(prop["enumDescriptions"], [SOURCE_TYPE_DESCRIPTIONS[k] for k in SOURCE_TYPES])
+        self.assertEqual(
+            prop["enumDescriptions"],
+            [SOURCE_TYPE_DESCRIPTIONS[k] for k in SOURCE_TYPES],
+        )
         for kind in SOURCE_TYPES:
             self.assertIn(f"`{kind}`", prop["description"])
 
@@ -50,6 +66,7 @@ class SourceTypeTests(unittest.TestCase):
         doc = {"version": "1.0.0", "info": {"title": "t"}, "model": {"fields": []}}
         ok = dict(doc, source={"type": "dlt"})
         bad = dict(doc, source={"type": "api"})
+
         def type_errors(doc):
             # `source` is optional, so a bad kind surfaces inside the anyOf's context.
             return [
