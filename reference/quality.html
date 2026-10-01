@@ -1452,6 +1452,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#coverage-expectations-quality_coverage-domain-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coverage expectations — quality_coverage (domain / system)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#when-rules-run-pre-vs-post" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2211,6 +2222,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#coverage-expectations-quality_coverage-domain-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coverage expectations — quality_coverage (domain / system)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#when-rules-run-pre-vs-post" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2549,9 +2571,43 @@
 </code></pre></div>
 <p>See <a href="security.html">Security &amp; PII</a> for the governance fields on <code>model.fields[]</code> (<code>pii</code>, <code>masking</code>, …).</p>
 <hr />
+<h2 id="coverage-expectations-quality_coverage-domain-system">Coverage expectations — <code>quality_coverage</code> (domain / system)</h2>
+<p>A contract's <code>quality</code> block says <em>which</em> checks run. How many checks are <em>enough</em> is a
+team decision, so it lives on <code>_domain.yaml</code> (and, like every domain block, a
+<code>_system.yaml</code> may override it). It runs nothing — it is what a platform scores a
+contract's declared checks against.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># _domain.yaml</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="nt">quality_coverage</span><span class="p">:</span>
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="w">  </span><span class="nt">silver</span><span class="p">:</span>
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="w">    </span><span class="nt">field_check_target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.7</span><span class="w">          </span><span class="c1"># 0..1 — share of model fields with ≥1 check</span>
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="w">  </span><span class="nt">gold</span><span class="p">:</span>
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a><span class="w">    </span><span class="nt">require</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">grain_unique</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">referential_integrity</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+<th>Omitted</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>silver.field_check_target</code></td>
+<td>Fraction (<code>0</code>–<code>1</code>) of a silver contract's model fields that must be referenced by at least one check (row rule, <code>not_null</code>/<code>required</code>, <code>accepted_values</code>, <code>range</code>, <code>unique</code>, field-level rules). Counted per <strong>distinct field</strong>, not per rule.</td>
+<td>Coverage reported, no pass/fail.</td>
+</tr>
+<tr>
+<td><code>gold.require</code></td>
+<td>Model-derived dataset checks a gold contract must declare. <code>grain_unique</code>: a uniqueness check over the primary / natural key. <code>referential_integrity</code>: on a fact, an orphan check for each dimension link.</td>
+<td>Reported, not required.</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="when-rules-run-pre-vs-post">When rules run (pre vs post)</h2>
 <p>Row rules default to <strong>pre</strong> (validate source columns before the good/bad split); mark a rule <code>phase: post</code> to validate <strong>derived</strong> columns produced by post-transforms. The full sequence is on the <a href="execution-order.html">Execution Order</a> page:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>pre-transforms → PRE quality rules → good/bad split → post-transforms → POST quality rules
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>pre-transforms → PRE quality rules → good/bad split → post-transforms → POST quality rules
 </code></pre></div>
 <ul>
 <li><strong>Pre</strong> rules can reference only source columns.</li>
@@ -2585,16 +2641,16 @@
 <hr />
 <h2 id="quarantine">Quarantine</h2>
 <p>Failing rows aren't dropped — they're written to a <strong>quarantine</strong> table <em>with the failed rule and reason</em>, so nothing is lost and every rejection is auditable (<code>Quarantine</code> model).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="nt">quarantine</span><span class="p">:</span>
-<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a><span class="w">  </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="s">"s3://quarantine-bucket/customers"</span><span class="w">   </span><span class="c1"># or table / location</span>
-<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="w">  </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">parquet</span><span class="w">                              </span><span class="c1"># parquet | csv | delta | iceberg | ducklake | json</span>
-<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a><span class="w">  </span><span class="nt">write_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">append</span><span class="w">                           </span><span class="c1"># append | overwrite</span>
-<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="w">  </span><span class="nt">include_error_reason</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                   </span><span class="c1"># attach the failing rule + message per row</span>
-<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="w">  </span><span class="nt">fail_on_quarantine</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                    </span><span class="c1"># true → any quarantined row fails the run</span>
-<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a><span class="w">  </span><span class="nt">notifications_enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="w">  </span><span class="nt">strict_notifications</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a><span class="w">  </span><span class="nt">notifications</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">]</span><span class="w">                        </span><span class="c1"># see Notifications</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="nt">quarantine</span><span class="p">:</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="w">  </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="s">"s3://quarantine-bucket/customers"</span><span class="w">   </span><span class="c1"># or table / location</span>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="w">  </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">parquet</span><span class="w">                              </span><span class="c1"># parquet | csv | delta | iceberg | ducklake | json</span>
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a><span class="w">  </span><span class="nt">write_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">append</span><span class="w">                           </span><span class="c1"># append | overwrite</span>
+<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="w">  </span><span class="nt">include_error_reason</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                   </span><span class="c1"># attach the failing rule + message per row</span>
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="w">  </span><span class="nt">fail_on_quarantine</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">                    </span><span class="c1"># true → any quarantined row fails the run</span>
+<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="w">  </span><span class="nt">notifications_enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="w">  </span><span class="nt">strict_notifications</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="w">  </span><span class="nt">notifications</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">]</span><span class="w">                        </span><span class="c1"># see Notifications</span>
 </code></pre></div>
 <table>
 <thead>
