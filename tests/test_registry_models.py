@@ -98,9 +98,8 @@ class RejectsWhatIsActuallyWrongTests(unittest.TestCase):
             },
         }
         for label, document in cases.items():
-            with self.subTest(case=label):
-                with self.assertRaises(Exception):
-                    load_strict_domain(document)
+            with self.subTest(case=label), self.assertRaises(Exception):
+                load_strict_domain(document)
 
     def test_malformed_system_values_are_refused(self) -> None:
         cases = {
@@ -111,9 +110,8 @@ class RejectsWhatIsActuallyWrongTests(unittest.TestCase):
             "contracts-not-a-list": {"system": "s", "contracts": {"layer": "bronze"}},
         }
         for label, document in cases.items():
-            with self.subTest(case=label):
-                with self.assertRaises(Exception):
-                    load_strict_system(document)
+            with self.subTest(case=label), self.assertRaises(Exception):
+                load_strict_system(document)
 
     def test_the_quality_collision_is_caught(self) -> None:
         """``quality`` means a RULE SET on a contract and THRESHOLDS on a domain.
@@ -229,9 +227,8 @@ class EventVocabularyTests(unittest.TestCase):
             "partial",
             "nonsense",
         ):
-            with self.subTest(token=token):
-                with self.assertRaises(Exception):
-                    load_strict_domain(self._doc(token))
+            with self.subTest(token=token), self.assertRaises(Exception):
+                load_strict_domain(self._doc(token))
 
     def test_canonical_event_maps_every_accepted_spelling(self) -> None:
         for token in NOTIFICATION_EVENT_TOKENS - {"all", "*"}:
@@ -272,9 +269,8 @@ class QualityCoverageTests(unittest.TestCase):
             "typo-key": {"silver": {"field_target": 0.7}},
         }
         for label, block in cases.items():
-            with self.subTest(case=label):
-                with self.assertRaises(Exception):
-                    load_strict_domain({"domain": "d", "quality_coverage": block})
+            with self.subTest(case=label), self.assertRaises(Exception):
+                load_strict_domain({"domain": "d", "quality_coverage": block})
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -21,10 +21,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from generate_reference import (  # noqa: E402
+from generate_reference import (
     CONTEXT_FILES,
-    EXAMPLES,
     END,
+    EXAMPLES,
     REFERENCE_PATH,
     SCHEMA_PATH,
     START,
@@ -54,10 +54,13 @@ class ReferenceDriftTests(unittest.TestCase):
     def test_examples_are_valid_olc(self) -> None:
         try:
             import yaml
+
             from olc.models import OLCContractV1
         except Exception as exc:  # pragma: no cover - minimal checkout
             self.skipTest(f"model unavailable: {exc}")
-        body = yaml.safe_load(re.search(r"```yaml\n(.*?)```", EXAMPLES, re.S).group(1))
+        body = yaml.safe_load(
+            re.search(r"```yaml\n(.*?)```", EXAMPLES, re.DOTALL).group(1)
+        )
         doc = {
             "version": "1.0.0",
             "info": {"title": "Example", "owner": "data-eng"},

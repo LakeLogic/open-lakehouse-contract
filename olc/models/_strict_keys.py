@@ -124,12 +124,12 @@ class _BagSpec:
     spec (e.g. ``scd2.unknown_member``).
     """
 
-    __slots__ = ("known", "children")
+    __slots__ = ("children", "known")
 
     def __init__(
         self,
         known: frozenset,
-        children: Mapping[str, "_BagSpec"] | None = None,
+        children: Mapping[str, _BagSpec] | None = None,
     ) -> None:
         self.known = known
         self.children = dict(children or {})

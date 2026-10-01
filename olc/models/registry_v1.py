@@ -38,43 +38,44 @@ from olc.models._nested import (
     LineageConfig,
     Materialization,
     Notification,
+    PostIngestionConfig,
     Quarantine,
+    SchemaPolicy,
 )
-from olc.models._nested import PostIngestionConfig, SchemaPolicy
 from olc.models._strict_keys import collect_unknown_nested_keys
 
 __all__ = [
-    "OLCDomainV1",
-    "OLCSystemV1",
-    "DomainOwnership",
-    "OwnershipContact",
-    "DomainSLO",
-    "DomainCost",
-    "SystemCost",
-    "DomainCompliance",
-    "DomainObservatory",
-    "DomainRetention",
-    "RegistryEnvironment",
-    "SystemMetadata",
-    "SystemStorage",
-    "SystemContractEntry",
-    "ExternalSource",
-    "DataProductEntry",
-    "ExpectedOutputEntry",
-    "PRODUCT_ID_PATTERN",
-    "RegistryQuarantine",
-    "LayerServer",
-    "LayerPostIngestion",
-    "ActiveGates",
-    "RegistryNotification",
-    "NOTIFICATION_EVENTS",
-    "NOTIFICATION_EVENT_TOKENS",
-    "canonical_event",
     "CANONICAL_NOTIFICATION_EVENTS",
     "DEPRECATED_NOTIFICATION_EVENTS",
-    "preferred_spelling",
+    "NOTIFICATION_EVENTS",
+    "NOTIFICATION_EVENT_TOKENS",
+    "PRODUCT_ID_PATTERN",
+    "ActiveGates",
+    "DataProductEntry",
+    "DomainCompliance",
+    "DomainCost",
+    "DomainObservatory",
+    "DomainOwnership",
+    "DomainRetention",
+    "DomainSLO",
+    "ExpectedOutputEntry",
+    "ExternalSource",
+    "LayerPostIngestion",
+    "LayerServer",
+    "OLCDomainV1",
+    "OLCSystemV1",
+    "OwnershipContact",
+    "RegistryEnvironment",
+    "RegistryNotification",
+    "RegistryQuarantine",
+    "SystemContractEntry",
+    "SystemCost",
+    "SystemMetadata",
+    "SystemStorage",
+    "canonical_event",
     "load_strict_domain",
     "load_strict_system",
+    "preferred_spelling",
 ]
 
 
@@ -861,11 +862,11 @@ def _load_strict(document: Any, model_cls: type, kind: str):
     return model
 
 
-def load_strict_domain(document: Any) -> "OLCDomainV1":
+def load_strict_domain(document: Any) -> OLCDomainV1:
     """Validate a ``_domain.yaml`` dict against the standard."""
     return _load_strict(document, OLCDomainV1, "_domain.yaml")
 
 
-def load_strict_system(document: Any) -> "OLCSystemV1":
+def load_strict_system(document: Any) -> OLCSystemV1:
     """Validate a ``_system.yaml`` dict against the standard."""
     return _load_strict(document, OLCSystemV1, "_system.yaml")
