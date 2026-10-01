@@ -6,6 +6,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [Unreleased]
+
+### Added
+
+- Optional `quality_coverage` block on `_domain.yaml` / `_system.yaml`: `silver.field_check_target` (0..1) and `gold.require` (`grain_unique`, `referential_integrity`) — coverage expectations a platform scores declared checks against.
+
 ## [0.16.0] — 2026-09-28
 
 ### Added

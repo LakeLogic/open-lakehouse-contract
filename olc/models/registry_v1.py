@@ -298,6 +298,40 @@ class DomainRetention(_Base):
     gold: Optional[str] = None
 
 
+class SilverQualityCoverage(_Base):
+    """Silver: how many of a contract's model fields must carry at least one check.
+
+    ``field_check_target`` is a fraction (``0.7`` = 70% of fields). Omitted means
+    coverage is reported only — no pass/fail.
+    """
+
+    field_check_target: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+
+
+#: Gold dataset checks a domain can require.
+#:
+#: ``grain_unique`` — a uniqueness check on the model's grain (primary/natural key).
+#: ``referential_integrity`` — every fact→dimension link has an orphan check.
+GoldRequiredCheck = Literal["grain_unique", "referential_integrity"]
+
+
+class GoldQualityCoverage(_Base):
+    """Gold: which model-derived dataset checks are required. Omitted = report only."""
+
+    require: Optional[List[GoldRequiredCheck]] = None
+
+
+class QualityCoverage(_Base):
+    """What "enough checks" means for this domain (or system), per layer.
+
+    Declarative expectations a platform scores contracts against. It is not a rule
+    set and runs nothing — a contract's ``quality`` block carries the rules.
+    """
+
+    silver: Optional[SilverQualityCoverage] = None
+    gold: Optional[GoldQualityCoverage] = None
+
+
 class DomainObservatory(_Base):
     """Telemetry push. ``Dict[str, Any]`` on the contract; typed here.
 
@@ -693,6 +727,7 @@ class _RegistryDocument(_Base):
         None
     )
     active_gates: Optional[ActiveGates] = None
+    quality_coverage: Optional[QualityCoverage] = None
     bronze_layer: Optional[str] = None
     silver_layer: Optional[str] = None
     gold_layer: Optional[str] = None

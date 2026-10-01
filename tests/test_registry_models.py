@@ -239,5 +239,43 @@ class EventVocabularyTests(unittest.TestCase):
                 self.assertIsNotNone(canonical_event(token))
 
 
+class QualityCoverageTests(unittest.TestCase):
+    """``quality_coverage``: per-layer expectations a platform scores contracts against."""
+
+    FULL = {
+        "silver": {"field_check_target": 0.7},
+        "gold": {"require": ["grain_unique", "referential_integrity"]},
+    }
+
+    def test_full_block_validates_on_domain_and_system(self) -> None:
+        domain = load_strict_domain({"domain": "d", "quality_coverage": self.FULL})
+        self.assertEqual(domain.quality_coverage.silver.field_check_target, 0.7)
+        self.assertEqual(
+            domain.quality_coverage.gold.require,
+            ["grain_unique", "referential_integrity"],
+        )
+        system = load_strict_system({"system": "s", "quality_coverage": self.FULL})
+        self.assertEqual(system.quality_coverage.silver.field_check_target, 0.7)
+
+    def test_every_part_is_optional(self) -> None:
+        for block in ({}, {"silver": {}}, {"gold": {}}, {"gold": {"require": []}}):
+            with self.subTest(block=block):
+                load_strict_domain({"domain": "d", "quality_coverage": block})
+
+    def test_bad_values_are_refused(self) -> None:
+        cases = {
+            "target-above-one": {"silver": {"field_check_target": 1.5}},
+            "target-negative": {"silver": {"field_check_target": -0.1}},
+            "target-a-percent-string": {"silver": {"field_check_target": "70%"}},
+            "unknown-gold-check": {"gold": {"require": ["three_rules"]}},
+            "require-not-a-list": {"gold": {"require": "grain_unique"}},
+            "typo-key": {"silver": {"field_target": 0.7}},
+        }
+        for label, block in cases.items():
+            with self.subTest(case=label):
+                with self.assertRaises(Exception):
+                    load_strict_domain({"domain": "d", "quality_coverage": block})
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

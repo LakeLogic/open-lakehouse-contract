@@ -321,6 +321,29 @@ See [Security & PII](security.md) for the governance fields on `model.fields[]` 
 
 ---
 
+## Coverage expectations — `quality_coverage` (domain / system)
+
+A contract's `quality` block says *which* checks run. How many checks are *enough* is a
+team decision, so it lives on `_domain.yaml` (and, like every domain block, a
+`_system.yaml` may override it). It runs nothing — it is what a platform scores a
+contract's declared checks against.
+
+```yaml
+# _domain.yaml
+quality_coverage:
+  silver:
+    field_check_target: 0.7          # 0..1 — share of model fields with ≥1 check
+  gold:
+    require: [grain_unique, referential_integrity]
+```
+
+| Key | Meaning | Omitted |
+|---|---|---|
+| `silver.field_check_target` | Fraction (`0`–`1`) of a silver contract's model fields that must be referenced by at least one check (row rule, `not_null`/`required`, `accepted_values`, `range`, `unique`, field-level rules). Counted per **distinct field**, not per rule. | Coverage reported, no pass/fail. |
+| `gold.require` | Model-derived dataset checks a gold contract must declare. `grain_unique`: a uniqueness check over the primary / natural key. `referential_integrity`: on a fact, an orphan check for each dimension link. | Reported, not required. |
+
+---
+
 ## When rules run (pre vs post)
 
 Row rules default to **pre** (validate source columns before the good/bad split); mark a rule `phase: post` to validate **derived** columns produced by post-transforms. The full sequence is on the [Execution Order](execution-order.md) page:
