@@ -6,18 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [Unreleased]
+## [0.17.0] — 2026-10-01
 
 ### Added
 
-- Optional `quality_coverage` block on `_domain.yaml` / `_system.yaml`: `silver.field_check_target` (0..1) and `gold.require` (`grain_unique`, `referential_integrity`) — coverage expectations a platform scores declared checks against.
+- Add quality coverage expectations for silver and gold contracts
 
+### Documentation
+
+- Update changelog for v0.16.0
 ## [0.16.0] — 2026-09-28
 
 ### Added
 
 - Enhance source type handling and documentation; add tests for bundled docs
-## [Unreleased]
 
 ### Documentation
 
@@ -186,8 +188,8 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.17.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.15.0...v0.16.0
-[Unreleased]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.15.0...HEAD
 [0.15.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.12.0...v0.14.0
 [0.12.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.11.0...v0.12.0

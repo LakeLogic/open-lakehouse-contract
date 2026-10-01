@@ -279,3 +279,21 @@ class QualityCoverageTests(unittest.TestCase):
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
+
+
+class QuarantineTableNameTests(unittest.TestCase):
+    """`storage.quarantine_table_name` is standard: the runtime honoured it and Build Centre
+    emits it, but strict validation rejected every system file carrying it (2026-10-01)."""
+
+    def test_a_system_may_name_its_quarantine_tables(self):
+        doc = load_strict_system(
+            {
+                "domain": "marketing",
+                "system": "google_ads",
+                "storage": {
+                    "quarantine_root": "`{catalog}`.{domain}",
+                    "quarantine_table_name": "quarantine_{table}",
+                },
+            }
+        )
+        self.assertEqual(doc.storage.quarantine_table_name, "quarantine_{table}")

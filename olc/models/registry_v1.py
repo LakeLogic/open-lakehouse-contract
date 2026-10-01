@@ -536,6 +536,10 @@ class SystemStorage(_Base):
 
     domain_catalog: Optional[str] = None
     quarantine_root: Optional[str] = None
+    #: Name template for a contract's quarantine table under ``quarantine_root``, e.g.
+    #: ``quarantine_{table}`` - rejects sit beside their table in the domain schema.
+    #: Interpolates ``{table}``, ``{domain}``, ``{system}``. Omitted = the runtime default.
+    quarantine_table_name: Optional[str] = None
     external_location_root: Optional[str] = None
     contract_root: Optional[str] = None
     landing_root: Optional[str] = None
