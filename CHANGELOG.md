@@ -10,6 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Documentation
 
+- Update changelog for v0.17.0
 - Update changelog for v0.16.0
 ## [0.16.0] — 2026-09-28
 
