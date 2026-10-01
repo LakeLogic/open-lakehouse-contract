@@ -1261,7 +1261,7 @@ class UpstreamSource(BaseModel):
     note: Optional[str] = None
     columns_used: List[str] = Field(default_factory=list)
     # Nested origins that feed THIS source (e.g. the source system behind a landing zone).
-    upstream_sources: List["UpstreamSource"] = Field(default_factory=list)
+    upstream_sources: List[UpstreamSource] = Field(default_factory=list)
 
 
 # Resolve the self-referential ``upstream_sources`` forward ref above.
@@ -1314,7 +1314,7 @@ class DownstreamConsumer(BaseModel):
     # lineage (e.g. gold table → semantic_model → report). A report nested under
     # a semantic_model consumes the table via that model. Self-referential; the
     # strict OLC v1 path recurses into these and enforces the same key rules.
-    consumers: List["DownstreamConsumer"] = Field(default_factory=list)
+    consumers: List[DownstreamConsumer] = Field(default_factory=list)
 
 
 # Resolve the self-referential ``consumers`` forward ref above.

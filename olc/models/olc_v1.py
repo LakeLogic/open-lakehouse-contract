@@ -100,7 +100,7 @@ class OLCContractV1(BaseModel):
         return data
 
     @model_validator(mode="after")
-    def _data_product_reference_is_well_formed(self) -> "OLCContractV1":
+    def _data_product_reference_is_well_formed(self) -> OLCContractV1:
         """``info.data_product`` / ``info.data_product_output`` are product and output ids.
 
         Checked here, not on ``Info``: the lenient runtime re-uses ``Info``, and a format rule

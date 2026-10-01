@@ -73,6 +73,19 @@ if errorlevel 1 (
 )
 git add uv.lock
 
+REM Step 0a: Agent skills — regenerate the format reference from the schema and extend
+REM every skill file that lacks it. Before the tests, so the reference-drift gate checks
+REM what this release will ship. Unchanged files are not touched.
+echo.
+echo [0a/6] Updating agent skills from the schema...
+python scripts/generate_reference.py
+if errorlevel 1 (
+    echo.
+    echo ERROR: Could not regenerate the OLC reference for agent skills.
+    exit /b 1
+)
+git add skills
+
 REM Step 0b: Unit tests — abort release if they fail
 echo.
 echo [0b/6] Running tests...

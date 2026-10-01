@@ -38,43 +38,44 @@ from olc.models._nested import (
     LineageConfig,
     Materialization,
     Notification,
+    PostIngestionConfig,
     Quarantine,
+    SchemaPolicy,
 )
-from olc.models._nested import PostIngestionConfig, SchemaPolicy
 from olc.models._strict_keys import collect_unknown_nested_keys
 
 __all__ = [
-    "OLCDomainV1",
-    "OLCSystemV1",
-    "DomainOwnership",
-    "OwnershipContact",
-    "DomainSLO",
-    "DomainCost",
-    "SystemCost",
-    "DomainCompliance",
-    "DomainObservatory",
-    "DomainRetention",
-    "RegistryEnvironment",
-    "SystemMetadata",
-    "SystemStorage",
-    "SystemContractEntry",
-    "ExternalSource",
-    "DataProductEntry",
-    "ExpectedOutputEntry",
-    "PRODUCT_ID_PATTERN",
-    "RegistryQuarantine",
-    "LayerServer",
-    "LayerPostIngestion",
-    "ActiveGates",
-    "RegistryNotification",
-    "NOTIFICATION_EVENTS",
-    "NOTIFICATION_EVENT_TOKENS",
-    "canonical_event",
     "CANONICAL_NOTIFICATION_EVENTS",
     "DEPRECATED_NOTIFICATION_EVENTS",
-    "preferred_spelling",
+    "NOTIFICATION_EVENTS",
+    "NOTIFICATION_EVENT_TOKENS",
+    "PRODUCT_ID_PATTERN",
+    "ActiveGates",
+    "DataProductEntry",
+    "DomainCompliance",
+    "DomainCost",
+    "DomainObservatory",
+    "DomainOwnership",
+    "DomainRetention",
+    "DomainSLO",
+    "ExpectedOutputEntry",
+    "ExternalSource",
+    "LayerPostIngestion",
+    "LayerServer",
+    "OLCDomainV1",
+    "OLCSystemV1",
+    "OwnershipContact",
+    "RegistryEnvironment",
+    "RegistryNotification",
+    "RegistryQuarantine",
+    "SystemContractEntry",
+    "SystemCost",
+    "SystemMetadata",
+    "SystemStorage",
+    "canonical_event",
     "load_strict_domain",
     "load_strict_system",
+    "preferred_spelling",
 ]
 
 
@@ -298,6 +299,40 @@ class DomainRetention(_Base):
     gold: Optional[str] = None
 
 
+class SilverQualityCoverage(_Base):
+    """Silver: how many of a contract's model fields must carry at least one check.
+
+    ``field_check_target`` is a fraction (``0.7`` = 70% of fields). Omitted means
+    coverage is reported only — no pass/fail.
+    """
+
+    field_check_target: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+
+
+#: Gold dataset checks a domain can require.
+#:
+#: ``grain_unique`` — a uniqueness check on the model's grain (primary/natural key).
+#: ``referential_integrity`` — every fact→dimension link has an orphan check.
+GoldRequiredCheck = Literal["grain_unique", "referential_integrity"]
+
+
+class GoldQualityCoverage(_Base):
+    """Gold: which model-derived dataset checks are required. Omitted = report only."""
+
+    require: Optional[List[GoldRequiredCheck]] = None
+
+
+class QualityCoverage(_Base):
+    """What "enough checks" means for this domain (or system), per layer.
+
+    Declarative expectations a platform scores contracts against. It is not a rule
+    set and runs nothing — a contract's ``quality`` block carries the rules.
+    """
+
+    silver: Optional[SilverQualityCoverage] = None
+    gold: Optional[GoldQualityCoverage] = None
+
+
 class DomainObservatory(_Base):
     """Telemetry push. ``Dict[str, Any]`` on the contract; typed here.
 
@@ -502,6 +537,10 @@ class SystemStorage(_Base):
 
     domain_catalog: Optional[str] = None
     quarantine_root: Optional[str] = None
+    #: Name template for a contract's quarantine table under ``quarantine_root``, e.g.
+    #: ``quarantine_{table}`` - rejects sit beside their table in the domain schema.
+    #: Interpolates ``{table}``, ``{domain}``, ``{system}``. Omitted = the runtime default.
+    quarantine_table_name: Optional[str] = None
     external_location_root: Optional[str] = None
     contract_root: Optional[str] = None
     landing_root: Optional[str] = None
@@ -693,6 +732,7 @@ class _RegistryDocument(_Base):
         None
     )
     active_gates: Optional[ActiveGates] = None
+    quality_coverage: Optional[QualityCoverage] = None
     bronze_layer: Optional[str] = None
     silver_layer: Optional[str] = None
     gold_layer: Optional[str] = None
@@ -822,11 +862,11 @@ def _load_strict(document: Any, model_cls: type, kind: str):
     return model
 
 
-def load_strict_domain(document: Any) -> "OLCDomainV1":
+def load_strict_domain(document: Any) -> OLCDomainV1:
     """Validate a ``_domain.yaml`` dict against the standard."""
     return _load_strict(document, OLCDomainV1, "_domain.yaml")
 
 
-def load_strict_system(document: Any) -> "OLCSystemV1":
+def load_strict_system(document: Any) -> OLCSystemV1:
     """Validate a ``_system.yaml`` dict against the standard."""
     return _load_strict(document, OLCSystemV1, "_system.yaml")

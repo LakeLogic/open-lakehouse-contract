@@ -24,7 +24,7 @@ it was written as.
 from __future__ import annotations
 
 import re
-from typing import Any, IO, Union
+from typing import IO, Any, Union
 
 import yaml
 

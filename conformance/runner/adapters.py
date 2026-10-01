@@ -607,7 +607,7 @@ class SparkAdapter(LakeLogicAdapter):
                         f"  (toPandas succeeded on attempt {attempt + 1} after a transient Spark error)"
                     )
                 return [{k: _plain(v) for k, v in rec.items()} for rec in records]
-            except Exception as exc:  # noqa: PERF203 - retry is the point
+            except Exception as exc:
                 last_exc = exc
                 if "SOCKET" not in str(exc).upper() and "collectToPython" not in str(
                     exc

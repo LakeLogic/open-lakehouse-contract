@@ -24,11 +24,11 @@ from olc.models.registry_v1 import (
 )
 
 __all__ = [
+    "DataProductEntry",
+    "ExpectedOutputEntry",
     "OLCContractV1",
     "OLCDomainV1",
     "OLCSystemV1",
-    "DataProductEntry",
-    "ExpectedOutputEntry",
     "StrictServer",
     "collect_unknown_nested_keys",
     "load_strict",

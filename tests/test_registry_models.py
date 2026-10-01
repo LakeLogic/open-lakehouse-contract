@@ -98,9 +98,8 @@ class RejectsWhatIsActuallyWrongTests(unittest.TestCase):
             },
         }
         for label, document in cases.items():
-            with self.subTest(case=label):
-                with self.assertRaises(Exception):
-                    load_strict_domain(document)
+            with self.subTest(case=label), self.assertRaises(Exception):
+                load_strict_domain(document)
 
     def test_malformed_system_values_are_refused(self) -> None:
         cases = {
@@ -111,9 +110,8 @@ class RejectsWhatIsActuallyWrongTests(unittest.TestCase):
             "contracts-not-a-list": {"system": "s", "contracts": {"layer": "bronze"}},
         }
         for label, document in cases.items():
-            with self.subTest(case=label):
-                with self.assertRaises(Exception):
-                    load_strict_system(document)
+            with self.subTest(case=label), self.assertRaises(Exception):
+                load_strict_system(document)
 
     def test_the_quality_collision_is_caught(self) -> None:
         """``quality`` means a RULE SET on a contract and THRESHOLDS on a domain.
@@ -229,9 +227,8 @@ class EventVocabularyTests(unittest.TestCase):
             "partial",
             "nonsense",
         ):
-            with self.subTest(token=token):
-                with self.assertRaises(Exception):
-                    load_strict_domain(self._doc(token))
+            with self.subTest(token=token), self.assertRaises(Exception):
+                load_strict_domain(self._doc(token))
 
     def test_canonical_event_maps_every_accepted_spelling(self) -> None:
         for token in NOTIFICATION_EVENT_TOKENS - {"all", "*"}:
@@ -239,5 +236,60 @@ class EventVocabularyTests(unittest.TestCase):
                 self.assertIsNotNone(canonical_event(token))
 
 
+class QualityCoverageTests(unittest.TestCase):
+    """``quality_coverage``: per-layer expectations a platform scores contracts against."""
+
+    FULL = {
+        "silver": {"field_check_target": 0.7},
+        "gold": {"require": ["grain_unique", "referential_integrity"]},
+    }
+
+    def test_full_block_validates_on_domain_and_system(self) -> None:
+        domain = load_strict_domain({"domain": "d", "quality_coverage": self.FULL})
+        self.assertEqual(domain.quality_coverage.silver.field_check_target, 0.7)
+        self.assertEqual(
+            domain.quality_coverage.gold.require,
+            ["grain_unique", "referential_integrity"],
+        )
+        system = load_strict_system({"system": "s", "quality_coverage": self.FULL})
+        self.assertEqual(system.quality_coverage.silver.field_check_target, 0.7)
+
+    def test_every_part_is_optional(self) -> None:
+        for block in ({}, {"silver": {}}, {"gold": {}}, {"gold": {"require": []}}):
+            with self.subTest(block=block):
+                load_strict_domain({"domain": "d", "quality_coverage": block})
+
+    def test_bad_values_are_refused(self) -> None:
+        cases = {
+            "target-above-one": {"silver": {"field_check_target": 1.5}},
+            "target-negative": {"silver": {"field_check_target": -0.1}},
+            "target-a-percent-string": {"silver": {"field_check_target": "70%"}},
+            "unknown-gold-check": {"gold": {"require": ["three_rules"]}},
+            "require-not-a-list": {"gold": {"require": "grain_unique"}},
+            "typo-key": {"silver": {"field_target": 0.7}},
+        }
+        for label, block in cases.items():
+            with self.subTest(case=label), self.assertRaises(Exception):
+                load_strict_domain({"domain": "d", "quality_coverage": block})
+
+
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
+
+
+class QuarantineTableNameTests(unittest.TestCase):
+    """`storage.quarantine_table_name` is standard: the runtime honoured it and Build Centre
+    emits it, but strict validation rejected every system file carrying it (2026-10-01)."""
+
+    def test_a_system_may_name_its_quarantine_tables(self):
+        doc = load_strict_system(
+            {
+                "domain": "marketing",
+                "system": "google_ads",
+                "storage": {
+                    "quarantine_root": "`{catalog}`.{domain}",
+                    "quarantine_table_name": "quarantine_{table}",
+                },
+            }
+        )
+        self.assertEqual(doc.storage.quarantine_table_name, "quarantine_{table}")
