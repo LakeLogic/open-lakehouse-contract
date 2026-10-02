@@ -1,0 +1,20 @@
+id: OLC-T-022
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.deduplicate.blank_keys
+description: >
+  When the key already has a not-null rule (here the automatic id_required from
+  required: true), that rule quarantines the blank-key rows and no second rule is
+  added: each row is attributed once.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 5
+  rows_accepted: 2
+  rows_quarantined: 2
+  failed_rules:
+    id_required: 2
+comparison:
+  sort_by: [value]

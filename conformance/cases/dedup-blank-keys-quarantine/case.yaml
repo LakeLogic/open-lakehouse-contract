@@ -1,0 +1,20 @@
+id: OLC-T-020
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.deduplicate.blank_keys
+description: >
+  A blank dedup key is never a duplicate of another blank key. With the default
+  blank_keys: quarantine, every blank-key row is quarantined under the automatic
+  rule id_required_for_dedup; none is collapsed or silently dropped.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 5
+  rows_accepted: 2
+  rows_quarantined: 2
+  failed_rules:
+    id_required_for_dedup: 2
+comparison:
+  sort_by: [value]

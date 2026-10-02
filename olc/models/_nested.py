@@ -356,6 +356,17 @@ class TransformationDeduplicate(BaseModel):
         ),
     )
     order: str = "desc"
+    blank_keys: Literal["quarantine", "keep"] = Field(
+        default="quarantine",
+        description=(
+            "What happens to rows whose dedup key is blank (ANY key column is null). "
+            "A blank key is never a duplicate of another blank key, so these rows are "
+            "never grouped or collapsed. `quarantine` (default) routes them to "
+            "quarantine under the rule `<key>_required_for_dedup` (composite keys "
+            "joined with `__`), unless a not-null rule on every key column already "
+            "quarantines them; `keep` passes them through ungrouped."
+        ),
+    )
 
 
 class TransformationDeduplicateByLatest(BaseModel):

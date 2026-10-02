@@ -199,6 +199,31 @@ Order by the column that identifies the newest *record version* (`updated_at`), 
 a business-event column: duplicates are usually re-deliveries of one row, and the
 event columns are identical across them.
 
+#### Blank keys: `blank_keys: quarantine | keep`
+
+A row whose dedup key is **blank** — ANY key column is null, composite keys
+included — is never a duplicate of another blank row. Grouping nulls together would
+collapse every keyless row into one and silently discard the rest before any quality
+rule could see them. So blank-key rows are never grouped; `blank_keys` decides what
+happens to them:
+
+| `blank_keys` | Effect |
+| --- | --- |
+| `quarantine` (default) | Rows are quarantined by an automatic row rule named `<key>_required_for_dedup` (composite keys joined with `__`, e.g. `trip_id__trip_date_required_for_dedup`), description "dedup key must not be blank". If every key column already has a `<col> IS NOT NULL` rule (including the automatic `<field>_required` from `required: true`), no extra rule is added: that existing rule quarantines the row, so it is reported once, under one rule. |
+| `keep` | Rows pass through ungrouped and are all kept. |
+
+Conformance cases `OLC-T-020` (quarantine), `OLC-T-021` (keep) and `OLC-T-022`
+(existing not-null rule, single attribution). An empty string is a value, not a
+blank key. Rows with the same non-blank key collapse
+exactly as before. Equivalent SQL for `keep`:
+
+```sql
+SELECT * FROM source WHERE customer_id IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY updated_at DESC) = 1
+UNION ALL
+SELECT * FROM source WHERE customer_id IS NULL
+```
+
 > **Deprecated:** `deduplicate_by_latest: { key_columns, timestamp_column }` is
 > exactly `deduplicate` with `sort_by: [timestamp_column], order: desc`. It adds no
 > expressiveness — it cannot express "keep the earliest" or a multi-column

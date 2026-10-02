@@ -1,0 +1,10 @@
+version: 1.0.0
+info: { title: Events, table_name: events }
+model:
+  fields:
+    - { name: id, type: integer, required: false }
+    - { name: value, type: string }
+    - { name: ts, type: string }
+transformations:
+  - phase: pre
+    deduplicate: { "on": [id], sort_by: [ts], order: desc, blank_keys: keep }

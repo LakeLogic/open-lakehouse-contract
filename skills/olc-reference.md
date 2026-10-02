@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `e91367921bea`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `51a7da10c133`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -754,6 +754,7 @@ Deduplication rule configuration.
 | `on` | list[string] |  |
 | `sort_by` | list[string] | **required** · Columns determining which duplicate survives, applied with `order`. |
 | `order` | string | default `"desc"` |
+| `blank_keys` | "quarantine" \| "keep" | default `"quarantine"` · What happens to rows whose dedup key is blank (ANY key column is null). |
 | `by` | list[string] |  |
 
 Unknown keys rejected.

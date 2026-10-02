@@ -1,0 +1,16 @@
+id: OLC-T-021
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.deduplicate.blank_keys
+description: >
+  With blank_keys: keep, blank-key rows pass through ungrouped and are all kept;
+  rows sharing a non-blank key still collapse by sort_by.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 5
+  rows_accepted: 4
+  rows_quarantined: 0
+comparison:
+  sort_by: [value]
