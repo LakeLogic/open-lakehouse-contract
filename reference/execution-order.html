@@ -1108,6 +1108,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#when-a-checks-phase-is-not-written" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a check's phase is not written
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#related" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1669,6 +1680,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#when-a-checks-phase-is-not-written" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When a check's phase is not written
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#related" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1816,7 +1838,23 @@
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">email_present</span><span class="p p-Indicator">,</span><span class="nt"> sql</span><span class="p">:</span><span class="w"> </span><span class="s">"email</span><span class="nv"> </span><span class="s">IS</span><span class="nv"> </span><span class="s">NOT</span><span class="nv"> </span><span class="s">NULL"</span><span class="p p-Indicator">,</span><span class="nt"> phase</span><span class="p">:</span><span class="w"> </span><span class="nv">pre</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># checks source</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">total_positive</span><span class="p p-Indicator">,</span><span class="nt"> sql</span><span class="p">:</span><span class="w"> </span><span class="s">"line_total</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">0"</span><span class="p p-Indicator">,</span><span class="nt">   phase</span><span class="p">:</span><span class="w"> </span><span class="nv">post</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">  </span><span class="c1"># checks derived</span>
 </code></pre></div>
-<p>If you omit <code>phase</code>, each op uses its natural default (normalizing ops default to <code>pre</code>, enriching ops to <code>post</code>), but being explicit is clearer for anything order-sensitive.</p>
+<p>If you omit <code>phase</code> on a <strong>transformation</strong>, it runs in <code>post</code> — every kind, normalizing ones included. Write <code>phase: pre</code> on a <code>trim</code>, <code>cast</code> or <code>rename</code> that checks depend on.</p>
+<h2 id="when-a-checks-phase-is-not-written">When a check's phase is not written</h2>
+<p>A quality check whose <code>phase</code> you leave out runs <strong>where its columns exist</strong>:</p>
+<ul>
+<li>in the <strong>pre</strong> phase, unless</li>
+<li>it reads a column that only a <strong>post</strong> transformation creates (a <code>derive</code>, <code>json_extract</code>, <code>lookup</code>, <code>join</code>, <code>rollup</code>, SQL alias, …) — then in the <strong>post</strong> phase.</li>
+</ul>
+<p>This covers <code>required: true</code> and other field-level checks on model fields, and row rules without a <code>phase</code>. A gold model describes its <strong>output</strong>, so <code>required: true</code> on a column the post SQL builds means "required in the output":</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">model</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">fields</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> name</span><span class="p">:</span><span class="w"> </span><span class="nv">created_date</span><span class="p p-Indicator">,</span><span class="nt"> type</span><span class="p">:</span><span class="w"> </span><span class="nv">date</span><span class="p p-Indicator">,</span><span class="nt"> required</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># built below: checked after the SQL</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">transformations</span><span class="p">:</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">sql</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SELECT CAST(created_at AS DATE) AS created_date, ... FROM source GROUP BY 1</span>
+</code></pre></div>
+<p>A check <strong>written</strong> <code>phase: pre</code> always runs pre. If it reads a column only a post transformation creates, that column does not exist yet, so every row would fail: <code>lakelogic lint</code> reports it as <strong>PHS-001</strong>.</p>
+<p>A transformation that <strong>rewrites</strong> a column in place (<code>trim</code>, <code>cast</code>, <code>derive</code> of an existing field) does not create it: a pre check of that column checks the <strong>source</strong> value.</p>
+<p>Every runtime follows this order. Conformance cases <code>OLC-EO-001</code>–<code>OLC-EO-005</code> check it on each engine.</p>
 <h2 id="related">Related</h2>
 <ul>
 <li><a href="transformation.html">Transformation</a> — the ops available in each phase (SQL variant + shorthand).</li>
