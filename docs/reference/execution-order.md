@@ -56,7 +56,30 @@ quality:
     - { name: total_positive, sql: "line_total > 0",   phase: post }  # checks derived
 ```
 
-If you omit `phase`, each op uses its natural default (normalizing ops default to `pre`, enriching ops to `post`), but being explicit is clearer for anything order-sensitive.
+If you omit `phase` on a **transformation**, it runs in `post` — every kind, normalizing ones included. Write `phase: pre` on a `trim`, `cast` or `rename` that checks depend on.
+
+## When a check's phase is not written
+
+A quality check whose `phase` you leave out runs **where its columns exist**:
+
+- in the **pre** phase, unless
+- it reads a column that only a **post** transformation creates (a `derive`, `json_extract`, `lookup`, `join`, `rollup`, SQL alias, …) — then in the **post** phase.
+
+This covers `required: true` and other field-level checks on model fields, and row rules without a `phase`. A gold model describes its **output**, so `required: true` on a column the post SQL builds means "required in the output":
+
+```yaml
+model:
+  fields:
+    - { name: created_date, type: date, required: true }   # built below: checked after the SQL
+transformations:
+  - sql: SELECT CAST(created_at AS DATE) AS created_date, ... FROM source GROUP BY 1
+```
+
+A check **written** `phase: pre` always runs pre. If it reads a column only a post transformation creates, that column does not exist yet, so every row would fail: `lakelogic lint` reports it as **PHS-001**.
+
+A transformation that **rewrites** a column in place (`trim`, `cast`, `derive` of an existing field) does not create it: a pre check of that column checks the **source** value.
+
+Every runtime follows this order. Conformance cases `OLC-EO-001`–`OLC-EO-005` check it on each engine.
 
 ## Related
 

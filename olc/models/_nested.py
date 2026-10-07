@@ -962,6 +962,10 @@ class FieldDefinition(BaseModel):
     extraction_task: Optional[str] = None
     extraction_examples: List[str] = Field(default_factory=list)
     max_length: Optional[int] = None
+    #: Fixed-width sources only (``source.format: fixed_width``): the field's character
+    #: positions in each record, ``[start, end]`` — 0-based, end-exclusive, so ``[0, 1]`` is
+    #: the first character. Ignored for every other format.
+    range: Optional[List[int]] = None
 
 
 class Model(BaseModel):

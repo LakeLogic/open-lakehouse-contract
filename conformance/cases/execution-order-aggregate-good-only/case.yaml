@@ -1,0 +1,18 @@
+id: OLC-EO-005
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.phase
+description: A row that fails a pre rule is quarantined before the post aggregate, so it is not summed into the output.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 2
+  rows_quarantined: 1
+  failed_rules:
+    amount_nonneg: 1
+comparison:
+  sort_by:
+  - status

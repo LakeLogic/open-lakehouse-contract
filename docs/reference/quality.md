@@ -346,7 +346,7 @@ quality_coverage:
 
 ## When rules run (pre vs post)
 
-Row rules default to **pre** (validate source columns before the good/bad split); mark a rule `phase: post` to validate **derived** columns produced by post-transforms. The full sequence is on the [Execution Order](execution-order.md) page:
+Row rules default to **pre** (validate source columns before the good/bad split); mark a rule `phase: post` to validate **derived** columns produced by post-transforms. A rule or `required` field with **no written phase** that reads a column only a post-transform creates runs in **post** automatically — see [When a check's phase is not written](execution-order.md#when-a-checks-phase-is-not-written). The full sequence is on the [Execution Order](execution-order.md) page:
 
 ```
 pre-transforms → PRE quality rules → good/bad split → post-transforms → POST quality rules

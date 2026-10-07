@@ -879,6 +879,21 @@
           ],
           "default": null,
           "title": "Max Length"
+        },
+        "range": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range"
         }
       },
       "required": [

@@ -1,0 +1,18 @@
+id: OLC-EO-003
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.phase
+description: An explicit pre rule checks the SOURCE value, before a post transform rewrites the column.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+  failed_rules:
+    amount_nonneg: 1
+comparison:
+  sort_by:
+  - id

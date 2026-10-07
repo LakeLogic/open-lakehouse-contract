@@ -1,0 +1,20 @@
+version: 1.0.0
+info:
+  title: Status totals
+  table_name: status_totals
+model:
+  fields:
+  - name: status
+    type: string
+    required: true
+  - name: total
+    type: float
+    required: true
+transformations:
+- phase: post
+  sql: SELECT status, SUM(amount) AS total FROM source GROUP BY status
+quality:
+  row_rules:
+  - name: amount_nonneg
+    phase: pre
+    sql: amount >= 0

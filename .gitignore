@@ -25,3 +25,8 @@ olc/_bundled/
 build/
 dist/
 *.egg-info/
+
+# Local Spark runs (conformance with OLC_CONFORMANCE_SPARK=1)
+spark-warehouse/
+metastore_db/
+derby.log

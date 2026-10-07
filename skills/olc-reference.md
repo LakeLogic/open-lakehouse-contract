@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `51a7da10c133`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `1cc2fd81ba91`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -470,6 +470,7 @@ Schema field definition.
 | `extraction_task` | string (nullable) |  |
 | `extraction_examples` | list[string] |  |
 | `max_length` | integer (nullable) |  |
+| `range` | list[integer] (nullable) |  |
 
 Unknown keys rejected.
 

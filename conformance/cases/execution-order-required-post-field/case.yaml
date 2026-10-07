@@ -1,0 +1,18 @@
+id: OLC-EO-004
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.phase
+description: A required field that only a post transform creates is checked after it (the model describes the output).
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+  failed_rules:
+    net_required: 1
+comparison:
+  sort_by:
+  - id

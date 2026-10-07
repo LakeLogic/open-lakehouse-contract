@@ -313,6 +313,7 @@ class DuckDBAdapter(LakeLogicAdapter):
         "quarantine.attribution",
         "transformations.pre",
         "transformations.post",
+        "quality.phase",  # pre checks before post transforms, post after (lakelogic.core.rule_phases)
         "transformations.filter",
         "transformations.rename",
         "transformations.deduplicate",
@@ -360,6 +361,7 @@ class PolarsAdapter(LakeLogicAdapter):
         "quarantine.attribution",
         "transformations.pre",
         "transformations.post",
+        "quality.phase",  # pre checks before post transforms, post after (lakelogic.core.rule_phases)
         "transformations.filter",
         "transformations.rename",
         "transformations.deduplicate",
