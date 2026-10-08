@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.20.1] — 2026-10-08
+
+### Changed
+
+- Improve code formatting and organization across multiple files
 ## [0.20.0] — 2026-10-07
 
 ### Added
@@ -213,6 +218,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.20.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.20.0...v0.20.1
 [0.20.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.17.0...v0.18.0
