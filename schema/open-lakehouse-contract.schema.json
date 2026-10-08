@@ -2611,27 +2611,107 @@
         "format": {
           "anyOf": [
             {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "csv",
+                "tsv",
+                "json",
+                "ndjson",
+                "jsonl",
+                "xml",
+                "xlsx",
+                "xls",
+                "excel",
+                "fixed_width",
+                "avro",
+                "parquet",
+                "delta",
+                "iceberg",
+                "pdf",
+                "docx",
+                "pptx",
+                "html",
+                "image"
+              ]
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Format"
+          "description": "How the files are parsed. One of: `csv`: Delimited text (comma by default; see `delimiter`). `.csv` / `.tsv` files.; `tsv`: Tab-separated text: `csv` with a tab delimiter.; `json`: JSON: one document per file, or one per line (see `multiline`).; `ndjson`: Newline-delimited JSON: one document per line (`.ndjson`).; `jsonl`: Same as `ndjson` (`.jsonl`).; `xml`: XML: one row per record element (see `row_tag`).; `xlsx`: Excel workbook (`.xlsx`).; `xls`: Legacy Excel workbook (`.xls`).; `excel`: Excel workbook, `.xlsx` or `.xls`.; `fixed_width`: Fixed-width text: each field at a fixed position (see `columns` or field `range`).; `avro`: Avro container files (`.avro`).; `parquet`: Parquet files.; `delta`: A Delta table.; `iceberg`: An Iceberg table.; `pdf`: PDF documents, for `extraction`.; `docx`: Word documents, for `extraction`.; `pptx`: PowerPoint documents, for `extraction`.; `html`: HTML pages, for `extraction`.; `image`: Images, for `extraction`.",
+          "enumDescriptions": [
+            "Delimited text (comma by default; see `delimiter`). `.csv` / `.tsv` files.",
+            "Tab-separated text: `csv` with a tab delimiter.",
+            "JSON: one document per file, or one per line (see `multiline`).",
+            "Newline-delimited JSON: one document per line (`.ndjson`).",
+            "Same as `ndjson` (`.jsonl`).",
+            "XML: one row per record element (see `row_tag`).",
+            "Excel workbook (`.xlsx`).",
+            "Legacy Excel workbook (`.xls`).",
+            "Excel workbook, `.xlsx` or `.xls`.",
+            "Fixed-width text: each field at a fixed position (see `columns` or field `range`).",
+            "Avro container files (`.avro`).",
+            "Parquet files.",
+            "A Delta table.",
+            "An Iceberg table.",
+            "PDF documents, for `extraction`.",
+            "Word documents, for `extraction`.",
+            "PowerPoint documents, for `extraction`.",
+            "HTML pages, for `extraction`.",
+            "Images, for `extraction`."
+          ]
         },
         "options": {
           "anyOf": [
             {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/$defs/CsvOptions"
+            },
+            {
+              "$ref": "#/$defs/ExcelOptions"
+            },
+            {
+              "$ref": "#/$defs/JsonOptions"
+            },
+            {
+              "$ref": "#/$defs/XmlOptions"
+            },
+            {
+              "$ref": "#/$defs/FixedWidthOptions"
+            },
+            {
+              "$ref": "#/$defs/AvroOptions"
+            },
+            {
+              "$ref": "#/$defs/ParquetOptions"
+            },
+            {
+              "$ref": "#/$defs/TableOptions"
+            },
+            {
+              "$ref": "#/$defs/DocumentOptions"
+            },
+            {
+              "$ref": "#/$defs/DatabaseOptions"
+            },
+            {
+              "$ref": "#/$defs/MongoDbOptions"
+            },
+            {
+              "$ref": "#/$defs/SftpOptions"
+            },
+            {
+              "$ref": "#/$defs/KafkaOptions"
+            },
+            {
+              "$ref": "#/$defs/EventHubsOptions"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Options"
+          "description": "Settings for reading this source. Which keys are allowed depends on the source: `type: stream` + `kind` (KafkaOptions / EventHubsOptions), `type: database` (DatabaseOptions, or MongoDbOptions for a mongodb:// path), `type: sftp` (SftpOptions plus the format's options), otherwise `format` (CsvOptions, ExcelOptions, JsonOptions, XmlOptions, FixedWidthOptions, AvroOptions, ParquetOptions, TableOptions, DocumentOptions). Unknown keys are rejected; a credential must be `env:VAR`."
         },
         "load_mode": {
           "default": "full",
@@ -4549,6 +4629,1550 @@
         "name"
       ],
       "title": "UpstreamSource",
+      "type": "object"
+    },
+    "AvroOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: avro`. Nested records and arrays arrive as JSON text.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "AvroOptions",
+      "type": "object"
+    },
+    "CsvOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: csv` / `tsv`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "delimiter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Field separator, one character; `\\t` or `tab` for a tab. Default `,` (tab for `tsv`).",
+          "title": "Delimiter"
+        },
+        "encoding": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text encoding, e.g. `utf-8` (default), `latin-1`, `cp1252`, `utf8-lossy` (replace undecodable bytes instead of failing).",
+          "title": "Encoding"
+        },
+        "skip_rows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lines to skip above the header row. Default 0.",
+          "title": "Skip Rows"
+        },
+        "has_header": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether the first row (after `skip_rows`) names the columns. Default true; when false, columns are matched to `model.fields` by position.",
+          "title": "Has Header"
+        },
+        "quote_char": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Quote character around a field that contains the delimiter. Default `\"`.",
+          "title": "Quote Char"
+        },
+        "null_values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Strings read as null, e.g. `[\"\", \"N/A\", \"-\"]`.",
+          "title": "Null Values"
+        },
+        "comment_prefix": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lines starting with this are skipped, e.g. `#`.",
+          "title": "Comment Prefix"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "CsvOptions",
+      "type": "object"
+    },
+    "DatabaseOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: database` (PostgreSQL, MySQL, SQL Server / Azure SQL, SQLite, \u2026).\n\nThe connection string is `source.path`, normally `env:VAR` so the password stays out of the\ncontract.",
+      "properties": {
+        "fetch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rows per chunk: the result is read in chunks of this size, so a large table never has to fit in memory at once. Default: read in one go.",
+          "title": "Fetch Size"
+        },
+        "partition_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numeric or date column to split the read on, for a parallel read. Use with `partition_num`.",
+          "title": "Partition Column"
+        },
+        "partition_num": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of parallel partitions for `partition_column`.",
+          "title": "Partition Num"
+        },
+        "partition_lower_bound": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lowest `partition_column` value. Default: the column's minimum.",
+          "title": "Partition Lower Bound"
+        },
+        "partition_upper_bound": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Highest `partition_column` value. Default: the column's maximum.",
+          "title": "Partition Upper Bound"
+        },
+        "cdc_provider": {
+          "anyOf": [
+            {
+              "enum": [
+                "azuresql",
+                "azure_sql",
+                "sqlserver",
+                "mssql"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "With `load_mode: cdc`: read the database's own change log (inserts, updates AND deletes) instead of a watermark column. SQL Server / Azure SQL native CDC. Each row gets `_lakelogic_cdc_op` (insert / update / delete) and `_lakelogic_cdc_ts` (commit time).",
+          "title": "Cdc Provider"
+        },
+        "cdc_capture_instance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The CDC capture instance `sys.sp_cdc_enable_table` created, e.g. `dbo_rides`. Default: `dataset` with `.` replaced by `_`.",
+          "title": "Cdc Capture Instance"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "DatabaseOptions",
+      "type": "object"
+    },
+    "DocumentOptions": {
+      "additionalProperties": false,
+      "description": "Options for document formats read by `extraction` (`pdf`, `docx`, \u2026): none yet.",
+      "properties": {
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "DocumentOptions",
+      "type": "object"
+    },
+    "EventHubsOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: eventhubs`: Azure Event Hubs through its Kafka\nendpoint. The brokers and the SASL login come from the connection string.",
+      "properties": {
+        "kind": {
+          "const": "eventhubs",
+          "description": "`eventhubs`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "connection_string": {
+          "description": "The Event Hubs namespace connection string. Must be an environment reference (`env:VAR` or `${ENV:VAR}`), never the value.",
+          "title": "Connection String",
+          "type": "string"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The event hub name. Default: `source.path`.",
+          "title": "Topic"
+        },
+        "brokers": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Override of the address taken from the connection string (`<namespace>.servicebus.windows.net:9093`).",
+          "title": "Brokers"
+        },
+        "group_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Consumer group name. Optional.",
+          "title": "Group Id"
+        },
+        "starting_offsets": {
+          "anyOf": [
+            {
+              "enum": [
+                "earliest",
+                "latest"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where a FIRST run starts: `earliest` (default) or `latest`. Later runs continue from the checkpoint.",
+          "title": "Starting Offsets"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "batch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Events per micro-batch (Polars / DuckDB). Default 1000.",
+          "title": "Batch Size"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "max_offsets_per_trigger": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark only: cap on events per micro-batch. Default: no cap.",
+          "title": "Max Offsets Per Trigger"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind",
+        "connection_string"
+      ],
+      "title": "EventHubsOptions",
+      "type": "object"
+    },
+    "ExcelOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: xlsx` / `xls` / `excel`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "sheet_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The sheet (tab) to read, by name. Default: the first sheet. A name the workbook does not have fails the run.",
+          "title": "Sheet Name"
+        },
+        "header_row": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The row that holds the column names, counting from 1. Default 1; rows above it are skipped (titles, notes).",
+          "title": "Header Row"
+        },
+        "skip_footer": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rows to drop at the bottom (totals, notes). Default 0.",
+          "title": "Skip Footer"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "ExcelOptions",
+      "type": "object"
+    },
+    "FixedWidthColumn": {
+      "additionalProperties": false,
+      "description": "One column of a fixed-width layout.",
+      "properties": {
+        "name": {
+          "description": "Column name; matches a `model.fields` name.",
+          "title": "Name",
+          "type": "string"
+        },
+        "start": {
+          "description": "First character position, counting from 1.",
+          "minimum": 1,
+          "title": "Start",
+          "type": "integer"
+        },
+        "width": {
+          "description": "Number of characters.",
+          "minimum": 1,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "start",
+        "width"
+      ],
+      "title": "FixedWidthColumn",
+      "type": "object"
+    },
+    "FixedWidthOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: fixed_width`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FixedWidthColumn"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The layout: `{name, start, width}` per column, `start` counting from 1 as layout specs do. Alternative to `range` on each model field; wins when both are set.",
+          "title": "Columns"
+        },
+        "record_length": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Fixed record size in characters, for files with no line breaks (mainframe). A record of a different length is quarantined. Default: one record per line.",
+          "title": "Record Length"
+        },
+        "encoding": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text encoding, e.g. `utf-8` (default), `cp037` (EBCDIC), `latin-1`.",
+          "title": "Encoding"
+        },
+        "skip_rows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Header records to skip. Default 0.",
+          "title": "Skip Rows"
+        },
+        "skip_footer": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Trailer records to skip. Default 0.",
+          "title": "Skip Footer"
+        },
+        "strip": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Trim padding spaces from every value. Default true.",
+          "title": "Strip"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "FixedWidthOptions",
+      "type": "object"
+    },
+    "JsonOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: json` / `ndjson` / `jsonl`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "multiline": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "true: each file is ONE JSON document (an array or object, possibly over many lines). false: one document per line. Default: detected from the file.",
+          "title": "Multiline"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "JsonOptions",
+      "type": "object"
+    },
+    "KafkaOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: kafka`: any Kafka-protocol broker (Apache Kafka,\nConfluent, Redpanda, Amazon MSK). Messages must be JSON objects; one that is not is\nquarantined with the reason, and the stream continues.",
+      "properties": {
+        "kind": {
+          "const": "kafka",
+          "description": "`kafka`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "brokers": {
+          "description": "Broker list `host:port[,host:port]`; a literal or `env:VAR`.",
+          "title": "Brokers",
+          "type": "string"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The topic. Default: `source.path`.",
+          "title": "Topic"
+        },
+        "group_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Consumer group name. Optional: offsets are kept in the checkpoint either way.",
+          "title": "Group Id"
+        },
+        "starting_offsets": {
+          "anyOf": [
+            {
+              "enum": [
+                "earliest",
+                "latest"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where a FIRST run starts: `earliest` (default) or `latest`. Later runs continue from the checkpoint.",
+          "title": "Starting Offsets"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "batch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Events per micro-batch (Polars / DuckDB). Default 1000.",
+          "title": "Batch Size"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "max_offsets_per_trigger": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark only: cap on events per micro-batch. Default: no cap.",
+          "title": "Max Offsets Per Trigger"
+        },
+        "security_protocol": {
+          "anyOf": [
+            {
+              "enum": [
+                "PLAINTEXT",
+                "SSL",
+                "SASL_PLAINTEXT",
+                "SASL_SSL"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How to connect. Default `PLAINTEXT` (a local broker).",
+          "title": "Security Protocol"
+        },
+        "sasl_mechanism": {
+          "anyOf": [
+            {
+              "enum": [
+                "PLAIN",
+                "SCRAM-SHA-256",
+                "SCRAM-SHA-512"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SASL login method. `PLAIN` works on every engine; `SCRAM-SHA-256` / `SCRAM-SHA-512` on Polars and DuckDB only.",
+          "title": "Sasl Mechanism"
+        },
+        "sasl_username": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SASL user; a literal or `env:VAR`.",
+          "title": "Sasl Username"
+        },
+        "sasl_password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SASL password. Must be an environment reference (`env:VAR` or `${ENV:VAR}`), never the value.",
+          "title": "Sasl Password"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind",
+        "brokers"
+      ],
+      "title": "KafkaOptions",
+      "type": "object"
+    },
+    "MongoDbOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: database` with a `mongodb://` or `mongodb+srv://` path: MongoDB, Atlas,\nAzure Cosmos DB (MongoDB API), Amazon DocumentDB. `dataset` is the collection.",
+      "properties": {
+        "database": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Database name. Default: the one in the connection string's path.",
+          "title": "Database"
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A MongoDB query document, applied by the server, e.g. `{status: {$ne: test}}`.",
+          "title": "Filter"
+        },
+        "projection": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Fields to include (1) or leave out (0), e.g. `{items: 0}`.",
+          "title": "Projection"
+        },
+        "batch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Documents fetched per round trip. Default 1000.",
+          "title": "Batch Size"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "MongoDbOptions",
+      "type": "object"
+    },
+    "ParquetOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: parquet`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "ParquetOptions",
+      "type": "object"
+    },
+    "SftpOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: sftp` (`path: sftp://user@host[:port]/dir`), plus the options of the\nfile `format` it reads.",
+      "properties": {
+        "username": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Login name, when not in `path`. Default: env `LAKELOGIC_SFTP_USER`.",
+          "title": "Username"
+        },
+        "password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Login password. Must be an environment reference (`env:VAR` or `${ENV:VAR}`), never the value. Default: env `LAKELOGIC_SFTP_PASSWORD`.",
+          "title": "Password"
+        },
+        "private_key_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path to a private key file (key login). Default: env `LAKELOGIC_SFTP_KEY`.",
+          "title": "Private Key Path"
+        },
+        "known_hosts": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "known_hosts file used to verify the server. Default `~/.ssh/known_hosts`; an explicit null turns host verification off (not recommended).",
+          "title": "Known Hosts"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "SftpOptions",
+      "type": "object"
+    },
+    "TableOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: delta` / `iceberg`: none yet.",
+      "properties": {
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "TableOptions",
+      "type": "object"
+    },
+    "XmlOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: xml`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "row_tag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Element name of one record, matched at any depth, e.g. `order`. Default: the repeated children of the root element.",
+          "title": "Row Tag"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "XmlOptions",
       "type": "object"
     }
   },

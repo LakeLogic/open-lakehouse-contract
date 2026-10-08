@@ -29,6 +29,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from olc.models._nested import (
+    SourceConfig,
     SCD1_KNOWN_KEYS,
     SCD1_UNKNOWN_MEMBER_KNOWN_KEYS,
     SCD2_KNOWN_KEYS,
@@ -184,6 +185,15 @@ def collect_unknown_nested_keys(
 
     accepted = _accepted_input_keys(model_cls)
     unknown: list[str] = []
+
+    if model_cls is SourceConfig:
+        # source.format / source.options are checked against the typed options models
+        # (olc.models.source_options), selected by type / format / kind; the misplaced
+        # options keys (`source.record_length` …) get a "belongs under options" message.
+        from olc.models.source_options import OPTIONS_ONLY_SOURCE_KEYS, check_source_options
+
+        unknown.extend(check_source_options(data, path))
+        accepted = {**accepted, **{k: None for k in OPTIONS_ONLY_SOURCE_KEYS}}
 
     for key, value in data.items():
         if key not in accepted:

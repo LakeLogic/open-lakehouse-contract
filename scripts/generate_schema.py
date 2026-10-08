@@ -179,7 +179,53 @@ def build_schema() -> dict:
     _declare_dataset_rule_names(schema)
     _mirror_validation_aliases(schema)  # before closing: accept aliased keys (on/by)
     _close_nested_objects(schema)
+    _type_source_options(schema)
     return schema
+
+
+def _type_source_options(schema: dict) -> None:
+    """Publish the typed ``source.options`` models and the ``source.format`` enum.
+
+    At runtime ``options`` is a dict and ``format`` a string (the framework reads them by
+    key); the strict check (``olc.models.source_options``) selects the options model by
+    type / format / kind. Here the same models become ``$defs`` so the schema and the
+    generated reference describe every option.
+    """
+    from pydantic.json_schema import models_json_schema
+
+    from olc.models.source_options import (
+        OPTIONS_MODELS,
+        SOURCE_FORMAT_DESCRIPTIONS,
+        SOURCE_FORMATS,
+    )
+
+    _, extra = models_json_schema(
+        [(m, "validation") for m in OPTIONS_MODELS], ref_template="#/$defs/{model}"
+    )
+    defs = schema.setdefault("$defs", {})
+    for name, definition in extra.get("$defs", {}).items():
+        props = definition.get("properties")
+        if props and "engine_options" in props:  # the free-form escape hatch reads last
+            props["engine_options"] = props.pop("engine_options")
+        defs[name] = definition
+    source = defs["SourceConfig"]["properties"]
+    source["options"] = {
+        "anyOf": [{"$ref": f"#/$defs/{m.__name__}"} for m in OPTIONS_MODELS] + [{"type": "null"}],
+        "default": None,
+        "description": "Settings for reading this source. Which keys are allowed depends on "
+        "the source: `type: stream` + `kind` (KafkaOptions / EventHubsOptions), `type: database` "
+        "(DatabaseOptions, or MongoDbOptions for a mongodb:// path), `type: sftp` (SftpOptions "
+        "plus the format's options), otherwise `format` (CsvOptions, ExcelOptions, JsonOptions, "
+        "XmlOptions, FixedWidthOptions, AvroOptions, ParquetOptions, TableOptions, "
+        "DocumentOptions). Unknown keys are rejected; a credential must be `env:VAR`.",
+    }
+    source["format"] = {
+        "anyOf": [{"type": "string", "enum": list(SOURCE_FORMATS)}, {"type": "null"}],
+        "default": None,
+        "description": "How the files are parsed. One of: "
+        + "; ".join(f"`{k}`: {v}" for k, v in SOURCE_FORMAT_DESCRIPTIONS.items()),
+        "enumDescriptions": list(SOURCE_FORMAT_DESCRIPTIONS.values()),
+    }
 
 
 def render_schema(schema: dict) -> str:

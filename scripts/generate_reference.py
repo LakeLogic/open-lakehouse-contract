@@ -133,7 +133,9 @@ def _table(obj: dict, defs: dict) -> list[str]:
             notes.append("**required**")
         if "default" in node and node["default"] not in (None, [], {}):
             notes.append(f"default `{json.dumps(node['default'])}`")
-        desc = _first_sentence(node.get("description"))
+        # The whole description: meaning, default and example are what an agent needs, and the
+        # first sentence alone dropped them (it also cut at "e.g.").
+        desc = " ".join((node.get("description") or "").split())
         if desc:
             notes.append(desc.replace("|", "\\|"))
         rows.append(

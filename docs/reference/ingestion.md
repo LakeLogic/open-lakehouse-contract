@@ -31,7 +31,8 @@ source:
 
 ### Files / landing zone
 
-Read files from a landing directory — the classic bronze source. Formats: CSV, JSON, JSONL, Parquet.
+Read files from a landing directory — the classic bronze source. Formats: `csv`, `tsv`, `json`, `ndjson` / `jsonl`,
+`xml`, `xlsx` / `xls` / `excel`, `fixed_width`, `avro`, `parquet`; `.gz` and `.zip` files of any of them are read as well.
 
 ```yaml
 source:
@@ -51,6 +52,7 @@ source:
 | `flatten_nested` | `true` to flatten nested JSON, or a list of specific nested paths to flatten. |
 | `manifest_path` | Read an explicit manifest of files instead of globbing. |
 | `empty_behavior` | `skip` (no-op on empty input) or `fail`. |
+| `options` | How to read the format — see [Source options](#source-options). |
 
 ### Upstream lakehouse table
 
@@ -79,8 +81,13 @@ source:
 
 | Field | Purpose |
 |---|---|
-| `query` | The SQL to execute against the source. |
+| `path` | The connection string, normally `env:VAR` so the password stays out of the contract. |
+| `query` | The SQL to execute against the source (default: the whole `dataset` table). |
 | `watermark_field` | Column used to fetch only new/changed rows (see [Load modes](#load-modes)). |
+| `options` | `fetch_size`, partitioned reads, native CDC (`DatabaseOptions`); for a `mongodb://` path, `database`, `filter`, `projection`, `batch_size` (`MongoDbOptions`). |
+
+A `mongodb://` or `mongodb+srv://` path reads a MongoDB-protocol collection (MongoDB, Atlas, Cosmos DB's MongoDB
+API, DocumentDB); `dataset` is the collection and each document is one row.
 
 ### REST API and dlt sources
 
@@ -145,11 +152,11 @@ source:
 | Field | Purpose |
 |---|---|
 | `path` | `sftp://user@host[:port]/dir`. Port defaults to 22. A password in the URI is **rejected**: it would reach logs and run metadata. |
-| `pattern` | Glob for files in the remote directory. Also accepted as `options.pattern`. |
-| `format` | `csv`, `json` or `parquet`. Also accepted as `options.format`. |
+| `pattern` | Glob for files in the remote directory. |
+| `format` | The file format; its [options](#source-options) are accepted alongside the SFTP ones. |
 | `load_mode` | `incremental` downloads only files whose server mtime is newer than the last run's watermark. `full` reads every matching file. |
 | `options.username` | Used when the URI has no user. |
-| `options.password` / `options.private_key_path` | Authentication. Use one. |
+| `options.password` / `options.private_key_path` | Authentication. Use one. A password must be `env:VAR` — a literal is rejected. |
 | `options.known_hosts` | Host-key file. Omitted means the default `~/.ssh/known_hosts`. Only an explicit `known_hosts: null` turns verification off, and the reference framework warns when it does. |
 
 Credentials can come from the environment instead of the contract:
@@ -159,6 +166,30 @@ Credentials can come from the environment instead of the contract:
 | `LAKELOGIC_SFTP_USER` | username (when neither the URI nor `options` has one) |
 | `LAKELOGIC_SFTP_PASSWORD` | `options.password` |
 | `LAKELOGIC_SFTP_KEY` | `options.private_key_path` |
+
+### Kafka and Azure Event Hubs
+
+`type: stream` with `options.kind` reads a message broker. Every micro-batch is validated and written, and the read
+position is committed after each write, so the next run continues where the last one stopped. Messages must be JSON
+objects; one that is not is quarantined with the reason and the stream continues.
+
+```yaml
+source:
+  type: stream
+  options:
+    kind: kafka                        # kafka | eventhubs
+    brokers: env:KAFKA_BROKERS         # host:port[,host:port]
+    topic: rides
+    starting_offsets: earliest         # earliest | latest — first run only
+    trigger: available_now             # available_now (drain, then stop) | continuous
+    security_protocol: SASL_SSL        # PLAINTEXT | SSL | SASL_PLAINTEXT | SASL_SSL
+    sasl_mechanism: PLAIN
+    sasl_username: my-user
+    sasl_password: env:KAFKA_PASSWORD  # never a literal
+```
+
+`kind: eventhubs` needs only `connection_string: env:VAR`: the brokers and the SASL login come from it. Every key is
+listed under `KafkaOptions` and `EventHubsOptions` in the generated reference.
 
 ### Streaming / micro-batch
 
@@ -272,6 +303,32 @@ Transient source failures are retried per `RetryConfig`:
 source:
   retry: { max_attempts: 3, backoff: exponential, initial_delay: 2.0 }
 ```
+
+## Source options
+
+`source.options` holds how to read the source. Which keys are allowed depends on the source, and an unknown key is
+rejected with a suggestion (`header_rows` → "did you mean `header_row`?"):
+
+| Source | Options | Keys |
+|---|---|---|
+| `format: csv` / `tsv` | `CsvOptions` | `delimiter`, `encoding`, `skip_rows`, `has_header`, `quote_char`, `null_values`, `comment_prefix` |
+| `format: xlsx` / `xls` / `excel` | `ExcelOptions` | `sheet_name`, `header_row`, `skip_footer` |
+| `format: json` / `ndjson` / `jsonl` | `JsonOptions` | `multiline` |
+| `format: xml` | `XmlOptions` | `row_tag` |
+| `format: fixed_width` | `FixedWidthOptions` | `columns`, `record_length`, `encoding`, `skip_rows`, `skip_footer`, `strip` |
+| `format: avro` / `parquet` | `AvroOptions` / `ParquetOptions` | — |
+| every file format | | `archive_member`, `implied_decimals`, `date_formats`, `decimal_comma` |
+| `type: database` | `DatabaseOptions` / `MongoDbOptions` | see [Database](#database-sql-query) |
+| `type: sftp` | `SftpOptions` + the format's | `username`, `password`, `private_key_path`, `known_hosts` |
+| `type: stream` + `kind` | `KafkaOptions` / `EventHubsOptions` | see [Kafka and Azure Event Hubs](#kafka-and-azure-event-hubs) |
+
+Every option has its meaning, default and an example in the generated reference (`skills/olc-reference.md`).
+
+- **Settings live only under `options`.** `source.record_length` (or `encoding`, `skip_rows`, `skip_footer`, `strip`)
+  is rejected with "`record_length` belongs under `source.options`".
+- **Credentials are never written in a contract.** A key that holds a secret (`password`, `*_token`, `*_secret`,
+  `connection_string`, …) must be an environment reference, `env:VAR` or `${ENV:VAR}`.
+- **`engine_options`** is the one free-form corner: engine-specific extras, passed through unchecked.
 
 ## Every `source` field at a glance
 
