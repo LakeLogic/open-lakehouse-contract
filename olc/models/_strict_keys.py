@@ -190,7 +190,10 @@ def collect_unknown_nested_keys(
         # source.format / source.options are checked against the typed options models
         # (olc.models.source_options), selected by type / format / kind; the misplaced
         # options keys (`source.record_length` …) get a "belongs under options" message.
-        from olc.models.source_options import OPTIONS_ONLY_SOURCE_KEYS, check_source_options
+        from olc.models.source_options import (
+            OPTIONS_ONLY_SOURCE_KEYS,
+            check_source_options,
+        )
 
         unknown.extend(check_source_options(data, path))
         accepted = {**accepted, **{k: None for k in OPTIONS_ONLY_SOURCE_KEYS}}

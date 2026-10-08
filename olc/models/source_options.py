@@ -73,10 +73,22 @@ SOURCE_FORMAT_DESCRIPTIONS: Dict[str, str] = {
 }
 SOURCE_FORMATS: Tuple[str, ...] = tuple(SOURCE_FORMAT_DESCRIPTIONS)
 
-_ENV_REF = re.compile(r"^\s*(env:[A-Za-z_][A-Za-z0-9_]*|\$\{ENV:[A-Za-z_][A-Za-z0-9_]*\})\s*$")
+_ENV_REF = re.compile(
+    r"^\s*(env:[A-Za-z_][A-Za-z0-9_]*|\$\{ENV:[A-Za-z_][A-Za-z0-9_]*\})\s*$"
+)
 _SECRET_NAMES = {
-    "password", "passwd", "secret", "token", "sas_token", "account_key", "bearer_token",
-    "private_key", "client_secret", "connection_string", "api_key", "access_key",
+    "password",
+    "passwd",
+    "secret",
+    "token",
+    "sas_token",
+    "account_key",
+    "bearer_token",
+    "private_key",
+    "client_secret",
+    "connection_string",
+    "api_key",
+    "access_key",
 }
 _SECRET_SUFFIXES = ("_password", "_secret", "_token", "_key")
 #: Keys whose names look secret but hold a non-secret value (a path, a public name).
@@ -100,7 +112,9 @@ _ENGINE_OPTIONS = Field(
     description="Engine-specific extras, passed through as they are and not checked. "
     "The only free-form corner of `options`; prefer a declared key when one exists.",
 )
-_SECRET_NOTE = " Must be an environment reference (`env:VAR` or `${ENV:VAR}`), never the value."
+_SECRET_NOTE = (
+    " Must be an environment reference (`env:VAR` or `${ENV:VAR}`), never the value."
+)
 
 
 class _Options(BaseModel):
@@ -128,7 +142,7 @@ class _FileOptions(_Options):
     date_formats: Optional[Dict[str, str]] = Field(
         default=None,
         description="Date / timestamp pattern per field, Spark/Java style, e.g. "
-        "`{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 "
+        '`{signup_date: yyyyMMdd, paid_at: "dd/MM/yyyy HH:mm:ss"}`. Default: ISO 8601 '
         "(`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
     )
     decimal_comma: Optional[bool] = Field(
@@ -160,10 +174,11 @@ class CsvOptions(_FileOptions):
         "when false, columns are matched to `model.fields` by position.",
     )
     quote_char: Optional[str] = Field(
-        default=None, description="Quote character around a field that contains the delimiter. Default `\"`."
+        default=None,
+        description='Quote character around a field that contains the delimiter. Default `"`.',
     )
     null_values: Optional[List[str]] = Field(
-        default=None, description="Strings read as null, e.g. `[\"\", \"N/A\", \"-\"]`."
+        default=None, description='Strings read as null, e.g. `["", "N/A", "-"]`.'
     )
     comment_prefix: Optional[str] = Field(
         default=None, description="Lines starting with this are skipped, e.g. `#`."
@@ -179,12 +194,15 @@ class ExcelOptions(_FileOptions):
         "workbook does not have fails the run.",
     )
     header_row: Optional[int] = Field(
-        default=None, ge=1,
+        default=None,
+        ge=1,
         description="The row that holds the column names, counting from 1. Default 1; rows above "
         "it are skipped (titles, notes).",
     )
     skip_footer: Optional[int] = Field(
-        default=None, ge=0, description="Rows to drop at the bottom (totals, notes). Default 0."
+        default=None,
+        ge=0,
+        description="Rows to drop at the bottom (totals, notes). Default 0.",
     )
 
 
@@ -226,12 +244,14 @@ class FixedWidthOptions(_FileOptions):
         "layout specs do. Alternative to `range` on each model field; wins when both are set.",
     )
     record_length: Optional[int] = Field(
-        default=None, ge=1,
+        default=None,
+        ge=1,
         description="Fixed record size in characters, for files with no line breaks (mainframe). "
         "A record of a different length is quarantined. Default: one record per line.",
     )
     encoding: Optional[str] = Field(
-        default=None, description="Text encoding, e.g. `utf-8` (default), `cp037` (EBCDIC), `latin-1`."
+        default=None,
+        description="Text encoding, e.g. `utf-8` (default), `cp037` (EBCDIC), `latin-1`.",
     )
     skip_rows: Optional[int] = Field(
         default=None, ge=0, description="Header records to skip. Default 0."
@@ -270,7 +290,8 @@ class DatabaseOptions(_Options):
     contract."""
 
     fetch_size: Optional[int] = Field(
-        default=None, ge=1,
+        default=None,
+        ge=1,
         description="Rows per chunk: the result is read in chunks of this size, so a large table "
         "never has to fit in memory at once. Default: read in one go.",
     )
@@ -280,19 +301,25 @@ class DatabaseOptions(_Options):
         "`partition_num`.",
     )
     partition_num: Optional[int] = Field(
-        default=None, ge=1, description="Number of parallel partitions for `partition_column`."
+        default=None,
+        ge=1,
+        description="Number of parallel partitions for `partition_column`.",
     )
     partition_lower_bound: Optional[Union[int, float, str]] = Field(
-        default=None, description="Lowest `partition_column` value. Default: the column's minimum."
+        default=None,
+        description="Lowest `partition_column` value. Default: the column's minimum.",
     )
     partition_upper_bound: Optional[Union[int, float, str]] = Field(
-        default=None, description="Highest `partition_column` value. Default: the column's maximum."
-    )
-    cdc_provider: Optional[Literal["azuresql", "azure_sql", "sqlserver", "mssql"]] = Field(
         default=None,
-        description="With `load_mode: cdc`: read the database's own change log (inserts, updates "
-        "AND deletes) instead of a watermark column. SQL Server / Azure SQL native CDC. Each row "
-        "gets `_lakelogic_cdc_op` (insert / update / delete) and `_lakelogic_cdc_ts` (commit time).",
+        description="Highest `partition_column` value. Default: the column's maximum.",
+    )
+    cdc_provider: Optional[Literal["azuresql", "azure_sql", "sqlserver", "mssql"]] = (
+        Field(
+            default=None,
+            description="With `load_mode: cdc`: read the database's own change log (inserts, updates "
+            "AND deletes) instead of a watermark column. SQL Server / Azure SQL native CDC. Each row "
+            "gets `_lakelogic_cdc_op` (insert / update / delete) and `_lakelogic_cdc_ts` (commit time).",
+        )
     )
     cdc_capture_instance: Optional[str] = Field(
         default=None,
@@ -306,17 +333,21 @@ class MongoDbOptions(_Options):
     Azure Cosmos DB (MongoDB API), Amazon DocumentDB. `dataset` is the collection."""
 
     database: Optional[str] = Field(
-        default=None, description="Database name. Default: the one in the connection string's path."
+        default=None,
+        description="Database name. Default: the one in the connection string's path.",
     )
     filter: Optional[Dict[str, Any]] = Field(
         default=None,
         description="A MongoDB query document, applied by the server, e.g. `{status: {$ne: test}}`.",
     )
     projection: Optional[Dict[str, Any]] = Field(
-        default=None, description="Fields to include (1) or leave out (0), e.g. `{items: 0}`."
+        default=None,
+        description="Fields to include (1) or leave out (0), e.g. `{items: 0}`.",
     )
     batch_size: Optional[int] = Field(
-        default=None, ge=1, description="Documents fetched per round trip. Default 1000."
+        default=None,
+        ge=1,
+        description="Documents fetched per round trip. Default 1000.",
     )
 
 
@@ -325,11 +356,14 @@ class SftpOptions(_Options):
     file `format` it reads."""
 
     username: Optional[str] = Field(
-        default=None, description="Login name, when not in `path`. Default: env `LAKELOGIC_SFTP_USER`."
+        default=None,
+        description="Login name, when not in `path`. Default: env `LAKELOGIC_SFTP_USER`.",
     )
     password: Optional[str] = Field(
         default=None,
-        description="Login password." + _SECRET_NOTE + " Default: env `LAKELOGIC_SFTP_PASSWORD`.",
+        description="Login password."
+        + _SECRET_NOTE
+        + " Default: env `LAKELOGIC_SFTP_PASSWORD`.",
     )
     private_key_path: Optional[str] = Field(
         default=None,
@@ -353,7 +387,9 @@ _CHECKPOINT = Field(
     "folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
 )
 _BATCH_SIZE = Field(
-    default=None, ge=1, description="Events per micro-batch (Polars / DuckDB). Default 1000."
+    default=None,
+    ge=1,
+    description="Events per micro-batch (Polars / DuckDB). Default 1000.",
 )
 _TRIGGER = Field(
     default=None,
@@ -366,7 +402,9 @@ _PROCESSING_TIME = Field(
     "`30 seconds` (default).",
 )
 _MAX_OFFSETS = Field(
-    default=None, ge=1, description="Spark only: cap on events per micro-batch. Default: no cap."
+    default=None,
+    ge=1,
+    description="Spark only: cap on events per micro-batch. Default: no cap.",
 )
 
 
@@ -379,7 +417,9 @@ class KafkaOptions(_Options):
     brokers: str = Field(
         description="Broker list `host:port[,host:port]`; a literal or `env:VAR`."
     )
-    topic: Optional[str] = Field(default=None, description="The topic. Default: `source.path`.")
+    topic: Optional[str] = Field(
+        default=None, description="The topic. Default: `source.path`."
+    )
     group_id: Optional[str] = Field(
         default=None,
         description="Consumer group name. Optional: offsets are kept in the checkpoint either way.",
@@ -387,21 +427,30 @@ class KafkaOptions(_Options):
     starting_offsets: Optional[Literal["earliest", "latest"]] = _STARTING_OFFSETS
     checkpoint: Optional[str] = _CHECKPOINT
     batch_size: Optional[int] = _BATCH_SIZE
-    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = _TRIGGER
+    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
+        _TRIGGER
+    )
     processing_time: Optional[str] = _PROCESSING_TIME
     max_offsets_per_trigger: Optional[int] = _MAX_OFFSETS
-    security_protocol: Optional[Literal["PLAINTEXT", "SSL", "SASL_PLAINTEXT", "SASL_SSL"]] = Field(
-        default=None, description="How to connect. Default `PLAINTEXT` (a local broker)."
-    )
-    sasl_mechanism: Optional[Literal["PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"]] = Field(
+    security_protocol: Optional[
+        Literal["PLAINTEXT", "SSL", "SASL_PLAINTEXT", "SASL_SSL"]
+    ] = Field(
         default=None,
-        description="SASL login method. `PLAIN` works on every engine; `SCRAM-SHA-256` / "
-        "`SCRAM-SHA-512` on Polars and DuckDB only.",
+        description="How to connect. Default `PLAINTEXT` (a local broker).",
+    )
+    sasl_mechanism: Optional[Literal["PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"]] = (
+        Field(
+            default=None,
+            description="SASL login method. `PLAIN` works on every engine; `SCRAM-SHA-256` / "
+            "`SCRAM-SHA-512` on Polars and DuckDB only.",
+        )
     )
     sasl_username: Optional[str] = Field(
         default=None, description="SASL user; a literal or `env:VAR`."
     )
-    sasl_password: Optional[str] = Field(default=None, description="SASL password." + _SECRET_NOTE)
+    sasl_password: Optional[str] = Field(
+        default=None, description="SASL password." + _SECRET_NOTE
+    )
 
 
 class EventHubsOptions(_Options):
@@ -420,37 +469,74 @@ class EventHubsOptions(_Options):
         description="Override of the address taken from the connection string "
         "(`<namespace>.servicebus.windows.net:9093`).",
     )
-    group_id: Optional[str] = Field(default=None, description="Consumer group name. Optional.")
+    group_id: Optional[str] = Field(
+        default=None, description="Consumer group name. Optional."
+    )
     starting_offsets: Optional[Literal["earliest", "latest"]] = _STARTING_OFFSETS
     checkpoint: Optional[str] = _CHECKPOINT
     batch_size: Optional[int] = _BATCH_SIZE
-    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = _TRIGGER
+    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
+        _TRIGGER
+    )
     processing_time: Optional[str] = _PROCESSING_TIME
     max_offsets_per_trigger: Optional[int] = _MAX_OFFSETS
 
 
 #: Every options model, in reference order.
 OPTIONS_MODELS: Tuple[Type[BaseModel], ...] = (
-    CsvOptions, ExcelOptions, JsonOptions, XmlOptions, FixedWidthOptions, AvroOptions,
-    ParquetOptions, TableOptions, DocumentOptions, DatabaseOptions, MongoDbOptions, SftpOptions,
-    KafkaOptions, EventHubsOptions,
+    CsvOptions,
+    ExcelOptions,
+    JsonOptions,
+    XmlOptions,
+    FixedWidthOptions,
+    AvroOptions,
+    ParquetOptions,
+    TableOptions,
+    DocumentOptions,
+    DatabaseOptions,
+    MongoDbOptions,
+    SftpOptions,
+    KafkaOptions,
+    EventHubsOptions,
 )
 
 _BY_FORMAT: Dict[str, Type[BaseModel]] = {
-    "csv": CsvOptions, "tsv": CsvOptions,
-    "xlsx": ExcelOptions, "xls": ExcelOptions, "excel": ExcelOptions,
-    "json": JsonOptions, "ndjson": JsonOptions, "jsonl": JsonOptions,
-    "xml": XmlOptions, "fixed_width": FixedWidthOptions, "avro": AvroOptions,
-    "parquet": ParquetOptions, "delta": TableOptions, "iceberg": TableOptions,
-    "pdf": DocumentOptions, "docx": DocumentOptions, "pptx": DocumentOptions,
-    "html": DocumentOptions, "image": DocumentOptions,
+    "csv": CsvOptions,
+    "tsv": CsvOptions,
+    "xlsx": ExcelOptions,
+    "xls": ExcelOptions,
+    "excel": ExcelOptions,
+    "json": JsonOptions,
+    "ndjson": JsonOptions,
+    "jsonl": JsonOptions,
+    "xml": XmlOptions,
+    "fixed_width": FixedWidthOptions,
+    "avro": AvroOptions,
+    "parquet": ParquetOptions,
+    "delta": TableOptions,
+    "iceberg": TableOptions,
+    "pdf": DocumentOptions,
+    "docx": DocumentOptions,
+    "pptx": DocumentOptions,
+    "html": DocumentOptions,
+    "image": DocumentOptions,
 }
 assert set(_BY_FORMAT) == set(SOURCE_FORMATS), "every format needs an options model"
 
-_FILE_MODELS = (CsvOptions, ExcelOptions, JsonOptions, XmlOptions, FixedWidthOptions, AvroOptions, ParquetOptions)
+_FILE_MODELS = (
+    CsvOptions,
+    ExcelOptions,
+    JsonOptions,
+    XmlOptions,
+    FixedWidthOptions,
+    AvroOptions,
+    ParquetOptions,
+)
 
 #: Keys that belong under ``source.options``, not on ``source`` itself.
-OPTIONS_ONLY_SOURCE_KEYS = frozenset({"record_length", "encoding", "skip_rows", "skip_footer", "strip"})
+OPTIONS_ONLY_SOURCE_KEYS = frozenset(
+    {"record_length", "encoding", "skip_rows", "skip_footer", "strip"}
+)
 
 
 def _keys(*models: Type[BaseModel]) -> Dict[str, Any]:
@@ -479,7 +565,9 @@ def options_models_for(source: Dict[str, Any]) -> Tuple[Type[BaseModel], ...]:
             # The connection string is only known at run time: SQL or MongoDB keys.
             return (DatabaseOptions, MongoDbOptions)
         return (DatabaseOptions,)
-    file_models: Tuple[Type[BaseModel], ...] = (_BY_FORMAT[fmt],) if fmt in _BY_FORMAT else _FILE_MODELS
+    file_models: Tuple[Type[BaseModel], ...] = (
+        (_BY_FORMAT[fmt],) if fmt in _BY_FORMAT else _FILE_MODELS
+    )
     if stype == "sftp":
         return (SftpOptions,) + file_models
     return file_models
@@ -494,20 +582,34 @@ def check_source_options(source: Dict[str, Any], path: str = "source.") -> List[
         problems.append(f"{path}{key}: `{key}` belongs under {path}options")
     fmt = source.get("format")
     if fmt is not None and str(fmt).lower() not in _BY_FORMAT:
-        close = difflib.get_close_matches(str(fmt).lower(), SOURCE_FORMATS, n=1, cutoff=0.6)
+        close = difflib.get_close_matches(
+            str(fmt).lower(), SOURCE_FORMATS, n=1, cutoff=0.6
+        )
         hint = f" (did you mean '{close[0]}'?)" if close else ""
-        problems.append(f"{path}format: '{fmt}' is not a known format{hint}; one of: {', '.join(SOURCE_FORMATS)}")
+        problems.append(
+            f"{path}format: '{fmt}' is not a known format{hint}; one of: {', '.join(SOURCE_FORMATS)}"
+        )
     opts = source.get("options")
     if opts is None:
         return problems
     if not isinstance(opts, dict):
         return problems + [f"{path}options must be a mapping"]
-    if source.get("type") == "stream" and opts.get("kind") not in (None, "kafka", "eventhubs"):
-        return problems + [f"{path}options.kind: '{opts.get('kind')}' is not one of: kafka, eventhubs"]
+    if source.get("type") == "stream" and opts.get("kind") not in (
+        None,
+        "kafka",
+        "eventhubs",
+    ):
+        return problems + [
+            f"{path}options.kind: '{opts.get('kind')}' is not one of: kafka, eventhubs"
+        ]
 
     models = options_models_for(source)
     declared = _keys(*models)
-    names = " / ".join(m.__name__ for m in models) if len(models) <= 2 else "the file format options"
+    names = (
+        " / ".join(m.__name__ for m in models)
+        if len(models) <= 2
+        else "the file format options"
+    )
     for key, value in opts.items():
         if is_secret_key(key) and value is not None and not is_env_reference(value):
             problems.append(

@@ -210,7 +210,8 @@ def _type_source_options(schema: dict) -> None:
         defs[name] = definition
     source = defs["SourceConfig"]["properties"]
     source["options"] = {
-        "anyOf": [{"$ref": f"#/$defs/{m.__name__}"} for m in OPTIONS_MODELS] + [{"type": "null"}],
+        "anyOf": [{"$ref": f"#/$defs/{m.__name__}"} for m in OPTIONS_MODELS]
+        + [{"type": "null"}],
         "default": None,
         "description": "Settings for reading this source. Which keys are allowed depends on "
         "the source: `type: stream` + `kind` (KafkaOptions / EventHubsOptions), `type: database` "
