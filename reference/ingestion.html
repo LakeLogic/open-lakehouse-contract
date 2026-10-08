@@ -1170,6 +1170,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#kafka-and-azure-event-hubs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kafka and Azure Event Hubs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#streaming-micro-batch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1234,6 +1245,17 @@
     <span class="md-ellipsis">
       
         Resilience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source options
       
     </span>
   </a>
@@ -1808,6 +1830,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#kafka-and-azure-event-hubs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kafka and Azure Event Hubs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#streaming-micro-batch" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1872,6 +1905,17 @@
     <span class="md-ellipsis">
       
         Resilience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source options
       
     </span>
   </a>
@@ -1974,7 +2018,8 @@
 </tbody>
 </table>
 <h3 id="files-landing-zone">Files / landing zone</h3>
-<p>Read files from a landing directory — the classic bronze source. Formats: CSV, JSON, JSONL, Parquet.</p>
+<p>Read files from a landing directory — the classic bronze source. Formats: <code>csv</code>, <code>tsv</code>, <code>json</code>, <code>ndjson</code> / <code>jsonl</code>,
+<code>xml</code>, <code>xlsx</code> / <code>xls</code> / <code>excel</code>, <code>fixed_width</code>, <code>avro</code>, <code>parquet</code>; <code>.gz</code> and <code>.zip</code> files of any of them are read as well.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">source</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">landing</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"s3://bucket/landing/orders/"</span><span class="w">    </span><span class="c1"># or a local path, abfss://, gs://</span>
@@ -2015,6 +2060,10 @@
 <td><code>empty_behavior</code></td>
 <td><code>skip</code> (no-op on empty input) or <code>fail</code>.</td>
 </tr>
+<tr>
+<td><code>options</code></td>
+<td>How to read the format — see <a href="#source-options">Source options</a>.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="upstream-lakehouse-table">Upstream lakehouse table</h3>
@@ -2042,15 +2091,25 @@
 </thead>
 <tbody>
 <tr>
+<td><code>path</code></td>
+<td>The connection string, normally <code>env:VAR</code> so the password stays out of the contract.</td>
+</tr>
+<tr>
 <td><code>query</code></td>
-<td>The SQL to execute against the source.</td>
+<td>The SQL to execute against the source (default: the whole <code>dataset</code> table).</td>
 </tr>
 <tr>
 <td><code>watermark_field</code></td>
 <td>Column used to fetch only new/changed rows (see <a href="#load-modes">Load modes</a>).</td>
 </tr>
+<tr>
+<td><code>options</code></td>
+<td><code>fetch_size</code>, partitioned reads, native CDC (<code>DatabaseOptions</code>); for a <code>mongodb://</code> path, <code>database</code>, <code>filter</code>, <code>projection</code>, <code>batch_size</code> (<code>MongoDbOptions</code>).</td>
+</tr>
 </tbody>
 </table>
+<p>A <code>mongodb://</code> or <code>mongodb+srv://</code> path reads a MongoDB-protocol collection (MongoDB, Atlas, Cosmos DB's MongoDB
+API, DocumentDB); <code>dataset</code> is the collection and each document is one row.</p>
 <h3 id="rest-api-and-dlt-sources">REST API and dlt sources</h3>
 <p>Ingest from an HTTP API or any <a href="https://dlthub.com">dlt</a> verified source (<code>DltSourceConfig</code>). The source kind is <code>dlt</code>. There are two modes, chosen by which fields you set.</p>
 <p><strong>Mode 1: verified source.</strong> Name a dlt verified source and resource.</p>
@@ -2137,11 +2196,11 @@
 </tr>
 <tr>
 <td><code>pattern</code></td>
-<td>Glob for files in the remote directory. Also accepted as <code>options.pattern</code>.</td>
+<td>Glob for files in the remote directory.</td>
 </tr>
 <tr>
 <td><code>format</code></td>
-<td><code>csv</code>, <code>json</code> or <code>parquet</code>. Also accepted as <code>options.format</code>.</td>
+<td>The file format; its <a href="#source-options">options</a> are accepted alongside the SFTP ones.</td>
 </tr>
 <tr>
 <td><code>load_mode</code></td>
@@ -2153,7 +2212,7 @@
 </tr>
 <tr>
 <td><code>options.password</code> / <code>options.private_key_path</code></td>
-<td>Authentication. Use one.</td>
+<td>Authentication. Use one. A password must be <code>env:VAR</code> — a literal is rejected.</td>
 </tr>
 <tr>
 <td><code>options.known_hosts</code></td>
@@ -2184,15 +2243,34 @@
 </tr>
 </tbody>
 </table>
-<h3 id="streaming-micro-batch">Streaming / micro-batch</h3>
-<p>A streaming source is a table/file source read in <strong>micro-batches</strong> driven by a watermark. The contract stays the same; the framework reads incrementally each trigger. Combine <code>load_mode: incremental</code> with a <code>watermark_field</code> and (optionally) a streaming engine on the framework side.</p>
+<h3 id="kafka-and-azure-event-hubs">Kafka and Azure Event Hubs</h3>
+<p><code>type: stream</code> with <code>options.kind</code> reads a message broker. Every micro-batch is validated and written, and the read
+position is committed after each write, so the next run continues where the last one stopped. Messages must be JSON
+objects; one that is not is quarantined with the reason and the stream continues.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">source</span><span class="p">:</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stream</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"s3://bucket/events/"</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nt">load_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incremental</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nt">watermark_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">event_time</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="nt">watermark_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">append</span><span class="w">          </span><span class="c1"># how the watermark advances per batch</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">options</span><span class="p">:</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kafka</span><span class="w">                        </span><span class="c1"># kafka | eventhubs</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">brokers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">env:KAFKA_BROKERS</span><span class="w">         </span><span class="c1"># host:port[,host:port]</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">topic</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rides</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="nt">starting_offsets</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">earliest</span><span class="w">         </span><span class="c1"># earliest | latest — first run only</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="nt">trigger</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">available_now</span><span class="w">             </span><span class="c1"># available_now (drain, then stop) | continuous</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nt">security_protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SASL_SSL</span><span class="w">        </span><span class="c1"># PLAINTEXT | SSL | SASL_PLAINTEXT | SASL_SSL</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="nt">sasl_mechanism</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PLAIN</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="nt">sasl_username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-user</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="nt">sasl_password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">env:KAFKA_PASSWORD</span><span class="w">  </span><span class="c1"># never a literal</span>
+</code></pre></div>
+<p><code>kind: eventhubs</code> needs only <code>connection_string: env:VAR</code>: the brokers and the SASL login come from it. Every key is
+listed under <code>KafkaOptions</code> and <code>EventHubsOptions</code> in the generated reference.</p>
+<h3 id="streaming-micro-batch">Streaming / micro-batch</h3>
+<p>A streaming source is a table/file source read in <strong>micro-batches</strong> driven by a watermark. The contract stays the same; the framework reads incrementally each trigger. Combine <code>load_mode: incremental</code> with a <code>watermark_field</code> and (optionally) a streaming engine on the framework side.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stream</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"s3://bucket/events/"</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">load_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incremental</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">watermark_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">event_time</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="nt">watermark_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">append</span><span class="w">          </span><span class="c1"># how the watermark advances per batch</span>
 </code></pre></div>
 <blockquote>
 <p>The same governance (schema, quality, quarantine, PII, lineage) applies to every micro-batch. See the reference framework's <code>StreamSink</code> for the native structured-streaming path.</p>
@@ -2200,14 +2278,14 @@
 <hr />
 <h2 id="load-modes">Load modes</h2>
 <p><code>load_mode</code> controls how much of the source is read each run.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">source</span><span class="p">:</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">load_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incremental</span><span class="w">       </span><span class="c1"># full | incremental</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">watermark_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">updated_at</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">watermark_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">append</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">watermark_date_parts</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">year</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">month</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">day</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># for date-partitioned watermarks</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nt">lookback</span><span class="p">:</span><span class="w"> </span><span class="s">"3d"</span><span class="w">               </span><span class="c1"># re-read a trailing window to catch late data</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="nt">from_date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-01-01"</span><span class="w">      </span><span class="c1"># explicit bounds (backfill / bounded reprocess)</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="nt">to_date</span><span class="p">:</span><span class="w">   </span><span class="s">"2026-01-31"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">load_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incremental</span><span class="w">       </span><span class="c1"># full | incremental</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">watermark_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">updated_at</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">watermark_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">append</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nt">watermark_date_parts</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">year</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">month</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">day</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># for date-partitioned watermarks</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nt">lookback</span><span class="p">:</span><span class="w"> </span><span class="s">"3d"</span><span class="w">               </span><span class="c1"># re-read a trailing window to catch late data</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span><span class="nt">from_date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-01-01"</span><span class="w">      </span><span class="c1"># explicit bounds (backfill / bounded reprocess)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span><span class="nt">to_date</span><span class="p">:</span><span class="w">   </span><span class="s">"2026-01-31"</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2254,12 +2332,12 @@
 <hr />
 <h2 id="change-data-capture-cdc">Change data capture (CDC)</h2>
 <p>When the source emits change events (insert/update/delete), OLC applies them as a CDC stream rather than a plain append.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">source</span><span class="p">:</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">database</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">load_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incremental</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">cdc_op_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">op</span><span class="w">                       </span><span class="c1"># column holding the operation</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nt">cdc_delete_values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"D"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"delete"</span><span class="p p-Indicator">]</span><span class="w">     </span><span class="c1"># values that mean "delete this row"</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nt">cdc_timestamp_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">op_ts</span><span class="w">             </span><span class="c1"># order events by this to resolve last-writer-wins</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">database</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="nt">load_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incremental</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="nt">cdc_op_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">op</span><span class="w">                       </span><span class="c1"># column holding the operation</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="nt">cdc_delete_values</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"D"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"delete"</span><span class="p p-Indicator">]</span><span class="w">     </span><span class="c1"># values that mean "delete this row"</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="nt">cdc_timestamp_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">op_ts</span><span class="w">             </span><span class="c1"># order events by this to resolve last-writer-wins</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2287,31 +2365,103 @@
 <hr />
 <h2 id="partitioned-reads">Partitioned reads</h2>
 <p>For date-partitioned inputs, <code>SourcePartition</code> selects which partitions to read.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">source</span><span class="p">:</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">partition</span><span class="p">:</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="s">"year=%Y/month=%m/day=%d"</span><span class="w">    </span><span class="c1"># partition path layout</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nt">lookback_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-01-01"</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="nt">end_date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-01-31"</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="nt">file_pattern</span><span class="p">:</span><span class="w"> </span><span class="s">"*.parquet"</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="nt">partition_filters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> region</span><span class="p">:</span><span class="w"> </span><span class="s">"eu"</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">    </span><span class="c1"># additional predicate pushdown</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">partition</span><span class="p">:</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="s">"year=%Y/month=%m/day=%d"</span><span class="w">    </span><span class="c1"># partition path layout</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nt">lookback_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-01-01"</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="nt">end_date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-01-31"</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="nt">file_pattern</span><span class="p">:</span><span class="w"> </span><span class="s">"*.parquet"</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">  </span><span class="nt">partition_filters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> region</span><span class="p">:</span><span class="w"> </span><span class="s">"eu"</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">    </span><span class="c1"># additional predicate pushdown</span>
 </code></pre></div>
 <hr />
 <h2 id="after-ingestion-clean-up-the-source">After ingestion: clean up the source</h2>
 <p>Once input is safely ingested, <code>post_ingestion</code> decides what happens to it — <strong>including deleting or archiving the consumed files</strong>. This is the "delete files once ingested" behavior; it has its own page because it's a lifecycle concern shared with the <code>server</code> block.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">source</span><span class="p">:</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">post_ingestion</span><span class="p">:</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">delete</span><span class="w">           </span><span class="c1"># delete | archive | retain</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="nt">cleanup_is_blocking</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="nt">archive_path</span><span class="p">:</span><span class="w"> </span><span class="s">"s3://bucket/archive/orders/"</span><span class="w">   </span><span class="c1"># required when action: archive</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">post_ingestion</span><span class="p">:</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">delete</span><span class="w">           </span><span class="c1"># delete | archive | retain</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nt">cleanup_is_blocking</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="nt">archive_path</span><span class="p">:</span><span class="w"> </span><span class="s">"s3://bucket/archive/orders/"</span><span class="w">   </span><span class="c1"># required when action: archive</span>
 </code></pre></div>
 <p>→ Full detail in <strong><a href="lifecycle.html">Post-Ingestion Lifecycle</a></strong>.</p>
 <hr />
 <h2 id="resilience">Resilience</h2>
 <p>Transient source failures are retried per <code>RetryConfig</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">source</span><span class="p">:</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">retry</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> max_attempts</span><span class="p">:</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="nt"> backoff</span><span class="p">:</span><span class="w"> </span><span class="nv">exponential</span><span class="p p-Indicator">,</span><span class="nt"> initial_delay</span><span class="p">:</span><span class="w"> </span><span class="nv">2.0</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">retry</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> max_attempts</span><span class="p">:</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="nt"> backoff</span><span class="p">:</span><span class="w"> </span><span class="nv">exponential</span><span class="p p-Indicator">,</span><span class="nt"> initial_delay</span><span class="p">:</span><span class="w"> </span><span class="nv">2.0</span><span class="w"> </span><span class="p p-Indicator">}</span>
 </code></pre></div>
+<h2 id="source-options">Source options</h2>
+<p><code>source.options</code> holds how to read the source. Which keys are allowed depends on the source, and an unknown key is
+rejected with a suggestion (<code>header_rows</code> → "did you mean <code>header_row</code>?"):</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Options</th>
+<th>Keys</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>format: csv</code> / <code>tsv</code></td>
+<td><code>CsvOptions</code></td>
+<td><code>delimiter</code>, <code>encoding</code>, <code>skip_rows</code>, <code>has_header</code>, <code>quote_char</code>, <code>null_values</code>, <code>comment_prefix</code></td>
+</tr>
+<tr>
+<td><code>format: xlsx</code> / <code>xls</code> / <code>excel</code></td>
+<td><code>ExcelOptions</code></td>
+<td><code>sheet_name</code>, <code>header_row</code>, <code>skip_footer</code></td>
+</tr>
+<tr>
+<td><code>format: json</code> / <code>ndjson</code> / <code>jsonl</code></td>
+<td><code>JsonOptions</code></td>
+<td><code>multiline</code></td>
+</tr>
+<tr>
+<td><code>format: xml</code></td>
+<td><code>XmlOptions</code></td>
+<td><code>row_tag</code></td>
+</tr>
+<tr>
+<td><code>format: fixed_width</code></td>
+<td><code>FixedWidthOptions</code></td>
+<td><code>columns</code>, <code>record_length</code>, <code>encoding</code>, <code>skip_rows</code>, <code>skip_footer</code>, <code>strip</code></td>
+</tr>
+<tr>
+<td><code>format: avro</code> / <code>parquet</code></td>
+<td><code>AvroOptions</code> / <code>ParquetOptions</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>every file format</td>
+<td></td>
+<td><code>archive_member</code>, <code>implied_decimals</code>, <code>date_formats</code>, <code>decimal_comma</code></td>
+</tr>
+<tr>
+<td><code>type: database</code></td>
+<td><code>DatabaseOptions</code> / <code>MongoDbOptions</code></td>
+<td>see <a href="#database-sql-query">Database</a></td>
+</tr>
+<tr>
+<td><code>type: sftp</code></td>
+<td><code>SftpOptions</code> + the format's</td>
+<td><code>username</code>, <code>password</code>, <code>private_key_path</code>, <code>known_hosts</code></td>
+</tr>
+<tr>
+<td><code>type: stream</code> + <code>kind</code></td>
+<td><code>KafkaOptions</code> / <code>EventHubsOptions</code></td>
+<td>see <a href="#kafka-and-azure-event-hubs">Kafka and Azure Event Hubs</a></td>
+</tr>
+</tbody>
+</table>
+<p>Every option has its meaning, default and an example in the generated reference (<code>skills/olc-reference.md</code>).</p>
+<ul>
+<li><strong>Settings live only under <code>options</code>.</strong> <code>source.record_length</code> (or <code>encoding</code>, <code>skip_rows</code>, <code>skip_footer</code>, <code>strip</code>)
+  is rejected with "<code>record_length</code> belongs under <code>source.options</code>".</li>
+<li><strong>Credentials are never written in a contract.</strong> A key that holds a secret (<code>password</code>, <code>*_token</code>, <code>*_secret</code>,
+  <code>connection_string</code>, …) must be an environment reference, <code>env:VAR</code> or <code>${ENV:VAR}</code>.</li>
+<li><strong><code>engine_options</code></strong> is the one free-form corner: engine-specific extras, passed through unchecked.</li>
+</ul>
 <h2 id="every-source-field-at-a-glance">Every <code>source</code> field at a glance</h2>
 <p><code>type</code>, <code>query</code>, <code>path</code>, <code>format</code>, <code>load_mode</code>, <code>pattern</code>, <code>watermark_field</code>, <code>cdc_op_field</code>, <code>cdc_delete_values</code>, <code>cdc_timestamp_field</code>, <code>dlt</code>, <code>partition</code>, <code>empty_behavior</code>, <code>watermark_strategy</code>, <code>target_path</code>, <code>lookback</code>, <code>from_date</code>, <code>to_date</code>, <code>pipeline_log_table</code>, <code>pipeline_name</code>, <code>manifest_path</code>, <code>watermark_date_parts</code>, <code>partition_filters</code>, <code>flatten_nested</code>, <code>post_ingestion</code>.</p>
 
