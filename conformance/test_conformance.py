@@ -54,9 +54,9 @@ _require("lakelogic", "LakeLogic runtime not installed")  # engines run the case
 _require("olc.models", "public OLC strict model unavailable (pip install .[models])")
 _require("polars", "polars not installed")
 
-from runner import load_all_cases, run_case
-from runner.adapters import ADAPTERS
-from runner.harness import PASS, UNSUPPORTED
+from runner import load_all_cases, run_case  # noqa: E402 - imported after the dependency checks above
+from runner.adapters import ADAPTERS  # noqa: E402 - imported after the dependency checks above
+from runner.harness import PASS, UNSUPPORTED  # noqa: E402 - imported after the dependency checks above
 
 CASES = load_all_cases()
 ADAPTER_NAMES = list(ADAPTERS)

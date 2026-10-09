@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from generate_reference import (
+from generate_reference import (  # noqa: E402 - needs scripts/ on sys.path first
     CONTEXT_FILES,
     END,
     EXAMPLES,
