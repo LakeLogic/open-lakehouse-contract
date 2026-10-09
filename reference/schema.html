@@ -1950,8 +1950,8 @@
 </tr>
 <tr>
 <td><code>primary_key</code></td>
-<td>Column(s) that uniquely identify a row; drives merge/SCD2 convergence.</td>
-<td><a href="materialization.html#write-strategies">Materialization</a></td>
+<td>Column(s) that uniquely identify a row: a <strong>top-level</strong> list (<code>primary_key: [order_id]</code>), never under <code>model</code> or on a field. Drives merge/SCD2 convergence, and a conforming runtime checks the key is unique.</td>
+<td><a href="materialization.html#write-strategies">Materialization</a> · <a href="quality.html#unique">unique</a></td>
 </tr>
 <tr>
 <td><code>natural_key</code></td>
