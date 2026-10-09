@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union, get_args
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
 
 class Info(BaseModel):
@@ -751,10 +751,74 @@ class RowRuleLifecycleWindow(BaseModel):
     lifecycle_window: Dict[str, Any]
 
 
-class DatasetRuleUnique(BaseModel):
-    """Business-friendly unique rule."""
+class UniqueRuleSpec(BaseModel):
+    """The mapping form of a ``unique`` rule: exactly one of ``field`` (one column) or
+    ``columns`` (a composite key), plus optional labels. Any other key is rejected, so a
+    misspelling (``column:``) fails validation instead of producing no check."""
 
-    unique: Union[str, List[str], Dict[str, Any]]
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+        # The JSON Schema mirror of _one_key_form: exactly one of the key spellings.
+        json_schema_extra={"oneOf": [{"required": ["field"]}, {"required": ["columns"]}, {"required": ["fields"]}]},
+    )
+
+    field: Optional[str] = Field(default=None, description="One column that must be unique.")
+    columns: Optional[List[str]] = Field(
+        default=None,
+        validation_alias=AliasChoices("columns", "fields"),
+        description="Columns whose combination must be unique (a composite key). `fields` is accepted as an alias.",
+    )
+    name: Optional[str] = Field(default=None, description="Rule name; default `<columns>_unique`.")
+    severity: Optional[str] = Field(default=None, description="error (default) | warning | info.")
+    category: Optional[str] = Field(default=None, description="Defaults to `uniqueness`.")
+    description: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _one_key_form(self) -> "UniqueRuleSpec":
+        if (self.field is None) == (not self.columns):
+            raise ValueError("a unique rule needs exactly one of `field` (one column) or `columns` (a list)")
+        return self
+
+
+class DatasetRuleUnique(BaseModel):
+    """No two rows may share the value(s) of the named column(s). A DATASET rule:
+    write it under ``quality.dataset_rules``, never ``row_rules``.
+
+    Three accepted forms::
+
+        - unique: order_id                       # one column
+        - unique: [order_id, line_no]            # composite key
+        - unique: {field: email}                 # mapping: field | columns, + labels
+
+    ``name``, ``severity``, ``category`` and ``description`` may sit beside ``unique`` or
+    inside the mapping. A conforming runtime already checks ``primary_key`` is unique; a
+    ``unique`` rule over exactly the key columns is that same check, not a second one.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    unique: Union[str, List[str], UniqueRuleSpec]
+    name: Optional[str] = Field(default=None, description="Rule name; default `<columns>_unique`.")
+    severity: Optional[str] = Field(default=None, description="error (default) | warning | info.")
+    category: Optional[str] = Field(default=None, description="Defaults to `uniqueness`.")
+    description: Optional[str] = None
+
+    def columns(self) -> List[str]:
+        """The column(s) the rule covers, whatever form it was written in."""
+        u = self.unique
+        if isinstance(u, str):
+            return [u]
+        if isinstance(u, list):
+            return list(u)
+        return [u.field] if u.field else list(u.columns or [])
+
+    def label(self, key: str) -> Optional[str]:
+        """``name``/``severity``/``category``/``description``: beside ``unique`` wins, else inside it."""
+        own = getattr(self, key)
+        if own is not None:
+            return own
+        return getattr(self.unique, key, None) if isinstance(self.unique, UniqueRuleSpec) else None
 
 
 class DatasetRuleNullRatio(BaseModel):

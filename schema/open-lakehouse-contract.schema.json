@@ -76,7 +76,8 @@
       "additionalProperties": false
     },
     "DatasetRuleUnique": {
-      "description": "Business-friendly unique rule.",
+      "additionalProperties": false,
+      "description": "No two rows may share the value(s) of the named column(s). A DATASET rule:\nwrite it under ``quality.dataset_rules``, never ``row_rules``.\n\nThree accepted forms::\n\n    - unique: order_id                       # one column\n    - unique: [order_id, line_no]            # composite key\n    - unique: {field: email}                 # mapping: field | columns, + labels\n\n``name``, ``severity``, ``category`` and ``description`` may sit beside ``unique`` or\ninside the mapping. A conforming runtime already checks ``primary_key`` is unique; a\n``unique`` rule over exactly the key columns is that same check, not a second one.",
       "properties": {
         "unique": {
           "anyOf": [
@@ -90,25 +91,68 @@
               "type": "array"
             },
             {
-              "additionalProperties": true,
-              "type": "object"
+              "$ref": "#/$defs/UniqueRuleSpec"
             }
           ],
           "title": "Unique"
         },
         "name": {
-          "title": "Name",
-          "description": "Stable human-readable identifier for the dataset rule.",
-          "type": "string",
-          "minLength": 1
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rule name; default `<columns>_unique`.",
+          "title": "Name"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "error (default) | warning | info.",
+          "title": "Severity"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Defaults to `uniqueness`.",
+          "title": "Category"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
         }
       },
       "required": [
         "unique"
       ],
       "title": "DatasetRuleUnique",
-      "type": "object",
-      "additionalProperties": false
+      "type": "object"
     },
     "DltEndpointConfig": {
       "additionalProperties": false,
@@ -4449,6 +4493,127 @@
       "title": "TransformationUpper",
       "type": "object",
       "additionalProperties": false
+    },
+    "UniqueRuleSpec": {
+      "additionalProperties": false,
+      "description": "The mapping form of a ``unique`` rule: exactly one of ``field`` (one column) or\n``columns`` (a composite key), plus optional labels. Any other key is rejected, so a\nmisspelling (``column:``) fails validation instead of producing no check.",
+      "oneOf": [
+        {
+          "required": [
+            "field"
+          ]
+        },
+        {
+          "required": [
+            "columns"
+          ]
+        },
+        {
+          "required": [
+            "fields"
+          ]
+        }
+      ],
+      "properties": {
+        "field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "One column that must be unique.",
+          "title": "Field"
+        },
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Columns whose combination must be unique (a composite key). `fields` is accepted as an alias.",
+          "title": "Columns"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rule name; default `<columns>_unique`.",
+          "title": "Name"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "error (default) | warning | info.",
+          "title": "Severity"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Defaults to `uniqueness`.",
+          "title": "Category"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "fields": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Columns whose combination must be unique (a composite key). `fields` is accepted as an alias.",
+          "title": "Columns"
+        }
+      },
+      "title": "UniqueRuleSpec",
+      "type": "object"
     },
     "UpstreamContractRef": {
       "additionalProperties": false,

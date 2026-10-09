@@ -48,6 +48,31 @@ CONTEXT_FILES = [
 ]
 
 #: Shapes agents most often get wrong, shown as valid examples.
+PLACEMENT = """These are the placements agents most often get wrong; the validator rejects the wrong ones.
+
+```yaml
+model:
+  fields:
+    - {name: order_id, type: integer}    # no `primary_key:` or `unique:` on a field
+    - {name: line_no, type: integer}
+primary_key: [order_id, line_no]         # TOP LEVEL, a list — never under `model`
+quality:
+  dataset_rules:                         # `unique` is a DATASET rule, never a row rule
+    - unique: email                      # one column
+    - unique: [order_id, line_no]        # composite key
+    - unique: {field: email, severity: warning}      # mapping: exactly one of
+    - {name: sku_unique, unique: sku}                #   field | columns; labels
+                                                     #   (name, severity, category,
+                                                     #   description) beside or inside
+```
+
+- `primary_key` makes a conforming runtime check the key is unique (LakeLogic adds a
+  `<keys>_unique` dataset rule). Do not repeat it: a `unique` rule, or a
+  `COUNT(DISTINCT …)` SQL rule, over the same columns is treated as that check.
+- `unique` mapping keys are only `field`, `columns` (alias `fields`), `name`, `severity`,
+  `category`, `description`. Anything else (`column:`, `key:`) is rejected.
+"""
+
 EXAMPLES = """```yaml
 quality:
   fail_pipeline_on_dataset_error: true
@@ -160,6 +185,10 @@ def build_reference(schema: dict) -> str:
         f"Generated from `schema/open-lakehouse-contract.schema.json` (sha `{digest}`). Do not",
         "edit by hand: run `python scripts/generate_reference.py`. When writing or changing a",
         "contract, use ONLY the keys below, then validate with `olc validate <path>`.",
+        "",
+        "## Where things go",
+        "",
+        PLACEMENT,
         "",
         "## Common shapes",
         "",

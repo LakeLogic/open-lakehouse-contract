@@ -149,9 +149,22 @@ SELECT SUM(CASE WHEN status = 'ACTIVE' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) FROM 
 SELECT COUNT(*) = COUNT(DISTINCT customer_id) FROM source
 ```
 ```yaml
-- unique: customer_id
+- unique: customer_id                              # one column
+- unique: [order_id, line_no]                      # composite key
 - unique: { field: email, name: email_unique, severity: error }
+- { name: sku_unique, unique: sku, severity: warning }
 ```
+
+A **dataset** rule: write it under `dataset_rules`, never `row_rules`. The mapping form takes
+exactly one of `field` (one column) or `columns` (a list; `fields` is accepted too), plus
+optional `name`, `severity`, `category` and `description`, which may also sit beside
+`unique`. Any other key is rejected, so a typo such as `column:` fails validation instead of
+quietly checking nothing.
+
+`primary_key` already implies this check: a conforming runtime verifies the key is unique
+without a `unique` rule (LakeLogic adds `<keys>_unique`). A `unique` rule, or a
+`COUNT(DISTINCT …)` SQL rule, over exactly the primary-key columns is treated as that same
+check and is not run twice.
 
 ### `null_ratio`
 
