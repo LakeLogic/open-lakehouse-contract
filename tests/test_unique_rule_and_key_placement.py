@@ -4,6 +4,7 @@ Agents writing contracts were unsure of both, and several wrong spellings passed
 (``unique: {column: id}``, ``unique: {field: [a, b]}``) only to check nothing — or crash — at
 run time. Each case is checked against BOTH the published JSON Schema and the strict model.
 """
+
 from __future__ import annotations
 
 import unittest
@@ -17,7 +18,12 @@ from olc.validate import errors_for, load_schema
 BASE = {
     "version": "1.0.0",
     "info": {"title": "Orders", "version": "1.0.0"},
-    "model": {"fields": [{"name": "order_id", "type": "integer"}, {"name": "line_no", "type": "integer"}]},
+    "model": {
+        "fields": [
+            {"name": "order_id", "type": "integer"},
+            {"name": "line_no", "type": "integer"},
+        ]
+    },
 }
 
 
@@ -30,7 +36,9 @@ def _rules(*rules):
 
 
 class _Both(unittest.TestCase):
-    validator = Draft202012Validator(load_schema("schema/open-lakehouse-contract.schema.json"))
+    validator = Draft202012Validator(
+        load_schema("schema/open-lakehouse-contract.schema.json")
+    )
 
     def assertAccepted(self, doc):
         self.assertEqual(errors_for(doc, self.validator), [])
@@ -48,9 +56,20 @@ class UniqueRuleForms(_Both):
             {"unique": "order_id"},
             {"unique": ["order_id", "line_no"]},
             {"unique": {"field": "order_id"}},
-            {"unique": {"columns": ["order_id", "line_no"], "name": "pk_unique", "severity": "warning"}},
+            {
+                "unique": {
+                    "columns": ["order_id", "line_no"],
+                    "name": "pk_unique",
+                    "severity": "warning",
+                }
+            },
             {"unique": {"fields": ["order_id", "line_no"]}},
-            {"name": "order_id_unique", "unique": "order_id", "severity": "warning", "description": "one row per order"},
+            {
+                "name": "order_id_unique",
+                "unique": "order_id",
+                "severity": "warning",
+                "description": "one row per order",
+            },
         ):
             with self.subTest(rule=rule):
                 self.assertAccepted(_rules(rule))
@@ -73,7 +92,9 @@ class UniqueRuleForms(_Both):
         self.assertEqual(DatasetRuleUnique(unique="a").columns(), ["a"])
         self.assertEqual(DatasetRuleUnique(unique=["a", "b"]).columns(), ["a", "b"])
         inner = DatasetRuleUnique(unique={"fields": ["a", "b"], "severity": "warning"})
-        self.assertEqual((inner.columns(), inner.label("severity")), (["a", "b"], "warning"))
+        self.assertEqual(
+            (inner.columns(), inner.label("severity")), (["a", "b"], "warning")
+        )
         beside = DatasetRuleUnique(unique={"field": "a", "name": "inner"}, name="outer")
         self.assertEqual(beside.label("name"), "outer")
 
@@ -84,8 +105,22 @@ class PrimaryKeyPlacement(_Both):
 
     def test_under_model_or_on_a_field_is_rejected(self):
         self.assertRejected(_with(model={**BASE["model"], "primary_key": ["order_id"]}))
-        self.assertRejected(_with(model={"fields": [{"name": "order_id", "type": "integer", "primary_key": True}]}))
-        self.assertRejected(_with(model={"fields": [{"name": "order_id", "type": "integer", "unique": True}]}))
+        self.assertRejected(
+            _with(
+                model={
+                    "fields": [
+                        {"name": "order_id", "type": "integer", "primary_key": True}
+                    ]
+                }
+            )
+        )
+        self.assertRejected(
+            _with(
+                model={
+                    "fields": [{"name": "order_id", "type": "integer", "unique": True}]
+                }
+            )
+        )
 
 
 if __name__ == "__main__":

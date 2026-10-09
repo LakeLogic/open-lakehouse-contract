@@ -11,7 +11,7 @@ assertions:
   rows_accepted: 3
   rows_quarantined: 0
   dataset_rules_failed:
-  - trip_id_unique
+  - trip_unique          # the name the contract declares beside `unique`
 comparison:
   sort_by:
   - trip_id

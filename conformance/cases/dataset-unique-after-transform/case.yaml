@@ -10,6 +10,6 @@ assertions:
   rows_input: 2
   rows_accepted: 2
   rows_quarantined: 0
-  dataset_rules_failed: [name_unique]
+  dataset_rules_failed: [name_key]   # the declared name
 comparison:
   sort_by: [id]

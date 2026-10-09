@@ -760,24 +760,40 @@ class UniqueRuleSpec(BaseModel):
         extra="forbid",
         populate_by_name=True,
         # The JSON Schema mirror of _one_key_form: exactly one of the key spellings.
-        json_schema_extra={"oneOf": [{"required": ["field"]}, {"required": ["columns"]}, {"required": ["fields"]}]},
+        json_schema_extra={
+            "oneOf": [
+                {"required": ["field"]},
+                {"required": ["columns"]},
+                {"required": ["fields"]},
+            ]
+        },
     )
 
-    field: Optional[str] = Field(default=None, description="One column that must be unique.")
+    field: Optional[str] = Field(
+        default=None, description="One column that must be unique."
+    )
     columns: Optional[List[str]] = Field(
         default=None,
         validation_alias=AliasChoices("columns", "fields"),
         description="Columns whose combination must be unique (a composite key). `fields` is accepted as an alias.",
     )
-    name: Optional[str] = Field(default=None, description="Rule name; default `<columns>_unique`.")
-    severity: Optional[str] = Field(default=None, description="error (default) | warning | info.")
-    category: Optional[str] = Field(default=None, description="Defaults to `uniqueness`.")
+    name: Optional[str] = Field(
+        default=None, description="Rule name; default `<columns>_unique`."
+    )
+    severity: Optional[str] = Field(
+        default=None, description="error (default) | warning | info."
+    )
+    category: Optional[str] = Field(
+        default=None, description="Defaults to `uniqueness`."
+    )
     description: Optional[str] = None
 
     @model_validator(mode="after")
     def _one_key_form(self) -> "UniqueRuleSpec":
         if (self.field is None) == (not self.columns):
-            raise ValueError("a unique rule needs exactly one of `field` (one column) or `columns` (a list)")
+            raise ValueError(
+                "a unique rule needs exactly one of `field` (one column) or `columns` (a list)"
+            )
         return self
 
 
@@ -799,9 +815,15 @@ class DatasetRuleUnique(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     unique: Union[str, List[str], UniqueRuleSpec]
-    name: Optional[str] = Field(default=None, description="Rule name; default `<columns>_unique`.")
-    severity: Optional[str] = Field(default=None, description="error (default) | warning | info.")
-    category: Optional[str] = Field(default=None, description="Defaults to `uniqueness`.")
+    name: Optional[str] = Field(
+        default=None, description="Rule name; default `<columns>_unique`."
+    )
+    severity: Optional[str] = Field(
+        default=None, description="error (default) | warning | info."
+    )
+    category: Optional[str] = Field(
+        default=None, description="Defaults to `uniqueness`."
+    )
     description: Optional[str] = None
 
     def columns(self) -> List[str]:
@@ -818,7 +840,11 @@ class DatasetRuleUnique(BaseModel):
         own = getattr(self, key)
         if own is not None:
             return own
-        return getattr(self.unique, key, None) if isinstance(self.unique, UniqueRuleSpec) else None
+        return (
+            getattr(self.unique, key, None)
+            if isinstance(self.unique, UniqueRuleSpec)
+            else None
+        )
 
 
 class DatasetRuleNullRatio(BaseModel):
