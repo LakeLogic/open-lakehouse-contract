@@ -37,6 +37,21 @@ materialization:
 | `table_properties` | Format-specific table properties passed through to the writer. |
 | `compaction` | Compaction/optimize settings for the table. |
 
+## Defaults from the system config
+
+A contract does not need to repeat what its system config already says. Each key is
+resolved in this order, the first one found wins:
+
+1. the contract's own `materialization` block;
+2. `_system.yaml` → `materialization.<layer>` (`bronze`, `silver`, `gold`);
+3. `_system.yaml` → `materialization._all`;
+4. the model default — `strategy: append`.
+
+The merge is per key, so a contract can declare only `scd1:` or `fact:` and take its
+`strategy` and `format` from the layer default. A contract that leaves `strategy` out is
+only as safe as the system config it ships with: one moved to a system with no layer
+default appends.
+
 ## SCD2 history
 
 `strategy: scd2` keeps history with validity columns instead of overwriting. The
@@ -116,7 +131,8 @@ Both are load-bearing for contracts already in the wild; neither is deprecated.
 
 A **type-1** dimension keeps one row per key, overwritten in place — no history. It still
 needs a surrogate key for facts to point at, and an unknown-member row for the facts whose
-key does not resolve. Declare both in the `scd1` block, under `strategy: merge`:
+key does not resolve. Declare both in the `scd1` block, under `strategy: merge` (stated here, or inherited from
+the system config's layer default — see [Defaults from the system config](#defaults-from-the-system-config)):
 
 ```yaml
 primary_key: [city_code]
