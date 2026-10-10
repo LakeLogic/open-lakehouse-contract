@@ -1321,6 +1321,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#defaults-from-the-system-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defaults from the system config
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#scd2-history" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1747,6 +1758,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#defaults-from-the-system-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defaults from the system config
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#scd2-history" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1961,6 +1983,19 @@
 </tr>
 </tbody>
 </table>
+<h2 id="defaults-from-the-system-config">Defaults from the system config</h2>
+<p>A contract does not need to repeat what its system config already says. Each key is
+resolved in this order, the first one found wins:</p>
+<ol>
+<li>the contract's own <code>materialization</code> block;</li>
+<li><code>_system.yaml</code> → <code>materialization.&lt;layer&gt;</code> (<code>bronze</code>, <code>silver</code>, <code>gold</code>);</li>
+<li><code>_system.yaml</code> → <code>materialization._all</code>;</li>
+<li>the model default — <code>strategy: append</code>.</li>
+</ol>
+<p>The merge is per key, so a contract can declare only <code>scd1:</code> or <code>fact:</code> and take its
+<code>strategy</code> and <code>format</code> from the layer default. A contract that leaves <code>strategy</code> out is
+only as safe as the system config it ships with: one moved to a system with no layer
+default appends.</p>
 <h2 id="scd2-history">SCD2 history</h2>
 <p><code>strategy: scd2</code> keeps history with validity columns instead of overwriting. The
 version key is the contract's <code>primary_key</code> — there is no separate business-key
@@ -2139,7 +2174,8 @@ Both are load-bearing for contracts already in the wild; neither is deprecated.<
 <h2 id="scd1-surrogate-key">SCD1 surrogate key</h2>
 <p>A <strong>type-1</strong> dimension keeps one row per key, overwritten in place — no history. It still
 needs a surrogate key for facts to point at, and an unknown-member row for the facts whose
-key does not resolve. Declare both in the <code>scd1</code> block, under <code>strategy: merge</code>:</p>
+key does not resolve. Declare both in the <code>scd1</code> block, under <code>strategy: merge</code> (stated here, or inherited from
+the system config's layer default — see <a href="#defaults-from-the-system-config">Defaults from the system config</a>):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">primary_key</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">city_code</span><span class="p p-Indicator">]</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">natural_key</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">city_code</span><span class="p p-Indicator">]</span><span class="w">          </span><span class="c1"># what the surrogate key is a hash of — see below</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">materialization</span><span class="p">:</span>
