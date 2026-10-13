@@ -493,6 +493,10 @@ class RegistryEnvironment(_Base):
     storage_root: Optional[str] = None
     data_root: Optional[str] = None
     catalog: Optional[str] = None
+    #: Start of a domain's own catalog name in this environment, e.g. ``rideflow_dev``.
+    #: A catalog per domain is ``{domain_catalog_prefix}_{domain}``; another domain reads
+    #: it as ``{domain_catalog_prefix}_marketplace``.
+    domain_catalog_prefix: Optional[str] = None
     storage_account: Optional[str] = None
     quarantine_root: Optional[str] = None
     external_location_root: Optional[str] = None
@@ -536,6 +540,14 @@ class SystemStorage(_Base):
     """Path templates. Values interpolate ``{catalog}``, ``{domain}``, ``{system}``."""
 
     domain_catalog: Optional[str] = None
+    #: Where a layer's tables live when each layer has its own schema, e.g.
+    #: ``"`{catalog}_{domain}`.bronze"``. Set, a contract's table is
+    #: ``{<layer>_root}.{table_name}``; omitted, it is ``{domain_catalog}.{table_name}``
+    #: (one schema per domain, the layer in the table name). A catalog per domain is these
+    #: three, plus ``domain_catalog`` naming the schema for the runtime's own tables.
+    bronze_root: Optional[str] = None
+    silver_root: Optional[str] = None
+    gold_root: Optional[str] = None
     quarantine_root: Optional[str] = None
     #: Name template for a contract's quarantine table under ``quarantine_root``, e.g.
     #: ``quarantine_{table}`` - rejects sit beside their table in the domain schema.
