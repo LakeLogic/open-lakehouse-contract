@@ -1262,9 +1262,7 @@ class Materialization(BaseModel):
             "'|', first 16 hex chars, stable across runs — or `uuid`, new every run; "
             "default `hash`), and unknown_member (nested: enabled, surrogate_key_value, "
             "default_values; falls back to `materialization.unknown_member`). The key is "
-            "a hash of `primary_key`, so a contract stating `natural_key` for a type-1 "
-            "dimension should state the same columns. The strict OLC v1 path rejects any "
-            "other key."
+            "a hash of `primary_key`. The strict OLC v1 path rejects any other key."
         ),
     )
     fact: Optional[FactConfig] = None

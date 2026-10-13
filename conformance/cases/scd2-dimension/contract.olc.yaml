@@ -10,7 +10,6 @@ model:
     - { name: effective_from, type: string }
     - { name: effective_to, type: string }
 primary_key: [customer_id]
-natural_key: [customer_id]
 materialization:
   strategy: scd2
   format: delta

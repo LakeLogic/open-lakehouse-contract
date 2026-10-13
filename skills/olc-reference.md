@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `0700e0342bd8`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `7b0a5c128947`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -75,7 +75,7 @@ contract. Unknown keys are rejected.
 | `links` | list[Link] |  |
 | `dataset` | string (nullable) |  |
 | `primary_key` | list[string] |  |
-| `natural_key` | list[string] |  |
+| `natural_key` | list[string] | DEPRECATED. Still accepted so existing contracts validate; a conforming runtime does not read it. `primary_key` is the business key (SCD2 matches versions on it, and a type-1 surrogate key is a hash of it). State version uniqueness as a `unique` rule, e.g. `unique: {columns: [customer_id, effective_from]}`. |
 | `lineage` | LineageConfig (nullable) |  |
 | `materialization` | Materialization (nullable) |  |
 | `logic` | string (nullable) |  |
@@ -256,7 +256,7 @@ Materialization settings for writing outputs.
 | `format` | string (nullable) |  |
 | `location` | string (nullable) |  |
 | `scd2` | object (free-form) (nullable) | Slowly-changing-dimension (type 2) settings, used when `strategy: scd2`. All keys are optional; each has a runtime default. Known keys: surrogate_key, surrogate_key_strategy, effective_from_field, effective_to_field, current_flag_field, version_column, change_reason_column, track_columns, timestamp_field / change_date_field (aliases), end_date_default / effective_to_default (aliases), start_date_default / effective_from_default (aliases), default_effective_from, merge_dedup_guard, and unknown_member (nested: enabled, surrogate_key_value, default_values). The strict OLC v1 path rejects any other key: omitting `track_columns` means 'treat every incoming row as a change', so a misspelling of it silently produces unbounded version history. |
-| `scd1` | object (free-form) (nullable) | Type-1 dimension surrogate key, used with `strategy: merge`. The table keeps one row per `primary_key`, overwritten in place; this block adds the key facts point at. Known keys: surrogate_key (the column written, placed first), surrogate_key_strategy (`hash` — sha256 of the primary-key values joined with '\|', first 16 hex chars, stable across runs — or `uuid`, new every run; default `hash`), and unknown_member (nested: enabled, surrogate_key_value, default_values; falls back to `materialization.unknown_member`). The key is a hash of `primary_key`, so a contract stating `natural_key` for a type-1 dimension should state the same columns. The strict OLC v1 path rejects any other key. |
+| `scd1` | object (free-form) (nullable) | Type-1 dimension surrogate key, used with `strategy: merge`. The table keeps one row per `primary_key`, overwritten in place; this block adds the key facts point at. Known keys: surrogate_key (the column written, placed first), surrogate_key_strategy (`hash` — sha256 of the primary-key values joined with '\|', first 16 hex chars, stable across runs — or `uuid`, new every run; default `hash`), and unknown_member (nested: enabled, surrogate_key_value, default_values; falls back to `materialization.unknown_member`). The key is a hash of `primary_key`. The strict OLC v1 path rejects any other key. |
 | `fact` | FactConfig (nullable) |  |
 | `soft_delete_column` | string (nullable) |  |
 | `soft_delete_value` | any | default `true` |

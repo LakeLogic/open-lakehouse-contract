@@ -60,7 +60,7 @@ links:
   - { name: fx_rates,  type: table, path: "table:lakehouse.reference.silver_fx_rates" }
 ```
 
-## Model & keys — `model`, `primary_key`, `natural_key`
+## Model & keys — `model`, `primary_key`
 
 What the data **is**: typed fields, PII/masking, accepted values, ranges — plus the keys. → [Field Reference: Schema & keys](schema.md#schema-keys) · [Security & PII](security.md)
 
@@ -77,8 +77,7 @@ model:
     - { name: region,         type: string }                  # enriched from the customers link
     - { name: ordered_at,     type: timestamp, required: true }
 
-primary_key:  [order_id]               # uniqueness / merge key
-natural_key:  [order_id]               # business key (may differ from PK)
+primary_key:  [order_id]               # the business key: uniqueness and merge
 ```
 
 ## Transformations — `transformations`
@@ -270,7 +269,6 @@ model:
     - { name: ordered_at,     type: timestamp, required: true }
 
 primary_key:  [order_id]
-natural_key:  [order_id]
 
 # ── TRANSFORMATIONS — SQL-first; shorthands compile to SQL ───────────────────
 transformations:

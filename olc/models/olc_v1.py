@@ -141,7 +141,15 @@ class OLCContractV1(BaseModel):
     links: List[Link] = Field(default_factory=list)
     dataset: Optional[str] = None
     primary_key: List[str] = Field(default_factory=list)
-    natural_key: List[str] = Field(default_factory=list)
+    natural_key: List[str] = Field(
+        default_factory=list,
+        description=(
+            "DEPRECATED. Still accepted so existing contracts validate; a conforming runtime "
+            "does not read it. `primary_key` is the business key (SCD2 matches versions on it, "
+            "and a type-1 surrogate key is a hash of it). State version uniqueness as a "
+            "`unique` rule, e.g. `unique: {columns: [customer_id, effective_from]}`."
+        ),
+    )
     lineage: Optional[LineageConfig] = None
     materialization: Optional[Materialization] = None
     logic: Optional[str] = None

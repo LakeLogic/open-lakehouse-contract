@@ -49,8 +49,7 @@ model:
     - { name: region,         type: string }                  # enriched from the customers link
     - { name: ordered_at,     type: timestamp, required: true }
 
-primary_key:  [order_id]               # uniqueness / merge key
-natural_key:  [order_id]               # business key (may differ from PK)
+primary_key:  [order_id]               # the business key: uniqueness and merge
 
 # ── TRANSFORMATIONS — how it's shaped (SQL-first; shorthands compile to SQL) ──
 transformations:

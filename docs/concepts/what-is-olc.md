@@ -30,7 +30,7 @@ flowchart TD
 | **Lineage** | `lineage.enabled` — provenance columns on every row |
 | **Materialization** | `strategy` (append / merge / SCD2 / overwrite) + `format` |
 | **SLOs** | `service_levels` — freshness, volume, availability targets |
-| **Keys** | `primary_key`, `natural_key`, surrogate-key generation |
+| **Keys** | `primary_key` (the business key), surrogate-key generation |
 | **Transformations** | `transformations` — declared SQL steps between source and target |
 
 ## Declarative convergence

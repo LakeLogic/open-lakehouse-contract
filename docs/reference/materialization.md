@@ -135,8 +135,7 @@ key does not resolve. Declare both in the `scd1` block, under `strategy: merge` 
 the system config's layer default — see [Defaults from the system config](#defaults-from-the-system-config)):
 
 ```yaml
-primary_key: [city_code]
-natural_key: [city_code]          # what the surrogate key is a hash of — see below
+primary_key: [city_code]          # what the surrogate key is a hash of — see below
 materialization:
   strategy: merge
   scd1:
@@ -148,9 +147,8 @@ materialization:
 ```
 
 The key is a hash of **`primary_key`** — the values joined with `|`, sha256, first 16 hex
-characters — so the same city gets the same `city_sk` on every run. A type-1 contract that
-states `natural_key` should therefore state the same columns as `primary_key`; stating
-anything else describes a key the runtime does not compute.
+characters — so the same city gets the same `city_sk` on every run. `primary_key` is the
+whole statement of what the key is made from; `natural_key` is deprecated and not read.
 
 ### `scd1` keys
 

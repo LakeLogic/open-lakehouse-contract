@@ -63,7 +63,7 @@ The contract is portable because each concern is implemented by a well-known lib
 |---|---|---|
 | `model` **(required)** | The declared shape — `model.fields[]` with `name`, `type`, `required`, `description`, and field-level `pii` / `masking`. | [Security & PII](security.md) · [Validation & Quality](quality.md#field-level-rules) |
 | `primary_key` | Column(s) that uniquely identify a row: a **top-level** list (`primary_key: [order_id]`), never under `model` or on a field. Drives merge/SCD2 convergence, and a conforming runtime checks the key is unique. | [Materialization](materialization.md#write-strategies) · [unique](quality.md#unique) |
-| `natural_key` | Business key(s), distinct from a generated surrogate key. | [Materialization](materialization.md#scd2-history) |
+| `natural_key` | **Deprecated**, accepted but not read. `primary_key` is the business key; state version uniqueness as a `unique` rule. | [Materialization](materialization.md#scd2-history) |
 | `schema_policy` | How to react to schema drift (evolve / warn / fail). | [Materialization → Schema evolution](materialization.md#schema-evolution) |
 
 ## Quality & quarantine

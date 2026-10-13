@@ -46,7 +46,6 @@ def _contract(scd1: dict) -> dict:
             ]
         },
         "primary_key": ["city_code"],
-        "natural_key": ["city_code"],
         "materialization": {"strategy": "merge", "scd1": scd1},
     }
 
@@ -134,3 +133,21 @@ class Scd1LenientPathTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_natural_key_is_deprecated_but_still_accepted():
+    """Existing contracts state `natural_key`; they must keep validating. The field says it
+    is deprecated, and nothing in the examples or docs teaches it any more (2026-10-13)."""
+    from olc.models.olc_v1 import OLCContractV1
+
+    doc = {
+        "version": "1.0.0",
+        "info": {"title": "dim_city"},
+        "model": {"fields": [{"name": "city_code", "type": "string"}]},
+        "primary_key": ["city_code"],
+        "natural_key": ["city_code"],
+    }
+    assert OLCContractV1.model_validate(doc).natural_key == ["city_code"]
+    assert OLCContractV1.model_fields["natural_key"].description.startswith(
+        "DEPRECATED"
+    )
