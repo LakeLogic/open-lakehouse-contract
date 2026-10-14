@@ -1,0 +1,6630 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lakelogic.github.io/open-lakehouse-contract/schema/v1/open-lakehouse-contract.schema.json",
+  "title": "OLCContractV1",
+  "$defs": {
+    "ConfidenceConfig": {
+      "description": "Configuration for HOW extraction confidence is scored.\n\nThe confidence THRESHOLD belongs in quality.row_rules, not here::\n\n    quality:\n      row_rules:\n        - name: confidence_gate\n          sql: \"_lakelogic_extraction_confidence >= 0.7\"\n          action: quarantine\n\nMethods:\n  - log_probs: use token-level log probabilities (OpenAI, etc.)\n  - self_assessment: ask the LLM to rate its own confidence\n  - consistency: run extraction N times, measure field-level agreement\n  - field_completeness: % of non-nullable fields that are present",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "method": {
+          "default": "field_completeness",
+          "title": "Method",
+          "type": "string"
+        },
+        "column": {
+          "default": "_lakelogic_extraction_confidence",
+          "title": "Column",
+          "type": "string"
+        },
+        "consistency_runs": {
+          "default": 3,
+          "title": "Consistency Runs",
+          "type": "integer"
+        }
+      },
+      "title": "ConfidenceConfig",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "DatasetRuleNullRatio": {
+      "description": "Business-friendly null ratio rule.",
+      "properties": {
+        "null_ratio": {
+          "additionalProperties": true,
+          "title": "Null Ratio",
+          "type": "object"
+        },
+        "name": {
+          "title": "Name",
+          "description": "Stable human-readable identifier for the dataset rule.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "null_ratio"
+      ],
+      "title": "DatasetRuleNullRatio",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "DatasetRuleRowCountBetween": {
+      "description": "Business-friendly row count rule.",
+      "properties": {
+        "row_count_between": {
+          "additionalProperties": true,
+          "title": "Row Count Between",
+          "type": "object"
+        },
+        "name": {
+          "title": "Name",
+          "description": "Stable human-readable identifier for the dataset rule.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "row_count_between"
+      ],
+      "title": "DatasetRuleRowCountBetween",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "DatasetRuleUnique": {
+      "additionalProperties": false,
+      "description": "No two rows may share the value(s) of the named column(s). A DATASET rule:\nwrite it under ``quality.dataset_rules``, never ``row_rules``.\n\nThree accepted forms::\n\n    - unique: order_id                       # one column\n    - unique: [order_id, line_no]            # composite key\n    - unique: {field: email}                 # mapping: field | columns, + labels\n\n``name``, ``severity``, ``category`` and ``description`` may sit beside ``unique`` or\ninside the mapping. A conforming runtime already checks ``primary_key`` is unique; a\n``unique`` rule over exactly the key columns is that same check, not a second one.",
+      "properties": {
+        "unique": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/UniqueRuleSpec"
+            }
+          ],
+          "title": "Unique"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rule name; default `<columns>_unique`.",
+          "title": "Name"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "error (default) | warning | info.",
+          "title": "Severity"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Defaults to `uniqueness`.",
+          "title": "Category"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "required": [
+        "unique"
+      ],
+      "title": "DatasetRuleUnique",
+      "type": "object"
+    },
+    "DltEndpointConfig": {
+      "additionalProperties": false,
+      "description": "Single REST API endpoint configuration for dlt.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        },
+        "paginator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Paginator"
+        }
+      },
+      "required": [
+        "name",
+        "path"
+      ],
+      "title": "DltEndpointConfig",
+      "type": "object"
+    },
+    "DltSourceConfig": {
+      "additionalProperties": false,
+      "description": "DLT-specific source configuration, embedded in SourceConfig.\n\nSupports two modes:\n\nMode 1 \u2014 Verified Source::\n\n    source:\n      type: dlt\n      dlt:\n        source: stripe_analytics\n        resource: charges\n        credentials:\n          api_key: ${STRIPE_API_KEY}\n\nMode 2 \u2014 Declarative REST API::\n\n    source:\n      type: dlt\n      dlt:\n        base_url: https://api.example.com/v1/\n        credentials:\n          api_key: ${API_KEY}\n        endpoints:\n          - name: users\n            path: users\n            params:\n              limit: 100",
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "resource": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resource"
+        },
+        "base_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Base Url"
+        },
+        "endpoints": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/DltEndpointConfig"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endpoints"
+        },
+        "credentials": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Credentials",
+          "type": "object"
+        },
+        "write_disposition": {
+          "default": "replace",
+          "title": "Write Disposition",
+          "type": "string"
+        },
+        "max_table_nesting": {
+          "default": 1,
+          "title": "Max Table Nesting",
+          "type": "integer"
+        }
+      },
+      "title": "DltSourceConfig",
+      "type": "object"
+    },
+    "DownstreamConsumer": {
+      "additionalProperties": false,
+      "description": "A downstream consumer of a contract's output.\n\nEnables end-to-end lineage tracking from source \u2192 gold \u2192 dashboard/report.\nDeclared on gold-layer contracts to capture what uses the data.\n\nExample YAML:\n    downstream:\n      - type: dashboard\n        name: Monthly Revenue Dashboard\n        platform: power_bi\n        url: https://app.powerbi.com/groups/.../dashboards/...\n        owner: analytics-team\n        refresh: \"daily 06:00 UTC\"\n\n      - type: report\n        name: Weekly Sales Report\n        platform: databricks_sql\n\n      - type: api\n        name: Customer Lookup API\n        platform: internal\n        url: https://api.internal.com/v1/customers\n\n      - type: ml_model\n        name: Churn Prediction\n        platform: mlflow\n        owner: data-science",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "platform": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Platform"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "refresh": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Refresh"
+        },
+        "columns_used": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns Used",
+          "type": "array"
+        },
+        "sla": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sla"
+        },
+        "managed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Managed"
+        },
+        "consumers": {
+          "items": {
+            "$ref": "#/$defs/DownstreamConsumer"
+          },
+          "title": "Consumers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "DownstreamConsumer",
+      "type": "object"
+    },
+    "Environment": {
+      "description": "Environment-specific path/format overrides.",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "Environment",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "ExternalLogic": {
+      "description": "External logic hook for advanced processing.\n\n``engine`` is REQUIRED: external logic operates on an engine-specific\nDataFrame, so the engine it runs against must be declared explicitly\n(polars | spark | duckdb | ...) rather than left to an implicit default.",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "engine": {
+          "title": "Engine",
+          "type": "string"
+        },
+        "entrypoint": {
+          "default": "run",
+          "title": "Entrypoint",
+          "type": "string"
+        },
+        "args": {
+          "additionalProperties": true,
+          "title": "Args",
+          "type": "object"
+        },
+        "output_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Path"
+        },
+        "output_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Format"
+        },
+        "handles_output": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handles Output"
+        },
+        "kernel_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kernel Name"
+        }
+      },
+      "required": [
+        "type",
+        "path",
+        "engine"
+      ],
+      "title": "ExternalLogic",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "ExtractionConfig": {
+      "additionalProperties": false,
+      "description": "LLM extraction configuration for unstructured data processing.\n\nTurns raw unstructured content (text, PDFs, images, audio, video)\ninto structured rows via LLM, governed by the data contract.\n\nExample YAML:\n    extraction:\n      provider: openai\n      model: gpt-4o-mini\n      temperature: 0.1\n      prompt_template: |\n        Extract the following from this support ticket:\n        {{ ticket_body }}\n      output_schema:\n        - name: sentiment\n          type: string\n          enum: [positive, neutral, negative]\n      source:\n        text_column: ticket_body\n      confidence:\n        min_threshold: 0.8",
+      "properties": {
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "default": "auto",
+          "title": "Model",
+          "type": "string"
+        },
+        "temperature": {
+          "default": 0.1,
+          "title": "Temperature",
+          "type": "number"
+        },
+        "max_tokens": {
+          "default": 1000,
+          "title": "Max Tokens",
+          "type": "integer"
+        },
+        "response_format": {
+          "default": "json",
+          "title": "Response Format",
+          "type": "string"
+        },
+        "prompt_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompt Template"
+        },
+        "system_prompt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "System Prompt"
+        },
+        "text_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text Column"
+        },
+        "context_columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Context Columns",
+          "type": "array"
+        },
+        "preprocessing": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreprocessingConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "output_schema": {
+          "items": {
+            "$ref": "#/$defs/FieldDefinition"
+          },
+          "title": "Output Schema",
+          "type": "array"
+        },
+        "patterns": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Patterns"
+        },
+        "batch_size": {
+          "default": 50,
+          "title": "Batch Size",
+          "type": "integer"
+        },
+        "concurrency": {
+          "default": 5,
+          "title": "Concurrency",
+          "type": "integer"
+        },
+        "retry": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RetryConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfidenceConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_cost_per_run": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Cost Per Run"
+        },
+        "max_rows_per_run": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Rows Per Run"
+        },
+        "fallback_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback Model"
+        },
+        "fallback_provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback Provider"
+        },
+        "redact_pii_before_llm": {
+          "default": false,
+          "title": "Redact Pii Before Llm",
+          "type": "boolean"
+        },
+        "pii_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Pii Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider"
+      ],
+      "title": "ExtractionConfig",
+      "type": "object"
+    },
+    "FactConfig": {
+      "description": "Kimball Fact Table Automated Governance.\n\nAutomatically injects pipeline constraints based on the defined Fact Table architecture:\n- accumulating_snapshot: ensures milestone dates are monotonically increasing\n- transaction: lock strategy to append\n- factless: asserts no metric columns exist\n\nYAML example::\n    materialization:\n      strategy: merge\n      fact:\n        type: accumulating_snapshot\n        milestone_dates:\n          - placed_date\n          - shipped_date",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "milestone_dates": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Milestone Dates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "FactConfig",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "FieldDefinition": {
+      "description": "Schema field definition.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "pii": {
+          "default": false,
+          "title": "Pii",
+          "type": "boolean"
+        },
+        "phi": {
+          "default": false,
+          "title": "Phi",
+          "type": "boolean"
+        },
+        "sensitive": {
+          "default": false,
+          "title": "Sensitive",
+          "type": "boolean"
+        },
+        "classification": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classification"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/QualityRule"
+          },
+          "title": "Rules",
+          "type": "array"
+        },
+        "accepted_values": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accepted Values"
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min"
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max"
+        },
+        "foreign_key": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ForeignKeyRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "nullable": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nullable"
+        },
+        "milestone": {
+          "default": false,
+          "title": "Milestone",
+          "type": "boolean"
+        },
+        "generated": {
+          "default": false,
+          "title": "Generated",
+          "type": "boolean"
+        },
+        "security_groups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Security Groups",
+          "type": "array"
+        },
+        "masking": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Masking"
+        },
+        "masking_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Masking Format"
+        },
+        "pii_vault": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pii Vault"
+        },
+        "extraction_task": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extraction Task"
+        },
+        "extraction_examples": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Extraction Examples",
+          "type": "array"
+        },
+        "max_length": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Length"
+        },
+        "range": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range"
+        }
+      },
+      "required": [
+        "name",
+        "type"
+      ],
+      "title": "FieldDefinition",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "ForeignKeyRef": {
+      "description": "Declaration of a foreign-key relationship on a field.\n\nUsed in two places:\n  1. ``FieldDefinition.foreign_key`` \u2014 field-level documentation + generator hint.\n     The generator samples FK column values from the PK pool of the referenced contract.\n  2. ``RowRuleReferentialIntegrity.referential_integrity`` \u2014 quality-rule payload\n     that the DataProcessor evaluates at validation time.\n\nContract YAML example\n---------------------\n# Field-level (documentation + generator hint)\nschema:\n  columns:\n    - name: agent_id\n      type: BIGINT\n      foreign_key:\n        contract: silver_agents   # LakeLogic contract name\n        column:   agent_id        # PK column in that contract\n\n# Quality rule (validation)\n#\n# `reference` names a `links:` entry \u2014 a reference dataset the runtime loads and\n# makes queryable \u2014 and `key` is the column in it. These are the ONLY spellings the\n# engine reads. `contract:`/`column:` here produce NO rule: the block is dropped\n# (with a warning) and nothing is enforced, so a contract can look like it checks\n# referential integrity and check nothing. A contract name is not a reference;\n# nothing resolves one to a queryable table at rule-expansion time.\nquality:\n  row_rules:\n    - referential_integrity:\n        field:     agent_id\n        reference: silver_agents   # a links: entry name\n        key:       agent_id        # the column in it\n        severity:  critical\n\ndbt equivalent\n---------------\n- name: agent_id\n  tests:\n    - relationships:\n        to:    ref('agents')\n        field: agent_id",
+      "properties": {
+        "contract": {
+          "title": "Contract",
+          "type": "string"
+        },
+        "column": {
+          "title": "Column",
+          "type": "string"
+        },
+        "severity": {
+          "default": "error",
+          "title": "Severity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract",
+        "column"
+      ],
+      "title": "ForeignKeyRef",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "Info": {
+      "description": "Contract metadata such as title, version, and ownership.",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "table_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Name"
+        },
+        "version": {
+          "default": "1.0.0",
+          "title": "Version",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner"
+        },
+        "contact": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contact"
+        },
+        "target_layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Layer"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        },
+        "classification": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classification"
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain"
+        },
+        "system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "System"
+        },
+        "data_product": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Product"
+        },
+        "data_product_output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Product Output"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "Info",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "LineageConfig": {
+      "additionalProperties": false,
+      "description": "Lineage capture settings.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "capture_source_path": {
+          "default": true,
+          "title": "Capture Source Path",
+          "type": "boolean"
+        },
+        "capture_timestamp": {
+          "default": true,
+          "title": "Capture Timestamp",
+          "type": "boolean"
+        },
+        "capture_run_id": {
+          "default": true,
+          "title": "Capture Run Id",
+          "type": "boolean"
+        },
+        "source_column_name": {
+          "default": "_lakelogic_source",
+          "title": "Source Column Name",
+          "type": "string"
+        },
+        "timestamp_column_name": {
+          "default": "_lakelogic_processed_at",
+          "title": "Timestamp Column Name",
+          "type": "string"
+        },
+        "run_id_column_name": {
+          "default": "_lakelogic_run_id",
+          "title": "Run Id Column Name",
+          "type": "string"
+        },
+        "capture_contract_name": {
+          "default": true,
+          "title": "Capture Contract Name",
+          "type": "boolean"
+        },
+        "contract_name_column_name": {
+          "default": "_lakelogic_contract_name",
+          "title": "Contract Name Column Name",
+          "type": "string"
+        },
+        "capture_domain": {
+          "default": true,
+          "title": "Capture Domain",
+          "type": "boolean"
+        },
+        "capture_system": {
+          "default": true,
+          "title": "Capture System",
+          "type": "boolean"
+        },
+        "domain_column_name": {
+          "default": "_lakelogic_domain",
+          "title": "Domain Column Name",
+          "type": "string"
+        },
+        "system_column_name": {
+          "default": "_lakelogic_system",
+          "title": "System Column Name",
+          "type": "string"
+        },
+        "capture_created_at": {
+          "default": true,
+          "title": "Capture Created At",
+          "type": "boolean"
+        },
+        "created_at_column_name": {
+          "default": "_lakelogic_created_at",
+          "title": "Created At Column Name",
+          "type": "string"
+        },
+        "capture_created_by": {
+          "default": true,
+          "title": "Capture Created By",
+          "type": "boolean"
+        },
+        "created_by_column_name": {
+          "default": "_lakelogic_created_by",
+          "title": "Created By Column Name",
+          "type": "string"
+        },
+        "created_by_override": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Created By Override"
+        },
+        "preserve_upstream": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Preserve Upstream",
+          "type": "array"
+        },
+        "upstream_prefix": {
+          "default": "_upstream",
+          "title": "Upstream Prefix",
+          "type": "string"
+        },
+        "run_id_source": {
+          "default": "run_id",
+          "title": "Run Id Source",
+          "type": "string"
+        }
+      },
+      "title": "LineageConfig",
+      "type": "object"
+    },
+    "Link": {
+      "description": "Reference dataset link (file path or table name).\n\nLoad-time subsetting (link only a *portion* of the referenced data):\n  \u2022 ``columns`` \u2014 column projection (load only these columns).\n  \u2022 ``filter``  \u2014 a PORTABLE SQL boolean predicate (WHERE clause) applied at\n                  load time on every engine, e.g. ``status = 'active'``. Keeps\n                  \"one contract, any engine\" intact; composes with ``columns``.\n  \u2022 ``query``   \u2014 an ENGINE-SPECIFIC full ``SELECT`` escape hatch for the linked\n                  dataset (joins/aggregates/renames at load). Powerful but its\n                  SQL dialect may not port across engines \u2014 use ``filter`` when\n                  portability matters. ``{link}`` refers to the loaded dataset.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "type": {
+          "default": "parquet",
+          "title": "Type",
+          "type": "string"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table"
+        },
+        "broadcast": {
+          "default": false,
+          "title": "Broadcast",
+          "type": "boolean"
+        },
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Filter"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Link",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "Materialization": {
+      "additionalProperties": false,
+      "description": "Materialization settings for writing outputs.",
+      "properties": {
+        "strategy": {
+          "default": "append",
+          "title": "Strategy",
+          "type": "string"
+        },
+        "partition_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Partition By",
+          "type": "array"
+        },
+        "cluster_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cluster By",
+          "type": "array"
+        },
+        "reprocess_policy": {
+          "default": "overwrite_partition",
+          "title": "Reprocess Policy",
+          "type": "string"
+        },
+        "reprocess_date_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reprocess Date Column"
+        },
+        "target_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Path"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "scd2": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Slowly-changing-dimension (type 2) settings, used when `strategy: scd2`. All keys are optional; each has a runtime default. Known keys: surrogate_key, surrogate_key_strategy, effective_from_field, effective_to_field, current_flag_field, version_column, change_reason_column, track_columns, timestamp_field / change_date_field (aliases), end_date_default / effective_to_default (aliases), start_date_default / effective_from_default (aliases), default_effective_from, merge_dedup_guard, and unknown_member (nested: enabled, surrogate_key_value, default_values). The strict OLC v1 path rejects any other key: omitting `track_columns` means 'treat every incoming row as a change', so a misspelling of it silently produces unbounded version history.",
+          "title": "Scd2"
+        },
+        "scd1": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Type-1 dimension surrogate key, used with `strategy: merge`. The table keeps one row per `primary_key`, overwritten in place; this block adds the key facts point at. Known keys: surrogate_key (the column written, placed first), surrogate_key_strategy (`hash` \u2014 sha256 of the primary-key values joined with '|', first 16 hex chars, stable across runs \u2014 or `uuid`, new every run; default `hash`), and unknown_member (nested: enabled, surrogate_key_value, default_values; falls back to `materialization.unknown_member`). The key is a hash of `primary_key`. The strict OLC v1 path rejects any other key.",
+          "title": "Scd1"
+        },
+        "fact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FactConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "soft_delete_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Delete Column"
+        },
+        "soft_delete_value": {
+          "default": true,
+          "title": "Soft Delete Value"
+        },
+        "soft_delete_time_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Delete Time Column"
+        },
+        "soft_delete_reason_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soft Delete Reason Column"
+        },
+        "table_properties": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Properties"
+        },
+        "compaction": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Compaction"
+        },
+        "unknown_member": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unknown Member"
+        },
+        "merge_dedup_guard": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": false,
+          "title": "Merge Dedup Guard"
+        },
+        "secondary_targets": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/SecondaryTarget"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Secondary Targets"
+        },
+        "dlt_destination": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Destination"
+        },
+        "dlt_credentials": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Credentials"
+        },
+        "dlt_dataset_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Dataset Name"
+        }
+      },
+      "title": "Materialization",
+      "type": "object"
+    },
+    "Model": {
+      "description": "Schema model definition.",
+      "properties": {
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/FieldDefinition"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "grain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Grain"
+        },
+        "grain_key": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Grain Key",
+          "type": "array"
+        }
+      },
+      "title": "Model",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "Notification": {
+      "additionalProperties": false,
+      "description": "Notification channel configuration.\n\nMinimal usage \u2014 just ``target`` and ``on_events``::\n\n    notifications:\n      - target: \"env:TEAMS_WEBHOOK\"\n        on_events: [quarantine, failure]\n\nThe ``type`` field defaults to ``apprise`` which auto-detects the\nchannel from the target URL scheme (``mailto://``, ``slack://``,\n``msteams://``, etc.).  Set ``type`` explicitly only when using the\nlegacy built-in adapters (``smtp``, ``sendgrid``, ``slack``,\n``teams``, ``webhook``).",
+      "properties": {
+        "type": {
+          "default": "apprise",
+          "title": "Type",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "targets": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Targets"
+        },
+        "on_events": {
+          "items": {
+            "type": "string"
+          },
+          "title": "On Events",
+          "type": "array"
+        },
+        "subject_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Template"
+        },
+        "subject_template_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subject Template File"
+        },
+        "message_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message Template"
+        },
+        "message_template_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message Template File"
+        },
+        "body_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Body Template"
+        },
+        "body_template_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Body Template File"
+        },
+        "template_context": {
+          "additionalProperties": true,
+          "title": "Template Context",
+          "type": "object"
+        },
+        "to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        }
+      },
+      "title": "Notification",
+      "type": "object"
+    },
+    "PostIngestionConfig": {
+      "description": "Landing zone lifecycle policy \u2014 what to do with source files after\nsuccessful Bronze ingestion.\n\nActions:\n  delete  \u2014 remove source files after commit (zero-retention)\n  archive \u2014 move source files to archive_path after commit\n  retain  \u2014 leave source files in place (default / no-op)\n\nSafety guarantees:\n  - Cleanup only executes AFTER a successful Bronze Delta commit.\n  - If cleanup fails, the pipeline still succeeds (unless\n    cleanup_is_blocking is True).\n  - Cleanup failures are logged as warnings for manual intervention.\n\nExample YAML (system-level default)::\n\n    server:\n      bronze:\n        post_ingestion:\n          action: delete\n          cleanup_is_blocking: false\n\nExample YAML (contract-level with archive)::\n\n    source:\n      post_ingestion:\n        action: archive\n        archive_path: \"/archive/crm/customers\"",
+      "properties": {
+        "action": {
+          "default": "retain",
+          "enum": [
+            "delete",
+            "archive",
+            "retain"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "cleanup_is_blocking": {
+          "default": false,
+          "title": "Cleanup Is Blocking",
+          "type": "boolean"
+        },
+        "archive_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archive Path"
+        }
+      },
+      "title": "PostIngestionConfig",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "PreprocessingConfig": {
+      "additionalProperties": false,
+      "description": "Preprocessing pipeline for raw unstructured files before LLM extraction.\n\nBronze holds raw files (PDFs, images, videos, audio). Before the LLM\ncan extract structured data, we need to convert them to text.\n\nExample YAML:\n    preprocessing:\n      content_type: pdf\n      ocr:\n        enabled: true\n        engine: tesseract     # tesseract | azure_di | textract | google_vision\n        language: eng\n      chunking:\n        strategy: page        # page | paragraph | sentence | fixed_size\n        max_chunk_tokens: 4000\n        overlap_tokens: 200\n\nFor video:\n    preprocessing:\n      content_type: video\n      transcription:\n        engine: whisper       # whisper | azure_speech | google_speech\n        language: en\n      frame_extraction:\n        enabled: true\n        interval_seconds: 30\n        engine: gpt-4o        # vision model for frame analysis",
+      "properties": {
+        "content_type": {
+          "title": "Content Type",
+          "type": "string"
+        },
+        "ocr": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ocr"
+        },
+        "transcription": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transcription"
+        },
+        "frame_extraction": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frame Extraction"
+        },
+        "chunking": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chunking"
+        },
+        "file_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Column"
+        },
+        "text_output_column": {
+          "default": "_extracted_text",
+          "title": "Text Output Column",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content_type"
+      ],
+      "title": "PreprocessingConfig",
+      "type": "object"
+    },
+    "Quality": {
+      "description": "Quality rule groups for row and dataset checks.",
+      "properties": {
+        "enforce_required": {
+          "default": true,
+          "title": "Enforce Required",
+          "type": "boolean"
+        },
+        "fail_pipeline_on_dataset_error": {
+          "default": false,
+          "title": "Fail Pipeline On Dataset Error",
+          "type": "boolean"
+        },
+        "row_rules": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/QualityRule"
+              },
+              {
+                "$ref": "#/$defs/RowRuleNotNull"
+              },
+              {
+                "$ref": "#/$defs/RowRuleAcceptedValues"
+              },
+              {
+                "$ref": "#/$defs/RowRuleRegexMatch"
+              },
+              {
+                "$ref": "#/$defs/RowRuleRange"
+              },
+              {
+                "$ref": "#/$defs/RowRuleReferentialIntegrity"
+              },
+              {
+                "$ref": "#/$defs/RowRuleLifecycleWindow"
+              }
+            ]
+          },
+          "title": "Row Rules",
+          "type": "array"
+        },
+        "dataset_rules": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/QualityRule"
+              },
+              {
+                "$ref": "#/$defs/DatasetRuleUnique"
+              },
+              {
+                "$ref": "#/$defs/DatasetRuleNullRatio"
+              },
+              {
+                "$ref": "#/$defs/DatasetRuleRowCountBetween"
+              }
+            ]
+          },
+          "title": "Dataset Rules",
+          "type": "array"
+        }
+      },
+      "title": "Quality",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "QualityRule": {
+      "description": "Row-level or dataset-level quality rule.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "sql": {
+          "title": "Sql",
+          "type": "string"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Category"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "severity": {
+          "default": "error",
+          "title": "Severity",
+          "type": "string"
+        },
+        "phase": {
+          "default": "pre",
+          "title": "Phase",
+          "type": "string"
+        },
+        "must_be_between": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Must Be Between"
+        },
+        "must_be_less_than": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Must Be Less Than"
+        },
+        "must_be_greater_than": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Must Be Greater Than"
+        }
+      },
+      "required": [
+        "name",
+        "sql"
+      ],
+      "title": "QualityRule",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "Quarantine": {
+      "additionalProperties": false,
+      "description": "Quarantine settings and notification routing.",
+      "properties": {
+        "target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "include_error_reason": {
+          "default": true,
+          "title": "Include Error Reason",
+          "type": "boolean"
+        },
+        "strict_notifications": {
+          "default": true,
+          "title": "Strict Notifications",
+          "type": "boolean"
+        },
+        "fail_on_quarantine": {
+          "default": false,
+          "title": "Fail On Quarantine",
+          "type": "boolean"
+        },
+        "notifications_enabled": {
+          "default": true,
+          "title": "Notifications Enabled",
+          "type": "boolean"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "write_mode": {
+          "default": "append",
+          "title": "Write Mode",
+          "type": "string"
+        },
+        "notifications": {
+          "items": {
+            "$ref": "#/$defs/Notification"
+          },
+          "title": "Notifications",
+          "type": "array"
+        }
+      },
+      "title": "Quarantine",
+      "type": "object"
+    },
+    "RetryConfig": {
+      "description": "Retry configuration for LLM API calls.",
+      "properties": {
+        "max_attempts": {
+          "default": 3,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "backoff": {
+          "default": "exponential",
+          "title": "Backoff",
+          "type": "string"
+        },
+        "initial_delay": {
+          "default": 1.0,
+          "title": "Initial Delay",
+          "type": "number"
+        }
+      },
+      "title": "RetryConfig",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "RowCountSLO": {
+      "description": "Row count SLO for individual contracts.\n\nValidates that the output row count falls within expected bounds.\nChecked against the field specified by check_field (default: counts_good).\n\nWhen skip_reprocess_days is set and the reprocess date range exceeds that\nthreshold, SLO checks and counts_source computation are skipped entirely\nto avoid expensive Spark wide-transformation actions on large backfills.",
+      "properties": {
+        "min_rows": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Rows"
+        },
+        "max_rows": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Rows"
+        },
+        "check_field": {
+          "default": "counts_good",
+          "title": "Check Field",
+          "type": "string"
+        },
+        "skip_reprocess_days": {
+          "default": 3,
+          "title": "Skip Reprocess Days",
+          "type": "integer"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "title": "RowCountSLO",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "RowRuleAcceptedValues": {
+      "description": "Business-friendly accepted values rule.",
+      "properties": {
+        "accepted_values": {
+          "additionalProperties": true,
+          "title": "Accepted Values",
+          "type": "object"
+        }
+      },
+      "required": [
+        "accepted_values"
+      ],
+      "title": "RowRuleAcceptedValues",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "RowRuleLifecycleWindow": {
+      "description": "Business-friendly lifecycle window rule.",
+      "properties": {
+        "lifecycle_window": {
+          "additionalProperties": true,
+          "title": "Lifecycle Window",
+          "type": "object"
+        }
+      },
+      "required": [
+        "lifecycle_window"
+      ],
+      "title": "RowRuleLifecycleWindow",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "RowRuleNotNull": {
+      "description": "Business-friendly not-null rule.",
+      "properties": {
+        "not_null": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Not Null"
+        }
+      },
+      "required": [
+        "not_null"
+      ],
+      "title": "RowRuleNotNull",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "RowRuleRange": {
+      "description": "Business-friendly range rule.",
+      "properties": {
+        "range": {
+          "additionalProperties": true,
+          "title": "Range",
+          "type": "object"
+        }
+      },
+      "required": [
+        "range"
+      ],
+      "title": "RowRuleRange",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "RowRuleReferentialIntegrity": {
+      "description": "Business-friendly referential integrity rule.",
+      "properties": {
+        "referential_integrity": {
+          "additionalProperties": true,
+          "title": "Referential Integrity",
+          "type": "object"
+        }
+      },
+      "required": [
+        "referential_integrity"
+      ],
+      "title": "RowRuleReferentialIntegrity",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "RowRuleRegexMatch": {
+      "description": "Business-friendly regex match rule.",
+      "properties": {
+        "regex_match": {
+          "additionalProperties": true,
+          "title": "Regex Match",
+          "type": "object"
+        }
+      },
+      "required": [
+        "regex_match"
+      ],
+      "title": "RowRuleRegexMatch",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "SchemaPolicy": {
+      "description": "Schema enforcement rules for unknown and evolving fields.",
+      "properties": {
+        "evolution": {
+          "default": "allow",
+          "enum": [
+            "strict",
+            "append",
+            "merge",
+            "overwrite",
+            "compatible",
+            "allow"
+          ],
+          "title": "Evolution",
+          "type": "string"
+        },
+        "unknown_fields": {
+          "default": "allow",
+          "enum": [
+            "quarantine",
+            "drop",
+            "allow"
+          ],
+          "title": "Unknown Fields",
+          "type": "string"
+        }
+      },
+      "title": "SchemaPolicy",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "SecondaryTarget": {
+      "additionalProperties": false,
+      "description": "A dual-write destination executed after the primary materialization.\n\nImplemented by the reference runtime (``_run_secondary_targets``) since before this\nmodel existed, and used by real contracts \u2014 but never declared, so the canonical\nstandard rejected the very files the runtime writes. Modelling it is the alignment,\nnot a new feature.",
+      "properties": {
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "table_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Name"
+        },
+        "fail_on_error": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fail On Error"
+        },
+        "dlt_destination": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Destination"
+        },
+        "dlt_credentials": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Credentials"
+        },
+        "dlt_dataset_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Dataset Name"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mode"
+        }
+      },
+      "title": "SecondaryTarget",
+      "type": "object"
+    },
+    "ServiceLevel": {
+      "description": "Service-level settings for freshness, availability, row counts, and\npartition completeness.\n\nThese are four different *units of measurement* and are easy to confuse, so each\nstates what it is evaluated against:\n\n* ``freshness``    \u2014 how old the newest record may be (a time delta).\n* ``availability`` \u2014 **row-level**. The percentage of ROWS whose ``field`` is\n  non-null, evaluated per run against the rows that run actually read. It says\n  nothing about whether a file, an interval or a partition ever arrived.\n* ``row_count``    \u2014 run-level row-count bounds (see :class:`RowCountSLO`).\n* ``completeness`` \u2014 **partition-level**. The fraction of EXPECTED partitions\n  that arrived for a partitioned source. It says nothing about the contents of\n  the partitions that did arrive.\n\n``availability`` and ``completeness`` are the pair most often mistaken for one\nanother, and they are independent: a source can deliver every expected partition\nwith a wholly null column (completeness 1.0, availability 0.0), or deliver one\nflawless hour out of twenty-four (availability 1.0, completeness ~0.04).",
+      "properties": {
+        "freshness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/ServiceLevelObjective"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Freshness"
+        },
+        "availability": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "$ref": "#/$defs/ServiceLevelObjective"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Availability"
+        },
+        "row_count": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RowCountSLO"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "completeness": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "$ref": "#/$defs/ServiceLevelObjective"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Partition completeness: the fraction (0.0-1.0) of EXPECTED partitions that must arrive for a partitioned source. Unlike `availability`, which is row-level, this is about whether an interval arrived at all -- the hole in the middle of a series that a check looking only at the newest record cannot see. DENOMINATOR: 'expected' means the intervals a seasonal baseline says ALWAYS deliver -- NOT every interval enumerated in the declared window. A source with genuinely idle intervals (a rideshare feed at 03:00) can therefore declare 1.0 and mean it. Were the denominator raw enumeration, every such contract would be forced to write 0.9 purely to stay quiet, and the number would stop meaning anything. GRAIN comes from `source.partition.format` (an `%H` token means hourly); there is no separate grain field. This is a COMMITMENT, not monitor tuning. Lookback, minimum history, tolerance for flaky intervals and alert routing are stateful and temporal, so they deliberately live in monitor configuration rather than in the contract, where a schedule change would silently make them wrong.",
+          "title": "Completeness"
+        }
+      },
+      "title": "ServiceLevel",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "ServiceLevelObjective": {
+      "description": "Service-level objective definition.",
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        },
+        "field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Field"
+        }
+      },
+      "title": "ServiceLevelObjective",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "SourceConfig": {
+      "additionalProperties": false,
+      "description": "Source acquisition settings. ``type`` selects the kind (see ``SOURCE_TYPES``).",
+      "properties": {
+        "type": {
+          "description": "The kind of source. One of: `landing`: Files in a landing directory or object store (CSV, JSON, JSONL, Parquet), selected by `path` + `pattern`, parsed per `format`.; `stream`: A file or table location read in micro-batches, advanced by `watermark_field`.; `table`: An upstream lakehouse table: a catalog name or a `table:` reference in `path`.; `delta`: A Delta table directory, read by `path` without a catalog.; `iceberg`: An Iceberg table directory, read by `path` without a catalog.; `database`: A relational database, read by `query` over a connection in `options`.; `dlt`: An HTTP API or a dlt verified source, declared in the `dlt` block.; `sftp`: Files on an SFTP server: `path` is sftp://user@host[:port]/dir; auth in `options`.",
+          "enum": [
+            "landing",
+            "stream",
+            "table",
+            "delta",
+            "iceberg",
+            "database",
+            "dlt",
+            "sftp"
+          ],
+          "enumDescriptions": [
+            "Files in a landing directory or object store (CSV, JSON, JSONL, Parquet), selected by `path` + `pattern`, parsed per `format`.",
+            "A file or table location read in micro-batches, advanced by `watermark_field`.",
+            "An upstream lakehouse table: a catalog name or a `table:` reference in `path`.",
+            "A Delta table directory, read by `path` without a catalog.",
+            "An Iceberg table directory, read by `path` without a catalog.",
+            "A relational database, read by `query` over a connection in `options`.",
+            "An HTTP API or a dlt verified source, declared in the `dlt` block.",
+            "Files on an SFTP server: `path` is sftp://user@host[:port]/dir; auth in `options`."
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "csv",
+                "tsv",
+                "json",
+                "ndjson",
+                "jsonl",
+                "xml",
+                "xlsx",
+                "xls",
+                "excel",
+                "fixed_width",
+                "avro",
+                "parquet",
+                "delta",
+                "iceberg",
+                "pdf",
+                "docx",
+                "pptx",
+                "html",
+                "image"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the files are parsed. One of: `csv`: Delimited text (comma by default; see `delimiter`). `.csv` / `.tsv` files.; `tsv`: Tab-separated text: `csv` with a tab delimiter.; `json`: JSON: one document per file, or one per line (see `multiline`).; `ndjson`: Newline-delimited JSON: one document per line (`.ndjson`).; `jsonl`: Same as `ndjson` (`.jsonl`).; `xml`: XML: one row per record element (see `row_tag`).; `xlsx`: Excel workbook (`.xlsx`).; `xls`: Legacy Excel workbook (`.xls`).; `excel`: Excel workbook, `.xlsx` or `.xls`.; `fixed_width`: Fixed-width text: each field at a fixed position (see `columns` or field `range`).; `avro`: Avro container files (`.avro`).; `parquet`: Parquet files.; `delta`: A Delta table.; `iceberg`: An Iceberg table.; `pdf`: PDF documents, for `extraction`.; `docx`: Word documents, for `extraction`.; `pptx`: PowerPoint documents, for `extraction`.; `html`: HTML pages, for `extraction`.; `image`: Images, for `extraction`.",
+          "enumDescriptions": [
+            "Delimited text (comma by default; see `delimiter`). `.csv` / `.tsv` files.",
+            "Tab-separated text: `csv` with a tab delimiter.",
+            "JSON: one document per file, or one per line (see `multiline`).",
+            "Newline-delimited JSON: one document per line (`.ndjson`).",
+            "Same as `ndjson` (`.jsonl`).",
+            "XML: one row per record element (see `row_tag`).",
+            "Excel workbook (`.xlsx`).",
+            "Legacy Excel workbook (`.xls`).",
+            "Excel workbook, `.xlsx` or `.xls`.",
+            "Fixed-width text: each field at a fixed position (see `columns` or field `range`).",
+            "Avro container files (`.avro`).",
+            "Parquet files.",
+            "A Delta table.",
+            "An Iceberg table.",
+            "PDF documents, for `extraction`.",
+            "Word documents, for `extraction`.",
+            "PowerPoint documents, for `extraction`.",
+            "HTML pages, for `extraction`.",
+            "Images, for `extraction`."
+          ]
+        },
+        "options": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CsvOptions"
+            },
+            {
+              "$ref": "#/$defs/ExcelOptions"
+            },
+            {
+              "$ref": "#/$defs/JsonOptions"
+            },
+            {
+              "$ref": "#/$defs/XmlOptions"
+            },
+            {
+              "$ref": "#/$defs/FixedWidthOptions"
+            },
+            {
+              "$ref": "#/$defs/AvroOptions"
+            },
+            {
+              "$ref": "#/$defs/ParquetOptions"
+            },
+            {
+              "$ref": "#/$defs/TableOptions"
+            },
+            {
+              "$ref": "#/$defs/DocumentOptions"
+            },
+            {
+              "$ref": "#/$defs/DatabaseOptions"
+            },
+            {
+              "$ref": "#/$defs/MongoDbOptions"
+            },
+            {
+              "$ref": "#/$defs/SftpOptions"
+            },
+            {
+              "$ref": "#/$defs/KafkaOptions"
+            },
+            {
+              "$ref": "#/$defs/EventHubsOptions"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Settings for reading this source. Which keys are allowed depends on the source: `type: stream` + `kind` (KafkaOptions / EventHubsOptions), `type: database` (DatabaseOptions, or MongoDbOptions for a mongodb:// path), `type: sftp` (SftpOptions plus the format's options), otherwise `format` (CsvOptions, ExcelOptions, JsonOptions, XmlOptions, FixedWidthOptions, AvroOptions, ParquetOptions, TableOptions, DocumentOptions). Unknown keys are rejected; a credential must be `env:VAR`."
+        },
+        "load_mode": {
+          "default": "full",
+          "title": "Load Mode",
+          "type": "string"
+        },
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern"
+        },
+        "watermark_field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Watermark Field"
+        },
+        "cdc_op_field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cdc Op Field"
+        },
+        "cdc_delete_values": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cdc Delete Values",
+          "type": "array"
+        },
+        "cdc_timestamp_field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cdc Timestamp Field"
+        },
+        "dlt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DltSourceConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "partition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourcePartition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "empty_behavior": {
+          "anyOf": [
+            {
+              "enum": [
+                "skip",
+                "fail"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Empty Behavior"
+        },
+        "watermark_strategy": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "max_target",
+          "title": "Watermark Strategy"
+        },
+        "target_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Path"
+        },
+        "lookback": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lookback"
+        },
+        "from_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From Date"
+        },
+        "to_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "To Date"
+        },
+        "pipeline_log_table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pipeline Log Table"
+        },
+        "pipeline_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pipeline Name"
+        },
+        "manifest_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manifest Path"
+        },
+        "watermark_date_parts": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Watermark Date Parts"
+        },
+        "partition_filters": {
+          "additionalProperties": true,
+          "title": "Partition Filters",
+          "type": "object"
+        },
+        "flatten_nested": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": false,
+          "title": "Flatten Nested"
+        },
+        "post_ingestion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PostIngestionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "SourceConfig",
+      "type": "object"
+    },
+    "SourcePartition": {
+      "additionalProperties": false,
+      "description": "Date-partitioned landing directory configuration.\n\nLimits file globbing to only the relevant date partitions instead\nof scanning the entire landing directory.\n\nExample YAML::\n\n    source:\n      path: \"{landing_root}/events\"\n      partition:\n        format: \"y_%Y/m_%m/d_%d\"   # strftime tokens\n        lookback_days: 3",
+      "properties": {
+        "format": {
+          "title": "Format",
+          "type": "string"
+        },
+        "lookback_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lookback Days"
+        },
+        "start_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Date"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        },
+        "file_pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Pattern"
+        }
+      },
+      "required": [
+        "format"
+      ],
+      "title": "SourcePartition",
+      "type": "object"
+    },
+    "StrictServer": {
+      "additionalProperties": false,
+      "description": "The `server` block, strict \u2014 corrected `mode` enum, no unknown keys.\n\nEncodes the two real modes a runtime honours (``validate`` / ``ingest``) as a\n``Literal`` so the value set is enforced by the model, not by prose.",
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "format": {
+          "default": "parquet",
+          "title": "Format",
+          "type": "string"
+        },
+        "mode": {
+          "default": "validate",
+          "enum": [
+            "validate",
+            "ingest"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "cast_to_string": {
+          "default": false,
+          "title": "Cast To String",
+          "type": "boolean"
+        },
+        "schema_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SchemaPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "post_ingestion": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PostIngestionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "StrictServer",
+      "type": "object"
+    },
+    "Transformation": {
+      "additionalProperties": false,
+      "description": "Transformation step (SQL or structured).",
+      "properties": {
+        "rename": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationRename"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "derive": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDerive"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lookup": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationLookup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationFilter"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deduplicate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDeduplicate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "deduplicate_by_latest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDeduplicateByLatest"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "select": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationSelect"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "drop": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDrop"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cast": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationCast"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "trim": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationTrim"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lower": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationLower"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "upper": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationUpper"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "coalesce": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationCoalesce"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "split": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationSplit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "explode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationExplode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "map_values": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationMapValues"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rollup": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationRollup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "join": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationJoin"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "pivot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationPivot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unpivot": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationUnpivot"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "json_extract": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationJsonExtract"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "date_range_explode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDateRangeExplode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "bucket": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationBucket"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "date_diff": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransformationDateDiff"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "sql": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sql"
+        },
+        "phase": {
+          "default": "post",
+          "title": "Phase",
+          "type": "string"
+        }
+      },
+      "title": "Transformation",
+      "type": "object"
+    },
+    "TransformationBucket": {
+      "description": "Map a numeric (or string) column into labelled bands.\n\nCompiles to a standard SQL CASE expression \u2014 identical across all engines.\n\nYAML example::\n\n    - phase: post\n      bucket:\n        field: price_band\n        source: pricing_price\n        bins:\n          - lt: 250000\n            label: sub_250k\n          - lt: 500000\n            label: 250k_500k\n          - lt: 1000000\n            label: 500k_1m\n        default: 1m_plus",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "bins": {
+          "items": {
+            "$ref": "#/$defs/TransformationBucketBin"
+          },
+          "title": "Bins",
+          "type": "array"
+        },
+        "default": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default"
+        }
+      },
+      "required": [
+        "field",
+        "source"
+      ],
+      "title": "TransformationBucket",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationBucketBin": {
+      "description": "A single range/equality bin for TransformationBucket.",
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "lt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lt"
+        },
+        "lte": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lte"
+        },
+        "gt": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gt"
+        },
+        "gte": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gte"
+        },
+        "eq": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Eq"
+        }
+      },
+      "required": [
+        "label"
+      ],
+      "title": "TransformationBucketBin",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationCast": {
+      "description": "Cast columns to specific types.",
+      "properties": {
+        "columns": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "object"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "TransformationCast",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationCoalesce": {
+      "description": "Coalesce multiple fields into a single output.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "default": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        }
+      },
+      "required": [
+        "field"
+      ],
+      "title": "TransformationCoalesce",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationDateDiff": {
+      "description": "Compute the integer difference between two date/timestamp columns.\n\nThe YAML spec is engine-agnostic; each adapter emits the dialect-correct\nSQL (DATEDIFF, DATE_PART, etc.).\n\nYAML example::\n\n    - phase: post\n      date_diff:\n        field: listing_age_days\n        from_col: creation_date\n        to_col: event_date\n        unit: days",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "from_col": {
+          "title": "From Col",
+          "type": "string"
+        },
+        "to_col": {
+          "title": "To Col",
+          "type": "string"
+        },
+        "unit": {
+          "default": "days",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "from_col",
+        "to_col"
+      ],
+      "title": "TransformationDateDiff",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationDateRangeExplode": {
+      "description": "Explode each row into one row per calendar day in [start_col, end_col].\n\nThe output column receives successive date values. If end_col is omitted\nor null the current date is used as the upper bound.\n\nEngine-agnostic: Polars uses pl.date_range + explode,\nDuckDB uses generate_series + unnest.\n\nYAML example::\n\n    - phase: post\n      date_range_explode:\n        output: snapshot_date\n        start_col: creation_date\n        end_col: deleted_at       # nullable \u2014 defaults to today when null",
+      "properties": {
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "start_col": {
+          "title": "Start Col",
+          "type": "string"
+        },
+        "end_col": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Col"
+        },
+        "interval": {
+          "default": "1d",
+          "title": "Interval",
+          "type": "string"
+        }
+      },
+      "required": [
+        "output",
+        "start_col"
+      ],
+      "title": "TransformationDateRangeExplode",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationDeduplicate": {
+      "anyOf": [
+        {
+          "required": [
+            "on"
+          ]
+        },
+        {
+          "required": [
+            "by"
+          ]
+        }
+      ],
+      "description": "Deduplication rule configuration.\n\n``sort_by`` is REQUIRED. A deduplicate discards rows, so \"which duplicate\nsurvives\" is a business decision the contract must state. When it is absent an\nimplementation has to invent a survivor \u2014 first row read, lexicographically\nsmallest, newest file \u2014 and every such choice silently destroys data on the\nstrength of a rule nobody wrote down. Worse, the choice differs between engines,\nso the same contract yields different tables on different platforms, which is\nprecisely what this specification exists to prevent.\n\nConformance: OLC-T-002 requires a contract without ``sort_by`` to be REFUSED.",
+      "properties": {
+        "on": {
+          "items": {
+            "type": "string"
+          },
+          "title": "On",
+          "type": "array"
+        },
+        "sort_by": {
+          "description": "Columns determining which duplicate survives, applied with `order`. Required: without it the survivor is undefined and engine-dependent.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Sort By",
+          "type": "array"
+        },
+        "order": {
+          "default": "desc",
+          "title": "Order",
+          "type": "string"
+        },
+        "blank_keys": {
+          "default": "quarantine",
+          "description": "What happens to rows whose dedup key is blank (ANY key column is null). A blank key is never a duplicate of another blank key, so these rows are never grouped or collapsed. `quarantine` (default) routes them to quarantine under the rule `<key>_required_for_dedup` (composite keys joined with `__`), unless a not-null rule on every key column already quarantines them; `keep` passes them through ungrouped.",
+          "enum": [
+            "quarantine",
+            "keep"
+          ],
+          "title": "Blank Keys",
+          "type": "string"
+        },
+        "by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "On",
+          "type": "array"
+        }
+      },
+      "required": [
+        "sort_by"
+      ],
+      "title": "TransformationDeduplicate",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationDeduplicateByLatest": {
+      "additionalProperties": false,
+      "description": "DEPRECATED \u2014 use ``deduplicate`` with ``sort_by``.\n\nThis shorthand adds no expressiveness: it is exactly\n``deduplicate(on=key_columns, sort_by=[timestamp_column], order=\"desc\")``, with\n``order`` pinned so it cannot express \"keep the earliest row\", \"keep the highest\nversion\", or a multi-column tie-break.\n\nWhat it did add was a SECOND spelling of the ordering field \u2014\n``timestamp_column`` here versus ``sort_by`` there \u2014 and authors reliably reach\nfor the wrong one on the wrong op, where it is dropped at parse time. One\noperation, one spelling.\n\nRetained (and still covered by OLC-T-001) because published contracts use it;\nit is no longer recommended anywhere.",
+      "properties": {
+        "key_columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Key Columns",
+          "type": "array"
+        },
+        "timestamp_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timestamp Column"
+        }
+      },
+      "title": "TransformationDeduplicateByLatest",
+      "type": "object"
+    },
+    "TransformationDerive": {
+      "description": "Derive a new field from a SQL expression.\n\n``sql`` is the default/Spark expression.  When running on a different\nengine you can supply an engine-specific override:\n\n* ``sql_duckdb`` \u2014 used by the Polars and DuckDB adapters.\n* ``sql_spark`` \u2014 explicit Spark override (falls back to ``sql``).",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "sql": {
+          "title": "Sql",
+          "type": "string"
+        },
+        "sql_duckdb": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sql Duckdb"
+        },
+        "sql_spark": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sql Spark"
+        }
+      },
+      "required": [
+        "field",
+        "sql"
+      ],
+      "title": "TransformationDerive",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationDrop": {
+      "description": "Drop columns by name.",
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "TransformationDrop",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationExplode": {
+      "description": "Explode an array field into multiple rows.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        }
+      },
+      "required": [
+        "field"
+      ],
+      "title": "TransformationExplode",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationFilter": {
+      "description": "Row-level filter expressed in SQL.",
+      "properties": {
+        "sql": {
+          "title": "Sql",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sql"
+      ],
+      "title": "TransformationFilter",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationJoin": {
+      "description": "Join a reference table to enrich multiple fields.",
+      "properties": {
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "on": {
+          "title": "On",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "type": {
+          "default": "left",
+          "title": "Type",
+          "type": "string"
+        },
+        "prefix": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prefix"
+        },
+        "defaults": {
+          "additionalProperties": true,
+          "title": "Defaults",
+          "type": "object"
+        }
+      },
+      "required": [
+        "reference",
+        "on",
+        "key",
+        "fields"
+      ],
+      "title": "TransformationJoin",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationJsonExtract": {
+      "description": "Extract a scalar value from a JSON string column.\n\nEngine-agnostic: Polars uses str.json_path_match, DuckDB uses ->> operator,\nSpark uses get_json_object.\n\nYAML example::\n\n    - phase: post\n      json_extract:\n        field: location_latitude\n        source: location_coordinates\n        path: \"$.latitude\"\n        cast: float",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "cast": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cast"
+        }
+      },
+      "required": [
+        "field",
+        "source",
+        "path"
+      ],
+      "title": "TransformationJsonExtract",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationLookup": {
+      "description": "Lookup/join enrichment configuration.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        },
+        "on": {
+          "title": "On",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "default_value": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default Value"
+        }
+      },
+      "required": [
+        "field",
+        "reference",
+        "on",
+        "key",
+        "value"
+      ],
+      "title": "TransformationLookup",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationLower": {
+      "description": "Lower-case string fields.",
+      "properties": {
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "title": "TransformationLower",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationMapValues": {
+      "description": "Map input values to output values.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "mapping": {
+          "additionalProperties": true,
+          "title": "Mapping",
+          "type": "object"
+        },
+        "default": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Default"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        }
+      },
+      "required": [
+        "field",
+        "mapping"
+      ],
+      "title": "TransformationMapValues",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationPivot": {
+      "additionalProperties": false,
+      "description": "Pivot rows into columns using conditional aggregation.",
+      "properties": {
+        "id_vars": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Id Vars",
+          "type": "array"
+        },
+        "pivot_col": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pivot Col"
+        },
+        "pivot_cols": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pivot Cols"
+        },
+        "value_col": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Col"
+        },
+        "value_cols": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Cols"
+        },
+        "values": {
+          "items": {},
+          "title": "Values",
+          "type": "array"
+        },
+        "pivot_values": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pivot Values"
+        },
+        "agg": {
+          "default": "first",
+          "title": "Agg",
+          "type": "string"
+        },
+        "aggs": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Aggs",
+          "type": "object"
+        },
+        "fill_value": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill Value"
+        },
+        "separator": {
+          "default": "_",
+          "title": "Separator",
+          "type": "string"
+        },
+        "name_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name Template"
+        },
+        "value_aliases": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Value Aliases",
+          "type": "object"
+        }
+      },
+      "title": "TransformationPivot",
+      "type": "object"
+    },
+    "TransformationRename": {
+      "additionalProperties": false,
+      "description": "Rename a column prior to validation.",
+      "properties": {
+        "from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From"
+        },
+        "to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "To"
+        },
+        "mappings": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mappings"
+        }
+      },
+      "title": "TransformationRename",
+      "type": "object"
+    },
+    "TransformationRollup": {
+      "description": "Aggregate data and retain rollup lineage keys.",
+      "properties": {
+        "group_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Group By",
+          "type": "array"
+        },
+        "aggregations": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Aggregations",
+          "type": "object"
+        },
+        "keys": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Keys"
+        },
+        "key_expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key Expr"
+        },
+        "rollup_keys_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "_lakelogic_rollup_keys",
+          "title": "Rollup Keys Column"
+        },
+        "rollup_keys_count_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "_lakelogic_rollup_keys_count",
+          "title": "Rollup Keys Count Column"
+        },
+        "upstream_run_id_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "_upstream_lakelogic_run_id",
+          "title": "Upstream Run Id Column"
+        },
+        "upstream_run_ids_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "_upstream_lakelogic_run_ids",
+          "title": "Upstream Run Ids Column"
+        },
+        "distinct": {
+          "default": true,
+          "title": "Distinct",
+          "type": "boolean"
+        }
+      },
+      "title": "TransformationRollup",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationSelect": {
+      "description": "Select a subset of columns.",
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "TransformationSelect",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationSplit": {
+      "description": "Split a string field into an array.",
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "delimiter": {
+          "default": ",",
+          "title": "Delimiter",
+          "type": "string"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        }
+      },
+      "required": [
+        "field"
+      ],
+      "title": "TransformationSplit",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationTrim": {
+      "description": "Trim whitespace from fields.",
+      "properties": {
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "side": {
+          "default": "both",
+          "title": "Side",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "title": "TransformationTrim",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "TransformationUnpivot": {
+      "additionalProperties": false,
+      "description": "Unpivot columns into rows.",
+      "properties": {
+        "id_vars": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Id Vars",
+          "type": "array"
+        },
+        "value_vars": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Value Vars",
+          "type": "array"
+        },
+        "value_cols": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Cols"
+        },
+        "key_field": {
+          "default": "key",
+          "title": "Key Field",
+          "type": "string"
+        },
+        "value_field": {
+          "default": "value",
+          "title": "Value Field",
+          "type": "string"
+        },
+        "include_nulls": {
+          "default": false,
+          "title": "Include Nulls",
+          "type": "boolean"
+        },
+        "value_aliases": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Value Aliases",
+          "type": "object"
+        }
+      },
+      "title": "TransformationUnpivot",
+      "type": "object"
+    },
+    "TransformationUpper": {
+      "description": "Upper-case string fields.",
+      "properties": {
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "title": "TransformationUpper",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "UniqueRuleSpec": {
+      "additionalProperties": false,
+      "description": "The mapping form of a ``unique`` rule: exactly one of ``field`` (one column) or\n``columns`` (a composite key), plus optional labels. Any other key is rejected, so a\nmisspelling (``column:``) fails validation instead of producing no check.",
+      "oneOf": [
+        {
+          "required": [
+            "field"
+          ]
+        },
+        {
+          "required": [
+            "columns"
+          ]
+        },
+        {
+          "required": [
+            "fields"
+          ]
+        }
+      ],
+      "properties": {
+        "field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "One column that must be unique.",
+          "title": "Field"
+        },
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Columns whose combination must be unique (a composite key). `fields` is accepted as an alias.",
+          "title": "Columns"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rule name; default `<columns>_unique`.",
+          "title": "Name"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "error (default) | warning | info.",
+          "title": "Severity"
+        },
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Defaults to `uniqueness`.",
+          "title": "Category"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "fields": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Columns whose combination must be unique (a composite key). `fields` is accepted as an alias.",
+          "title": "Columns"
+        }
+      },
+      "title": "UniqueRuleSpec",
+      "type": "object"
+    },
+    "UpstreamContractRef": {
+      "additionalProperties": false,
+      "description": "A structured reference to an upstream contract this one depends on.\n\nRicher sibling of the plain ``upstream: List[str]`` \u2014 carries the upstream\ncontract's mesh coordinates (layer / domain / system) for end-to-end lineage.",
+      "properties": {
+        "contract": {
+          "title": "Contract",
+          "type": "string"
+        },
+        "layer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Layer"
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain"
+        },
+        "system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "System"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "required": [
+        "contract"
+      ],
+      "title": "UpstreamContractRef",
+      "type": "object"
+    },
+    "UpstreamSource": {
+      "additionalProperties": false,
+      "description": "An upstream *origin* of a contract's data that is **not** itself an OLC contract \u2014\na source system, a landing zone, an external file / API / database / stream, etc.\n\nThis is the upstream mirror of :class:`DownstreamConsumer`: where downstream captures\nconsumers with no contract of their own (a BI report reading through a semantic model),\n``upstream_sources`` captures producers with no contract of their own. It records the\ningestion provenance the mesh cannot otherwise express \u2014 most commonly the\n``source system \u2192 landing zone \u2192 bronze`` chain, since neither the source nor the\nlanding zone has an OLC file.\n\nSelf-referential: each hop may declare its own ``upstream_sources``, so a bronze\ncontract can nest ``landing \u2190 source_system`` end to end. The strict OLC v1 path\nrecurses into these and enforces the same key rules.\n\nExample YAML::\n\n    upstream_sources:\n      - type: landing                       # the direct producer of this contract\n        name: GA4 app_events landing\n        path: \"{landing_root}/app_events\"\n        format: json\n        upstream_sources:\n          - type: source_system             # where the landing data came from\n            name: Google Analytics 4\n            system: Google LLC",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "System"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "catalog_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Catalog Path"
+        },
+        "owner": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "columns_used": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Columns Used",
+          "type": "array"
+        },
+        "upstream_sources": {
+          "items": {
+            "$ref": "#/$defs/UpstreamSource"
+          },
+          "title": "Upstream Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "UpstreamSource",
+      "type": "object"
+    },
+    "AvroOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: avro`. Nested records and arrays arrive as JSON text.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "AvroOptions",
+      "type": "object"
+    },
+    "CsvOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: csv` / `tsv`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "delimiter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Field separator, one character; `\\t` or `tab` for a tab. Default `,` (tab for `tsv`).",
+          "title": "Delimiter"
+        },
+        "encoding": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text encoding, e.g. `utf-8` (default), `latin-1`, `cp1252`, `utf8-lossy` (replace undecodable bytes instead of failing).",
+          "title": "Encoding"
+        },
+        "skip_rows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lines to skip above the header row. Default 0.",
+          "title": "Skip Rows"
+        },
+        "has_header": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Whether the first row (after `skip_rows`) names the columns. Default true; when false, columns are matched to `model.fields` by position.",
+          "title": "Has Header"
+        },
+        "quote_char": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Quote character around a field that contains the delimiter. Default `\"`.",
+          "title": "Quote Char"
+        },
+        "null_values": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Strings read as null, e.g. `[\"\", \"N/A\", \"-\"]`.",
+          "title": "Null Values"
+        },
+        "comment_prefix": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lines starting with this are skipped, e.g. `#`.",
+          "title": "Comment Prefix"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "CsvOptions",
+      "type": "object"
+    },
+    "DatabaseOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: database` (PostgreSQL, MySQL, SQL Server / Azure SQL, SQLite, \u2026).\n\nThe connection string is `source.path`, normally `env:VAR` so the password stays out of the\ncontract.",
+      "properties": {
+        "fetch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rows per chunk: the result is read in chunks of this size, so a large table never has to fit in memory at once. Default: read in one go.",
+          "title": "Fetch Size"
+        },
+        "partition_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numeric or date column to split the read on, for a parallel read. Use with `partition_num`.",
+          "title": "Partition Column"
+        },
+        "partition_num": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of parallel partitions for `partition_column`.",
+          "title": "Partition Num"
+        },
+        "partition_lower_bound": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lowest `partition_column` value. Default: the column's minimum.",
+          "title": "Partition Lower Bound"
+        },
+        "partition_upper_bound": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Highest `partition_column` value. Default: the column's maximum.",
+          "title": "Partition Upper Bound"
+        },
+        "cdc_provider": {
+          "anyOf": [
+            {
+              "enum": [
+                "azuresql",
+                "azure_sql",
+                "sqlserver",
+                "mssql"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "With `load_mode: cdc`: read the database's own change log (inserts, updates AND deletes) instead of a watermark column. SQL Server / Azure SQL native CDC. Each row gets `_lakelogic_cdc_op` (insert / update / delete) and `_lakelogic_cdc_ts` (commit time).",
+          "title": "Cdc Provider"
+        },
+        "cdc_capture_instance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The CDC capture instance `sys.sp_cdc_enable_table` created, e.g. `dbo_rides`. Default: `dataset` with `.` replaced by `_`.",
+          "title": "Cdc Capture Instance"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "DatabaseOptions",
+      "type": "object"
+    },
+    "DocumentOptions": {
+      "additionalProperties": false,
+      "description": "Options for document formats read by `extraction` (`pdf`, `docx`, \u2026): none yet.",
+      "properties": {
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "DocumentOptions",
+      "type": "object"
+    },
+    "EventHubsOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: eventhubs`: Azure Event Hubs through its Kafka\nendpoint. The brokers and the SASL login come from the connection string.",
+      "properties": {
+        "kind": {
+          "const": "eventhubs",
+          "description": "`eventhubs`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "connection_string": {
+          "description": "The Event Hubs namespace connection string. Must be an environment reference (`env:VAR` or `${ENV:VAR}`), never the value.",
+          "title": "Connection String",
+          "type": "string"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The event hub name. Default: `source.path`.",
+          "title": "Topic"
+        },
+        "brokers": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Override of the address taken from the connection string (`<namespace>.servicebus.windows.net:9093`).",
+          "title": "Brokers"
+        },
+        "group_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Consumer group name. Optional.",
+          "title": "Group Id"
+        },
+        "starting_offsets": {
+          "anyOf": [
+            {
+              "enum": [
+                "earliest",
+                "latest"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where a FIRST run starts: `earliest` (default) or `latest`. Later runs continue from the checkpoint.",
+          "title": "Starting Offsets"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "batch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Events per micro-batch (Polars / DuckDB). Default 1000.",
+          "title": "Batch Size"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "max_offsets_per_trigger": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark only: cap on events per micro-batch. Default: no cap.",
+          "title": "Max Offsets Per Trigger"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind",
+        "connection_string"
+      ],
+      "title": "EventHubsOptions",
+      "type": "object"
+    },
+    "ExcelOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: xlsx` / `xls` / `excel`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "sheet_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The sheet (tab) to read, by name. Default: the first sheet. A name the workbook does not have fails the run.",
+          "title": "Sheet Name"
+        },
+        "header_row": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The row that holds the column names, counting from 1. Default 1; rows above it are skipped (titles, notes).",
+          "title": "Header Row"
+        },
+        "skip_footer": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rows to drop at the bottom (totals, notes). Default 0.",
+          "title": "Skip Footer"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "ExcelOptions",
+      "type": "object"
+    },
+    "FixedWidthColumn": {
+      "additionalProperties": false,
+      "description": "One column of a fixed-width layout.",
+      "properties": {
+        "name": {
+          "description": "Column name; matches a `model.fields` name.",
+          "title": "Name",
+          "type": "string"
+        },
+        "start": {
+          "description": "First character position, counting from 1.",
+          "minimum": 1,
+          "title": "Start",
+          "type": "integer"
+        },
+        "width": {
+          "description": "Number of characters.",
+          "minimum": 1,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "start",
+        "width"
+      ],
+      "title": "FixedWidthColumn",
+      "type": "object"
+    },
+    "FixedWidthOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: fixed_width`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "columns": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FixedWidthColumn"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The layout: `{name, start, width}` per column, `start` counting from 1 as layout specs do. Alternative to `range` on each model field; wins when both are set.",
+          "title": "Columns"
+        },
+        "record_length": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Fixed record size in characters, for files with no line breaks (mainframe). A record of a different length is quarantined. Default: one record per line.",
+          "title": "Record Length"
+        },
+        "encoding": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Text encoding, e.g. `utf-8` (default), `cp037` (EBCDIC), `latin-1`.",
+          "title": "Encoding"
+        },
+        "skip_rows": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Header records to skip. Default 0.",
+          "title": "Skip Rows"
+        },
+        "skip_footer": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Trailer records to skip. Default 0.",
+          "title": "Skip Footer"
+        },
+        "strip": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Trim padding spaces from every value. Default true.",
+          "title": "Strip"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "FixedWidthOptions",
+      "type": "object"
+    },
+    "JsonOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: json` / `ndjson` / `jsonl`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "multiline": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "true: each file is ONE JSON document (an array or object, possibly over many lines). false: one document per line. Default: detected from the file.",
+          "title": "Multiline"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "JsonOptions",
+      "type": "object"
+    },
+    "KafkaOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: kafka`: any Kafka-protocol broker (Apache Kafka,\nConfluent, Redpanda, Amazon MSK). Messages must be JSON objects; one that is not is\nquarantined with the reason, and the stream continues.",
+      "properties": {
+        "kind": {
+          "const": "kafka",
+          "description": "`kafka`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "brokers": {
+          "description": "Broker list `host:port[,host:port]`; a literal or `env:VAR`.",
+          "title": "Brokers",
+          "type": "string"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The topic. Default: `source.path`.",
+          "title": "Topic"
+        },
+        "group_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Consumer group name. Optional: offsets are kept in the checkpoint either way.",
+          "title": "Group Id"
+        },
+        "starting_offsets": {
+          "anyOf": [
+            {
+              "enum": [
+                "earliest",
+                "latest"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where a FIRST run starts: `earliest` (default) or `latest`. Later runs continue from the checkpoint.",
+          "title": "Starting Offsets"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "batch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Events per micro-batch (Polars / DuckDB). Default 1000.",
+          "title": "Batch Size"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "max_offsets_per_trigger": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark only: cap on events per micro-batch. Default: no cap.",
+          "title": "Max Offsets Per Trigger"
+        },
+        "security_protocol": {
+          "anyOf": [
+            {
+              "enum": [
+                "PLAINTEXT",
+                "SSL",
+                "SASL_PLAINTEXT",
+                "SASL_SSL"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How to connect. Default `PLAINTEXT` (a local broker).",
+          "title": "Security Protocol"
+        },
+        "sasl_mechanism": {
+          "anyOf": [
+            {
+              "enum": [
+                "PLAIN",
+                "SCRAM-SHA-256",
+                "SCRAM-SHA-512"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SASL login method. `PLAIN` works on every engine; `SCRAM-SHA-256` / `SCRAM-SHA-512` on Polars and DuckDB only.",
+          "title": "Sasl Mechanism"
+        },
+        "sasl_username": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SASL user; a literal or `env:VAR`.",
+          "title": "Sasl Username"
+        },
+        "sasl_password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SASL password. Must be an environment reference (`env:VAR` or `${ENV:VAR}`), never the value.",
+          "title": "Sasl Password"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind",
+        "brokers"
+      ],
+      "title": "KafkaOptions",
+      "type": "object"
+    },
+    "MongoDbOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: database` with a `mongodb://` or `mongodb+srv://` path: MongoDB, Atlas,\nAzure Cosmos DB (MongoDB API), Amazon DocumentDB. `dataset` is the collection.",
+      "properties": {
+        "database": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Database name. Default: the one in the connection string's path.",
+          "title": "Database"
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A MongoDB query document, applied by the server, e.g. `{status: {$ne: test}}`.",
+          "title": "Filter"
+        },
+        "projection": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Fields to include (1) or leave out (0), e.g. `{items: 0}`.",
+          "title": "Projection"
+        },
+        "batch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Documents fetched per round trip. Default 1000.",
+          "title": "Batch Size"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "MongoDbOptions",
+      "type": "object"
+    },
+    "ParquetOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: parquet`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "ParquetOptions",
+      "type": "object"
+    },
+    "SftpOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: sftp` (`path: sftp://user@host[:port]/dir`), plus the options of the\nfile `format` it reads.",
+      "properties": {
+        "username": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Login name, when not in `path`. Default: env `LAKELOGIC_SFTP_USER`.",
+          "title": "Username"
+        },
+        "password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Login password. Must be an environment reference (`env:VAR` or `${ENV:VAR}`), never the value. Default: env `LAKELOGIC_SFTP_PASSWORD`.",
+          "title": "Password"
+        },
+        "private_key_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path to a private key file (key login). Default: env `LAKELOGIC_SFTP_KEY`.",
+          "title": "Private Key Path"
+        },
+        "known_hosts": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "known_hosts file used to verify the server. Default `~/.ssh/known_hosts`; an explicit null turns host verification off (not recommended).",
+          "title": "Known Hosts"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "SftpOptions",
+      "type": "object"
+    },
+    "TableOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: delta` / `iceberg`: none yet.",
+      "properties": {
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "TableOptions",
+      "type": "object"
+    },
+    "XmlOptions": {
+      "additionalProperties": false,
+      "description": "Options for `format: xml`.",
+      "properties": {
+        "archive_member": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Which members of a `.zip` to read, as a glob, e.g. `orders_*.csv`. Default: every member with the format's extension (a README is not data). `.gz` files need no option.",
+          "title": "Archive Member"
+        },
+        "implied_decimals": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digits after an implied decimal point, per field, e.g. `{amount: 2}` reads `12345` as 123.45 (mainframe and BACS layouts).",
+          "title": "Implied Decimals"
+        },
+        "date_formats": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date / timestamp pattern per field, Spark/Java style, e.g. `{signup_date: yyyyMMdd, paid_at: \"dd/MM/yyyy HH:mm:ss\"}`. Default: ISO 8601 (`2026-10-01`, `2026-10-01 09:00:00`, `2026-10-01T09:00:00Z`).",
+          "title": "Date Formats"
+        },
+        "decimal_comma": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numbers use a decimal comma and a dot for thousands (`1.234,50` is 1234.5). Applies to float / double / decimal fields. Default false.",
+          "title": "Decimal Comma"
+        },
+        "row_tag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Element name of one record, matched at any depth, e.g. `order`. Default: the repeated children of the root element.",
+          "title": "Row Tag"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "title": "XmlOptions",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Strict canonical OLC contract \u2014 the public standard.\n\nThe strictness is encoded directly in the model, so the emitted JSON Schema\nis a faithful projection of it:\n  * root ``extra=\"forbid\"`` (no undeclared top-level keys),\n  * ``version`` must be SemVer,\n  * ``info`` and ``model`` are required,\n  * vendor extras go under a namespaced ``extensions`` map,\n  * ``server.mode`` is a real enum via :class:`StrictServer`.",
+  "properties": {
+    "version": {
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$",
+      "title": "Version",
+      "type": "string"
+    },
+    "info": {
+      "$ref": "#/$defs/Info"
+    },
+    "model": {
+      "$ref": "#/$defs/Model"
+    },
+    "extensions": {
+      "title": "Extensions",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)+$"
+      },
+      "additionalProperties": true
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "server": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/StrictServer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SourceConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "environments": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Environment"
+      },
+      "title": "Environments",
+      "type": "object"
+    },
+    "links": {
+      "items": {
+        "$ref": "#/$defs/Link"
+      },
+      "title": "Links",
+      "type": "array"
+    },
+    "dataset": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dataset"
+    },
+    "primary_key": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Primary Key",
+      "type": "array"
+    },
+    "natural_key": {
+      "description": "DEPRECATED. Still accepted so existing contracts validate; a conforming runtime does not read it. `primary_key` is the business key (SCD2 matches versions on it, and a type-1 surrogate key is a hash of it). State version uniqueness as a `unique` rule, e.g. `unique: {columns: [customer_id, effective_from]}`.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Natural Key",
+      "type": "array"
+    },
+    "lineage": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LineageConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "materialization": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Materialization"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "logic": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Logic"
+    },
+    "external_logic": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExternalLogic"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "observatory": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observatory"
+    },
+    "extraction": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExtractionConfig"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "upstream": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Upstream",
+      "type": "array"
+    },
+    "upstream_contracts": {
+      "items": {
+        "$ref": "#/$defs/UpstreamContractRef"
+      },
+      "title": "Upstream Contracts",
+      "type": "array"
+    },
+    "upstream_sources": {
+      "items": {
+        "$ref": "#/$defs/UpstreamSource"
+      },
+      "title": "Upstream Sources",
+      "type": "array"
+    },
+    "downstream": {
+      "items": {
+        "$ref": "#/$defs/DownstreamConsumer"
+      },
+      "title": "Downstream",
+      "type": "array"
+    },
+    "schedule": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Schedule"
+    },
+    "schema_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SchemaPolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "quality": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Quality"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "transformations": {
+      "items": {
+        "$ref": "#/$defs/Transformation"
+      },
+      "title": "Transformations",
+      "type": "array"
+    },
+    "service_levels": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ServiceLevel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "quarantine": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Quarantine"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "compliance": {
+      "additionalProperties": true,
+      "title": "Compliance",
+      "type": "object"
+    },
+    "tier": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tier"
+    },
+    "contract_file_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Contract File Name"
+    }
+  },
+  "required": [
+    "version",
+    "info",
+    "model"
+  ],
+  "type": "object"
+}
