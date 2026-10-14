@@ -1,0 +1,9 @@
+version: 1.0.0
+info: { title: Trips, table_name: trips }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: city, type: string }
+materialization:
+  strategy: append
+  format: iceberg

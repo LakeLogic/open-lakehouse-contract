@@ -1,0 +1,15 @@
+id: OLC-FMT-001
+spec_version: 1.0.0
+level: materialization
+feature: materialization.format_change
+description: "A run stops before writing over data already stored in another table format"
+# The table was written as Delta (seed.contract.olc.yaml). The layer's format is then changed to
+# Iceberg. Writing would replace the table (Spark) or put Iceberg files in the Delta table's folder
+# (Polars/DuckDB); a format change is a migration, so the run must fail and write nothing.
+input: input.jsonl
+assertions:
+  expects_run_failure: true
+materialization:
+  format: delta
+  seed: seed.jsonl
+  seed_contract: seed.contract.olc.yaml
