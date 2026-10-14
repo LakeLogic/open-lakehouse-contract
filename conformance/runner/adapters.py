@@ -231,7 +231,9 @@ class LakeLogicAdapter:
         contract["metadata"] = metadata
 
         path = self._materialise_source(case)
-        first = DataProcessor(engine=self.engine, contract=dict(contract), strict=self.strict)
+        first = DataProcessor(
+            engine=self.engine, contract=dict(contract), strict=self.strict
+        )
         first.run_source(path)
         # The pipeline runner writes the run log after each run; run_source alone does not.
         # Without it no watermark is saved and "incremental" re-reads everything.
@@ -243,13 +245,17 @@ class LakeLogicAdapter:
         body = "\n".join(json.dumps(r) for r in case.second_input_rows)
         (Path(path).parent / "part_90.json").write_text(body, encoding="utf-8")
 
-        processor = DataProcessor(engine=self.engine, contract=dict(contract), strict=self.strict)
+        processor = DataProcessor(
+            engine=self.engine, contract=dict(contract), strict=self.strict
+        )
         good, bad = processor.run_source(path)
         good_rows, bad_rows = self._to_rows(good), self._to_rows(bad)
         return ExecutionResult(
             accepted=_project(good_rows, cols),
             quarantined=_project(bad_rows, cols),
-            run_metadata=self._metadata(processor, good_rows, bad_rows, materialized=False),
+            run_metadata=self._metadata(
+                processor, good_rows, bad_rows, materialized=False
+            ),
         )
 
     def _execute_materialization(
@@ -264,7 +270,11 @@ class LakeLogicAdapter:
             seed_rows = _read_jsonl(case.directory / mat.seed)
             if seed_rows:
                 seeder = (
-                    DataProcessor(engine=self.engine, contract=dict(mat.seed_contract), strict=self.strict)
+                    DataProcessor(
+                        engine=self.engine,
+                        contract=dict(mat.seed_contract),
+                        strict=self.strict,
+                    )
                     if mat.seed_contract
                     else self._make_processor(DataProcessor, case)
                 )
@@ -354,7 +364,9 @@ def _write_csv(rows: list[dict], directory: Path) -> str:
 
     cols = list(rows[0]) if rows else []
     for i, chunk in enumerate(_halves(rows)):
-        with open(directory / f"part_{i:02d}.csv", "w", newline="", encoding="utf-8") as fh:
+        with open(
+            directory / f"part_{i:02d}.csv", "w", newline="", encoding="utf-8"
+        ) as fh:
             w = csv.DictWriter(fh, fieldnames=cols)
             w.writeheader()
             for r in chunk:
@@ -373,7 +385,9 @@ def _write_parquet_parts(rows: list[dict], directory: Path) -> str:
     import polars as pl
 
     for i, chunk in enumerate(_halves(rows)):
-        pl.DataFrame(chunk, schema=schema).write_parquet(directory / f"part_{i:02d}.parquet")
+        pl.DataFrame(chunk, schema=schema).write_parquet(
+            directory / f"part_{i:02d}.parquet"
+        )
     return str(directory / "*.parquet")
 
 
@@ -388,7 +402,9 @@ def _write_tsv(rows: list[dict], directory: Path) -> str:
 
     cols = list(rows[0]) if rows else []
     for i, chunk in enumerate(_halves(rows)):
-        with open(directory / f"part_{i:02d}.tsv", "w", newline="", encoding="utf-8") as fh:
+        with open(
+            directory / f"part_{i:02d}.tsv", "w", newline="", encoding="utf-8"
+        ) as fh:
             w = csv.DictWriter(fh, fieldnames=cols, delimiter="\t")
             w.writeheader()
             for r in chunk:
@@ -404,7 +420,9 @@ FIXED_WIDTH = 8
 def _write_fixed_width(rows: list[dict], directory: Path) -> str:
     cols = list(rows[0]) if rows else []
     lines = [
-        "".join(("" if r.get(c) is None else str(r.get(c))).ljust(FIXED_WIDTH) for c in cols)
+        "".join(
+            ("" if r.get(c) is None else str(r.get(c))).ljust(FIXED_WIDTH) for c in cols
+        )
         for r in rows
     ]
     path = directory / "source.txt"
@@ -430,11 +448,16 @@ def _write_xml(rows: list[dict], directory: Path) -> str:
     from xml.sax.saxutils import escape
 
     body = "".join(
-        "  <row>" + "".join(f"<{k}>{escape(str(v))}</{k}>" for k, v in r.items() if v is not None) + "</row>\n"
+        "  <row>"
+        + "".join(f"<{k}>{escape(str(v))}</{k}>" for k, v in r.items() if v is not None)
+        + "</row>\n"
         for r in rows
     )
     path = directory / "source.xml"
-    path.write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<rows>\n{body}</rows>\n', encoding="utf-8")
+    path.write_text(
+        f'<?xml version="1.0" encoding="UTF-8"?>\n<rows>\n{body}</rows>\n',
+        encoding="utf-8",
+    )
     return str(path)
 
 

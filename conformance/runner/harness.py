@@ -137,7 +137,9 @@ def load_case(directory: Path) -> ConformanceCase:
                 seed=mat.get("seed"),
                 idempotent=bool(mat.get("idempotent", False)),
                 seed_contract=(
-                    _load_yaml((directory / mat["seed_contract"]).read_text(encoding="utf-8"))
+                    _load_yaml(
+                        (directory / mat["seed_contract"]).read_text(encoding="utf-8")
+                    )
                     if mat.get("seed_contract")
                     else None
                 ),
@@ -208,7 +210,9 @@ def compare_result(
     #                         strict validation; test_all_case_contracts_are_strict_valid).
     #   expects_run_failure — the contract is valid, and the RUN must fail: e.g. a write that
     #                         `schema_policy.evolution: strict` forbids.
-    expects_error = case.assertions.get("expects_error") or case.assertions.get("expects_run_failure")
+    expects_error = case.assertions.get("expects_error") or case.assertions.get(
+        "expects_run_failure"
+    )
     if result.exception is not None and not expects_error:
         return Outcome(
             case.id,
