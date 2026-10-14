@@ -1,0 +1,18 @@
+id: OLC-ICE-L-003
+spec_version: 1.0.0
+level: materialization
+feature: source.load_mode.cdc
+description: "[Iceberg] A change-data-capture delete marks the target row as deleted; an update changes it; an insert adds it"
+# Iceberg twin of the Delta case load-mode-cdc-delete-marks-the-row: same contract and data, format iceberg.
+# A delete keeps the row and sets the contract's soft-delete column: history is not destroyed.
+# A row that is not deleted has an EMPTY marker, not false (confirmed on the engines 2026-10-13).
+input: input.jsonl
+expected:
+  target: expected/target.jsonl
+assertions:
+  rows_input: 3
+comparison:
+  sort_by: [id]
+materialization:
+  format: iceberg
+  seed: seed.jsonl

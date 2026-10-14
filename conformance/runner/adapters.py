@@ -14,7 +14,7 @@ import re
 import tempfile
 from collections import Counter
 from pathlib import Path
-from typing import Protocol
+from typing import Optional, Protocol
 
 from .model import ConformanceCase, ExecutionError, ExecutionResult
 
@@ -65,10 +65,55 @@ class LakeLogicAdapter:
     strict: bool = True
 
     def _make_processor(self, DataProcessor, case: ConformanceCase):
-        contract = self._contract_with_references(case)
+        contract = self._with_iceberg_meta(self._contract_with_references(case))
         return DataProcessor(
             engine=self.engine, contract=dict(contract), strict=self.strict
         )
+
+    _iceberg_meta: Optional[dict] = None
+    _iceberg_props: Optional[dict] = None
+
+    def _with_iceberg_meta(self, contract: dict) -> dict:
+        """The contract with this case's Iceberg catalog settings in its metadata."""
+        if self._iceberg_meta:
+            contract = dict(contract)
+            contract["metadata"] = {**(contract.get("metadata") or {}), **self._iceberg_meta}
+        return contract
+
+    def _iceberg_catalog_target(self, case: ConformanceCase) -> tuple:
+        """A fresh table in a throwaway SQLite catalog that Core's pyiceberg writer loads from
+        the contract's metadata. Returns ``(target, metadata)``."""
+        root = Path(tempfile.mkdtemp(prefix="olc-iceberg-"))
+        (root / "warehouse").mkdir()
+        props = {
+            "type": "sql",
+            "uri": f"sqlite:///{(root / 'catalog.db').as_posix()}",
+            "warehouse": (root / "warehouse").as_uri(),
+            # pyiceberg's default (pyarrow) file layer cannot open a local Windows path.
+            "py-io-impl": "pyiceberg.io.fsspec.FsspecFileIO",
+        }
+        self._iceberg_props = props
+        meta = {
+            "iceberg_catalog_type": "sql",
+            "iceberg_catalog_uri": props["uri"],
+            "iceberg_catalog_warehouse": props["warehouse"],
+            "iceberg_catalog_properties": {"py-io-impl": props["py-io-impl"]},
+        }
+        return f"table:olc.conformance.{_table_name(case)}", meta
+
+    def _read_any_target(self, target: str, fmt: str, cols: list[str]) -> list[dict]:
+        if fmt == "iceberg":
+            return _project(self._read_iceberg_catalog_table(target).to_dicts(), cols)
+        return self._read_target(target, fmt, cols)
+
+    def _read_iceberg_catalog_table(self, target: str):
+        """Read back through pyiceberg directly, not through the runtime under test."""
+        import polars as pl
+        from pyiceberg.catalog import load_catalog
+
+        catalog = load_catalog("olc", **self._iceberg_props)
+        identifier = target[len("table:"):].split(".", 1)[1]  # drop the catalog name
+        return pl.from_arrow(catalog.load_table(identifier).scan().to_arrow())
 
     def _contract_with_references(self, case: ConformanceCase) -> dict:
         """Materialise each link's reference data (references/<name>.jsonl -> a temp
@@ -264,6 +309,10 @@ class LakeLogicAdapter:
         mat = case.materialization
         tmp = Path(tempfile.mkdtemp()) / case.id.replace(".", "_")
         target = str(tmp)
+        self._iceberg_meta = None
+        if mat.format == "iceberg":
+            # Iceberg is a CATALOG format: the case writes a catalog table, never a path.
+            target, self._iceberg_meta = self._iceberg_catalog_target(case)
 
         # Seed prior target state (if any) so merge/append has something to act on.
         if mat.seed:
@@ -272,7 +321,7 @@ class LakeLogicAdapter:
                 seeder = (
                     DataProcessor(
                         engine=self.engine,
-                        contract=dict(mat.seed_contract),
+                        contract=self._with_iceberg_meta(dict(mat.seed_contract)),
                         strict=self.strict,
                     )
                     if mat.seed_contract
@@ -286,13 +335,13 @@ class LakeLogicAdapter:
 
         processor = self._make_processor(DataProcessor, case)
         good, bad = processor.run(input_df, materialize=True, materialize_target=target)
-        target_rows = self._read_target(target, mat.format, cols)
+        target_rows = self._read_any_target(target, mat.format, cols)
 
         if mat.idempotent:
             # Re-run the identical merge; the target must not change.
             again = self._make_processor(DataProcessor, case)
             again.run(input_df, materialize=True, materialize_target=target)
-            target_rows_2 = self._read_target(target, mat.format, cols)
+            target_rows_2 = self._read_any_target(target, mat.format, cols)
             # Stash the second read so the comparator can assert stability.
             meta_extra = {"idempotent_target_rows": target_rows_2}
         else:
@@ -317,6 +366,8 @@ class LakeLogicAdapter:
             from deltalake import DeltaTable
 
             table = pl.from_arrow(DeltaTable(target).to_pyarrow_table())
+        elif fmt == "iceberg":
+            table = _read_iceberg_dir(target)
         else:  # parquet / other columnar file
             table = pl.read_parquet(target)
         return _project(table.to_dicts(), cols)
@@ -493,6 +544,48 @@ def _write_iceberg(rows: list[dict], directory: Path) -> str:
     from urllib.parse import unquote, urlparse
 
     return str(Path(unquote(urlparse(table.location()).path.lstrip("/"))))
+
+
+def _table_name(case) -> str:
+    """A table name unique to this run of ``case`` (a re-run must not find the last one)."""
+    import re
+    import uuid
+
+    return re.sub(r"[^a-z0-9_]", "_", case.id.lower()) + "_" + uuid.uuid4().hex[:8]
+
+
+#: The Iceberg runtime for the local Spark (Spark 4.0, Scala 2.13).
+ICEBERG_SPARK_RUNTIME = "org.apache.iceberg:iceberg-spark-runtime-4.0_2.13:1.10.0"
+
+
+def _read_iceberg_dir(path: str):
+    """An Iceberg table directory as a Polars frame, through its newest metadata file.
+
+    Read with pyiceberg directly, not through the runtime under test. The fsspec file layer is
+    used because pyiceberg's default one cannot open a local Windows path.
+    """
+    import re
+
+    import polars as pl
+    from pyiceberg.table import StaticTable
+
+    meta = Path(path) / "metadata"
+    hint = meta / "version-hint.text"
+    chosen = None
+    if hint.exists():
+        v = hint.read_text(encoding="utf-8").strip()
+        for name in (f"v{v}.metadata.json", f"{v}.metadata.json"):
+            if (meta / name).exists():
+                chosen = meta / name
+    if chosen is None:
+        chosen = max(
+            meta.glob("*.metadata.json"),
+            key=lambda f: int(m.group(1)) if (m := re.match(r"v?(\d+)", f.name)) else -1,
+        )
+    table = StaticTable.from_metadata(
+        chosen.resolve().as_uri(), properties={"py-io-impl": "pyiceberg.io.fsspec.FsspecFileIO"}
+    )
+    return pl.from_arrow(table.scan().to_arrow())
 
 
 _FORMAT_WRITERS = {
@@ -705,6 +798,18 @@ class SparkAdapter(LakeLogicAdapter):
     capabilities = set(PolarsAdapter.capabilities)
 
     _spark = None  # cached session (JVM startup is expensive)
+    _iceberg_warehouse = None
+
+    def _iceberg_catalog_target(self, case: ConformanceCase) -> tuple:
+        """Spark writes Iceberg through its session catalog `olc` (a Hadoop warehouse); the
+        contract needs no catalog settings."""
+        self._session()  # the warehouse is set up with the session
+        return f"table:olc.conformance.{_table_name(case)}", None
+
+    def _read_iceberg_catalog_table(self, target: str):
+        """A Hadoop-catalog table is the directory <warehouse>/<namespace>/<table>."""
+        namespace, table = target[len("table:"):].split(".")[1:]
+        return _read_iceberg_dir(str(self._iceberg_warehouse / namespace / table))
 
     @classmethod
     def _session(cls):
@@ -735,20 +840,29 @@ class SparkAdapter(LakeLogicAdapter):
                 )
                 # Delta extension so merge/SCD2 materialisation works (as it does on
                 # a real Databricks/Delta cluster).
+                # Iceberg beside Delta, so Iceberg writes are measured as Delta's are
+                # (a Databricks cluster has both). Path tables use Spark's HadoopTables.
                 .config(
-                    "spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension"
+                    "spark.sql.extensions",
+                    "io.delta.sql.DeltaSparkSessionExtension,"
+                    "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
                 )
                 .config(
                     "spark.sql.catalog.spark_catalog",
                     "org.apache.spark.sql.delta.catalog.DeltaCatalog",
                 )
+                # `olc`: an Iceberg catalog for Iceberg cases (Iceberg is a catalog format).
+                .config("spark.sql.catalog.olc", "org.apache.iceberg.spark.SparkCatalog")
+                .config("spark.sql.catalog.olc.type", "hadoop")
+                .config("spark.sql.catalog.olc.warehouse", (spark_home / "iceberg").as_uri())
             )
             try:
                 from delta import configure_spark_with_delta_pip
 
-                builder = configure_spark_with_delta_pip(builder)
+                builder = configure_spark_with_delta_pip(builder, extra_packages=[ICEBERG_SPARK_RUNTIME])
             except Exception:  # pragma: no cover - delta-spark not installed
                 pass
+            cls._iceberg_warehouse = spark_home / "iceberg"
             cls._spark = builder.getOrCreate()
             cls._spark.sparkContext.setLogLevel("ERROR")
             cls._cases_on_session = 0

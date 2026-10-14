@@ -1,0 +1,20 @@
+id: OLC-ICE-EVO-002
+spec_version: 1.0.0
+level: materialization
+feature: schema_policy.evolution
+description: "[Iceberg] evolution: compatible adds a new nullable column; existing rows read it as empty"
+# Iceberg twin of the Delta case schema-evolution-compatible-adds-nullable-column: same contract and data, format iceberg.
+# The table was written under seed.contract.olc.yaml (id, name). This run's contract adds
+# a nullable column, tier. What the write does is the evolution mode's whole job.
+# compatible: adding a nullable column is a backward-compatible change.
+input: input.jsonl
+expected:
+  target: expected/target.jsonl
+assertions:
+  rows_input: 1
+comparison:
+  sort_by: [id]
+materialization:
+  format: iceberg
+  seed: seed.jsonl
+  seed_contract: seed.contract.olc.yaml

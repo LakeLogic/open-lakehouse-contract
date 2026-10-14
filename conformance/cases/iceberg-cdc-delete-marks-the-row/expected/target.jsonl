@@ -1,0 +1,3 @@
+{"id": 1, "name": "Ada L", "op": "U", "is_deleted": null}
+{"id": 2, "name": "Bob", "op": "D", "is_deleted": true}
+{"id": 3, "name": "Cy", "op": "I", "is_deleted": null}

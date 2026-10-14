@@ -1,0 +1,16 @@
+id: OLC-ICE-APPEND-001
+spec_version: 1.0.0
+level: materialization
+feature: materialization.append
+description: "[Iceberg] append adds the new rows and leaves the existing ones untouched"
+input: input.jsonl
+expected:
+  target: expected/target.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+comparison:
+  sort_by: [id]
+materialization:
+  format: iceberg
+  seed: seed.jsonl

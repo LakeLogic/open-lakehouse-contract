@@ -1,0 +1,18 @@
+id: OLC-ICE-OVERWRITE-001
+spec_version: 1.0.0
+level: materialization
+feature: materialization.overwrite
+description: "[Iceberg] overwrite leaves only the rows of this run in the target"
+# Iceberg twin of the Delta case overwrite-replaces-table: same contract and data, format iceberg.
+# Rows from the earlier run are gone, including a key this run does not carry.
+input: input.jsonl
+expected:
+  target: expected/target.jsonl
+assertions:
+  rows_input: 1
+  rows_accepted: 1
+comparison:
+  sort_by: [id]
+materialization:
+  format: iceberg
+  seed: seed.jsonl

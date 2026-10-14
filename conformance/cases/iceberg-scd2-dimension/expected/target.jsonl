@@ -1,0 +1,3 @@
+{"customer_id":1,"tier":"free","updated_at":"2024-01-01","is_current":false,"version":1,"effective_from":"1900-01-01","effective_to":"2024-02-01"}
+{"customer_id":1,"tier":"pro","updated_at":"2024-02-01","is_current":true,"version":2,"effective_from":"2024-02-01","effective_to":"2200-01-01"}
+{"customer_id":2,"tier":"free","updated_at":"2024-02-01","is_current":true,"version":1,"effective_from":"1900-01-01","effective_to":"2200-01-01"}
