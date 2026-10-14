@@ -31,6 +31,9 @@ model:
       required: true
     - name: status
       type: string
+    - name: is_deleted
+      type: boolean
+      description: Set when the order is deleted at the source; the row is kept, marked.
 
 primary_key: [order_id]
 
@@ -49,8 +52,13 @@ quality:
 lineage:
   enabled: true
 
+# How fresh the table must be: a stalled feed is reported, not mistaken for success.
+service_levels:
+  freshness: 24h
+
 # Where + how the result is written. Format/engine are backend choices — the contract
 # is the invariant.
 materialization:
   strategy: merge
   format: iceberg
+  soft_delete_column: is_deleted   # a source delete marks the row instead of leaving it stale

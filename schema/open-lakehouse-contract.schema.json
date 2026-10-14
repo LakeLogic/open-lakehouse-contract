@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://lakelogic.org/open-lakehouse-contract/v1/schema.json",
+  "$id": "https://lakelogic.github.io/open-lakehouse-contract/schema/v1/open-lakehouse-contract.schema.json",
   "title": "OLCContractV1",
   "$defs": {
     "ConfidenceConfig": {

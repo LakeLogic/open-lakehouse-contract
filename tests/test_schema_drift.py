@@ -46,6 +46,23 @@ class SchemaDriftTests(unittest.TestCase):
             "Run:  python scripts/generate_schema.py  and commit the result.",
         )
 
+    def test_the_published_copies_match_and_the_id_resolves_to_one(self) -> None:
+        # The docs site serves docs/schema/{v1,latest}/; the schema's own $id must point at the
+        # versioned copy (the old lakelogic.org identifier returned 404).
+        committed = SCHEMA_PATH.read_text(encoding="utf-8")
+        for version in ("v1", "latest"):
+            published = ROOT / "docs" / "schema" / version / "open-lakehouse-contract.schema.json"
+            self.assertTrue(published.exists(), f"missing {published.relative_to(ROOT)}")
+            self.assertEqual(
+                json.loads(published.read_text(encoding="utf-8")),
+                json.loads(committed),
+                f"{published.relative_to(ROOT)} is stale: run python scripts/generate_schema.py",
+            )
+        self.assertEqual(
+            json.loads(committed)["$id"],
+            "https://lakelogic.github.io/open-lakehouse-contract/schema/v1/open-lakehouse-contract.schema.json",
+        )
+
     def test_committed_schema_is_parseable(self) -> None:
         # Always runs — guards against a corrupt/hand-edited committed schema even
         # when the model isn't importable.

@@ -1,0 +1,207 @@
+# Open Lakehouse Contract (OLC)
+
+> OLC is an open standard for data contracts that both DESCRIBE and EXECUTE a data product: schema, quality rules, personal-data handling, transformations, materialization, lineage and service levels in one YAML file, portable across engines (Spark, DuckDB, Polars) and platforms (Databricks, Snowflake, Microsoft Fabric, BigQuery, AWS, MotherDuck).
+
+Before you hand a contract to anyone, check it. `olc validate <file>` checks it against the schema; `lakelogic validate <file>` checks the runtime can enforce it; `lakelogic lint <file>` reviews it for governance gaps.
+
+## Writing a contract that validates first time
+
+Every top-level key in its place (all optional except `version`, `info` and `model`):
+
+```yaml
+version: 1.0.0                      # the contract's own version
+info:
+  title: Trips
+  table_name: silver_trips
+  target_layer: silver               # bronze | silver | gold
+source:
+  type: landing                      # see source.type below
+  path: landing/trips/
+  format: parquet
+  partition:
+    format: "y_%Y/m_%m/d_%d"         # folder layout, strftime tokens
+model:
+  fields:
+    - { name: trip_id, type: string, required: true }
+    - { name: rider_email, type: string, pii: true, masking: hash }
+    - { name: fare, type: float }
+    - { name: updated_at, type: timestamp }
+    - { name: is_deleted, type: boolean }
+primary_key: [trip_id]               # TOP LEVEL: never inside materialization
+transformations:
+  - phase: pre
+    deduplicate: { on: [trip_id], sort_by: [updated_at], order: desc }
+quality:
+  row_rules:
+    - not_null: trip_id
+    - range: { field: fare, min: 0, max: 1000 }
+  dataset_rules:
+    - unique: trip_id
+materialization:
+  strategy: merge                    # append | overwrite | merge | scd2
+  format: delta
+  soft_delete_column: is_deleted     # how source deletes arrive (lint DEL-001)
+service_levels:
+  freshness: 24h
+schedule: "0 6 * * *"                # TOP LEVEL cron: not under service_levels
+```
+
+- Required top-level keys: `version`, `info`, `model`. Unknown keys are refused: the schema is closed, so a misspelled key fails validation instead of being ignored.
+- `version` is the contract's own version (e.g. `1.0.0`). `info` carries at least `title`; `info.table_name` names the output table.
+- `model.fields` is a list of `{name, type}` (plus optional `required`, `pii`, `sensitive`, `masking`, `description`, `rules`).
+- `source.type` is one of: `landing`, `stream`, `table`, `delta`, `iceberg`, `database`, `dlt`, `sftp`.
+- `source.format` is one of: `csv`, `tsv`, `json`, `ndjson`, `jsonl`, `xml`, `xlsx`, `xls`, `excel`, `fixed_width`, `avro`, `parquet`, `delta`, `iceberg`, `pdf`, `docx`, `pptx`, `html`, `image`.
+- A transformation is a list item with exactly one operation: `rename`, `derive`, `lookup`, `filter`, `deduplicate`, `deduplicate_by_latest`, `select`, `drop`, `cast`, `trim`, `lower`, `upper`, `coalesce`, `split`, `explode`, `map_values`, `rollup`, `join`, `pivot`, `unpivot`, `json_extract`, `date_range_explode`, `bucket`, `date_diff`, `sql`; optional `phase: pre|post` (see Execution Order).
+- `deduplicate` needs `on` (the key) AND `sort_by` (a column that DIFFERS between duplicates, normally `updated_at`) with `order: desc`; without an ordering it is refused.
+- `materialization.strategy: merge|scd2` needs `primary_key`; `scd2` also needs `materialization.scd2.track_columns`.
+- Quality: `quality.row_rules` (per row; a failing row is quarantined) and `quality.dataset_rules` (whole table). Shorthands: `not_null`, `accepted_values`, `range`, `regex_match`, `unique`, `null_ratio`, `row_count_between`, or `{name, sql}`.
+- Personal data: tag `pii: true` and give a `masking` strategy (`hash|redact|partial|nullify`).
+- `schema_policy` (`evolution`, `unknown_fields`) may be stated at the top level or under `server`.
+- Iceberg tables are written through a catalog (`table:<catalog>.<namespace>.<table>`), never a path.
+- YAML: `on` is a field name. Parsers that follow YAML 1.1 read a bare `on:` as `true`; OLC tools read it as the string `on`.
+
+## Common mistakes
+
+Found by running LLMs against this file; each one fails validation or lint:
+
+- In a one-line field (`- { name: x, description: ... }`) a comma ends the value: quote any text that has a comma or a colon (`description: "Kept, not removed"`), or the rest becomes an unknown key.
+- `primary_key` goes at the TOP LEVEL of the contract, never inside `materialization`.
+- A date-partitioned landing folder is `source.partition.format` (e.g. `"y_%Y/m_%m/d_%d"`), not `source.partition_pattern`.
+- Deduplicate with `deduplicate: {on: [...], sort_by: [...], order: desc}`. The older `deduplicate_by_latest` takes `key_columns` and `timestamp_column` only; prefer `deduplicate`.
+- `schedule` is a top-level cron string; `service_levels` holds `freshness` / `row_count`.
+- EVERY silver or gold table loaded with `merge` or `scd2` must say how source deletes arrive: add a boolean field (e.g. `is_deleted`) and `materialization.soft_delete_column: is_deleted`. Without it, rows deleted at the source stay in the table forever (lint DEL-001). Do this even when the request does not mention deletes.
+- `derive` takes `field` (the column it writes) and `sql`: `derive: {field: total, sql: amount + fee}`. Not `name`.
+- `rollup.aggregations` is a MAPPING of output column to expression, not a list: `rollup: {group_by: [city, day], aggregations: {revenue: SUM(fare), trips: COUNT(*)}}`.
+- There is no `apiVersion`, `kind`, `spec`, `schema` or `servers` key: OLC is not ODCS or a Kubernetes resource. The top level is exactly the keys in the skeleton above.
+
+## Schema
+
+- [JSON Schema, v1](https://lakelogic.github.io/open-lakehouse-contract/schema/v1/open-lakehouse-contract.schema.json): pin this version.
+- [JSON Schema, latest](https://lakelogic.github.io/open-lakehouse-contract/schema/latest/open-lakehouse-contract.schema.json): the current version.
+
+## Lint rules
+
+- [Lint rule catalogue](https://lakelogic.github.io/LakeLogic/contracts/lint_rules.html): every `lakelogic lint` rule with why it matters, a failing contract and the fix.
+
+## Start here
+
+- [Overview](https://lakelogic.github.io/open-lakehouse-contract/index.html)
+- [Getting Started](https://lakelogic.github.io/open-lakehouse-contract/getting-started.html)
+- [Contributing](https://lakelogic.github.io/open-lakehouse-contract/contributing.html)
+
+## Reference
+
+- [Overview & Libraries](https://lakelogic.github.io/open-lakehouse-contract/reference/schema.html)
+- [Anatomy of a Contract (all options)](https://lakelogic.github.io/open-lakehouse-contract/reference/anatomy.html)
+- [Execution Order (pre & post)](https://lakelogic.github.io/open-lakehouse-contract/reference/execution-order.html)
+- [Ingestion & Sources](https://lakelogic.github.io/open-lakehouse-contract/reference/ingestion.html)
+- [Post-Ingestion Lifecycle](https://lakelogic.github.io/open-lakehouse-contract/reference/lifecycle.html)
+- [Validation & Quality](https://lakelogic.github.io/open-lakehouse-contract/reference/quality.html)
+- [Security & PII](https://lakelogic.github.io/open-lakehouse-contract/reference/security.html)
+- [Compliance](https://lakelogic.github.io/open-lakehouse-contract/reference/compliance.html)
+- [Transformation](https://lakelogic.github.io/open-lakehouse-contract/reference/transformation.html)
+- [External Logic (Spark / notebooks)](https://lakelogic.github.io/open-lakehouse-contract/reference/external-logic.html)
+- [Materialization & Storage](https://lakelogic.github.io/open-lakehouse-contract/reference/materialization.html)
+- [Server & Output](https://lakelogic.github.io/open-lakehouse-contract/reference/server.html)
+- [Lineage](https://lakelogic.github.io/open-lakehouse-contract/reference/lineage.html)
+- [Data Products](https://lakelogic.github.io/open-lakehouse-contract/reference/data-products.html)
+- [Service Levels (SLOs)](https://lakelogic.github.io/open-lakehouse-contract/reference/slo.html)
+- [Notifications](https://lakelogic.github.io/open-lakehouse-contract/reference/notifications.html)
+- [Unstructured (LLM Extraction)](https://lakelogic.github.io/open-lakehouse-contract/reference/extraction.html)
+- [Conformance Suite](https://lakelogic.github.io/open-lakehouse-contract/reference/conformance.html)
+- [CLI](https://lakelogic.github.io/open-lakehouse-contract/reference/cli.html)
+
+## Concepts
+
+- [What is OLC?](https://lakelogic.github.io/open-lakehouse-contract/concepts/what-is-olc.html)
+- [Why Pydantic](https://lakelogic.github.io/open-lakehouse-contract/concepts/why-pydantic.html)
+- [AI Data Agents](https://lakelogic.github.io/open-lakehouse-contract/concepts/ai-data-agents.html)
+- [Agent-Native](https://lakelogic.github.io/open-lakehouse-contract/concepts/agent-native.html)
+- [Agent Workflow](https://lakelogic.github.io/open-lakehouse-contract/concepts/agent-workflow.html)
+- [OLC & ODCS](https://lakelogic.github.io/open-lakehouse-contract/concepts/vs-odcs.html)
+
+## Providers
+
+- [Overview (matrix)](https://lakelogic.github.io/open-lakehouse-contract/providers/index.html)
+- [DuckDB / DuckLake](https://lakelogic.github.io/open-lakehouse-contract/providers/duckdb-ducklake.html)
+- [MotherDuck](https://lakelogic.github.io/open-lakehouse-contract/providers/motherduck.html)
+- [Databricks](https://lakelogic.github.io/open-lakehouse-contract/providers/databricks.html)
+- [Snowflake](https://lakelogic.github.io/open-lakehouse-contract/providers/snowflake.html)
+- [BigQuery (GCP)](https://lakelogic.github.io/open-lakehouse-contract/providers/bigquery.html)
+- [Microsoft Fabric](https://lakelogic.github.io/open-lakehouse-contract/providers/fabric.html)
+- [AWS (Glue)](https://lakelogic.github.io/open-lakehouse-contract/providers/aws.html)
+
+## Example
+
+A small, complete contract that validates (from `examples/orders.olc.yaml`):
+
+```yaml
+# Open Lakehouse Contract — a minimal, illustrative example.
+#
+# One human-readable file that both DESCRIBES and (in a conforming runtime) EXECUTES a
+# data product: schema, quality, PII handling, lineage, and materialization. The same
+# contract is portable across engines (Spark / DuckDB / Polars), table formats
+# (Delta / Iceberg / DuckLake), and platforms (Databricks / Snowflake / Fabric /
+# BigQuery / AWS / MotherDuck).
+version: 1.0.0
+
+info:
+  title: Orders
+  description: Cleaned, validated orders ready for analytics.
+  table_name: orders
+  target_layer: silver
+  owner: data-team@example.com
+
+# The declared shape of the data. Field-level PII + masking travel WITH the schema.
+model:
+  fields:
+    - name: order_id
+      type: integer
+      required: true
+      description: Primary key.
+    - name: customer_email
+      type: string
+      required: true
+      pii: true
+      masking: partial
+    - name: amount
+      type: float
+      required: true
+    - name: status
+      type: string
+    - name: is_deleted
+      type: boolean
+      description: Set when the order is deleted at the source; the row is kept, marked.
+
+primary_key: [order_id]
+
+# Executable data-quality rules. Rows that fail are quarantined WITH the rule + reason.
+quality:
+  row_rules:
+    - name: positive_amount
+      sql: "amount > 0"
+    - name: valid_email
+      sql: "customer_email LIKE '%@%.%'"
+  dataset_rules:
+    - name: order_id_unique
+      unique: order_id
+
+# Provenance columns injected on every row.
+lineage:
+  enabled: true
+
+# How fresh the table must be: a stalled feed is reported, not mistaken for success.
+service_levels:
+  freshness: 24h
+
+# Where + how the result is written. Format/engine are backend choices — the contract
+# is the invariant.
+materialization:
+  strategy: merge
+  format: iceberg
+  soft_delete_column: is_deleted   # a source delete marks the row instead of leaving it stale
+```
+
+## Optional
+
+- [llms-full.txt](https://lakelogic.github.io/open-lakehouse-contract/llms-full.txt): every reference page and example in one file.

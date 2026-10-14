@@ -49,7 +49,17 @@ OUT = (
     / "open-lakehouse-contract.schema.json"
 )
 SCHEMA_URI = "https://json-schema.org/draft/2020-12/schema"
-ID = "https://lakelogic.org/open-lakehouse-contract/v1/schema.json"
+#: Where the schema is PUBLISHED, so its identifier resolves (the old lakelogic.org address
+#: returned 404). The docs site serves docs/schema/; ``latest`` is the same file for tools that
+#: want the current version without pinning one.
+DOCS_SITE = "https://lakelogic.github.io/open-lakehouse-contract"
+ID = f"{DOCS_SITE}/schema/v1/open-lakehouse-contract.schema.json"
+LATEST_URL = f"{DOCS_SITE}/schema/latest/open-lakehouse-contract.schema.json"
+#: The published copies, beside the canonical file above.
+PUBLISHED = [
+    Path(__file__).resolve().parents[1] / "docs" / "schema" / version / "open-lakehouse-contract.schema.json"
+    for version in ("v1", "latest")
+]
 
 
 def _close_nested_objects(node: object) -> None:
@@ -236,8 +246,13 @@ def render_schema(schema: dict) -> str:
 
 def main() -> None:
     schema = build_schema()
-    OUT.write_text(render_schema(schema), encoding="utf-8")
+    text = render_schema(schema)
+    OUT.write_text(text, encoding="utf-8")
     print(f"Wrote {OUT.relative_to(OUT.parents[1])}")
+    for path in PUBLISHED:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8", newline="\n")
+        print(f"Wrote {path.relative_to(OUT.parents[1])}")
     print(f"  top-level fields : {len(schema.get('properties', {}))}")
     print(f"  nested models    : {len(schema.get('$defs', {}))}")
     print(f"  root required    : {schema.get('required')}")

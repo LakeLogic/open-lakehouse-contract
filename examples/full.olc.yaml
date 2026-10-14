@@ -48,6 +48,7 @@ model:
     - { name: order_total,    type: float }                    # derived below
     - { name: region,         type: string }                  # enriched from the customers link
     - { name: ordered_at,     type: timestamp, required: true }
+    - { name: is_deleted,     type: boolean }                 # set when the order is deleted at the source
 
 primary_key:  [order_id]               # the business key: uniqueness and merge
 
@@ -90,9 +91,10 @@ lineage:
 
 # ── MATERIALIZATION — where it lands ─────────────────────────────────────────
 materialization:
-  strategy: merge                      # append | overwrite | merge
-  format: iceberg                      # delta | iceberg | ducklake | parquet
+  strategy: merge                      # append | overwrite | merge | scd2
+  format: delta                        # delta (by path or catalog) | iceberg (catalog tables) | parquet
   location: "s3://lakehouse/sales/silver_orders"
+  soft_delete_column: is_deleted       # a source delete marks the row instead of leaving it stale
   partition_by: [region]               # physical partitioning
   # scd2: { … }                        — slowly-changing dimension (type 2) history
   # fact: { type: transaction }        — fact-table semantics

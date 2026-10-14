@@ -1,0 +1,50 @@
+# Authoring tasks for the "OLC readable by any LLM" exit test (LakeLogic_SaaS#550).
+# Each asks for ONE contract. The scorer checks the contract the model writes; it never
+# compares it with a model answer, because many correct contracts exist for each task.
+- id: silver-trips-latest
+  task: >
+    Write an OLC contract for a silver table of ride trips. The source columns are
+    trip_id, rider_id, city, fare, requested_at, updated_at. A trip can arrive more than
+    once; keep only the latest version of each trip (by updated_at). Load it with a merge
+    on trip_id.
+
+- id: bronze-parquet-landing
+  task: >
+    Write an OLC contract for a bronze table that ingests Parquet files from a landing
+    folder laid out by date (one folder per day, like y_2026/m_10/d_14). Columns: event_id,
+    event_type, occurred_at, payload. Keep every column as text at bronze.
+
+- id: silver-orders-quality
+  task: >
+    Write an OLC contract for a silver orders table with order_id, customer_id, amount,
+    status and ordered_at. Rows must have an order_id, amount must be between 0 and 10000,
+    status must be one of placed, shipped, delivered or cancelled, and order_id must be
+    unique across the table.
+
+- id: gold-customer-scd2
+  task: >
+    Write an OLC contract for a gold customer dimension that keeps history (SCD type 2)
+    of each customer's tier and city. Columns: customer_id, name, tier, city, updated_at.
+
+- id: silver-riders-pii
+  task: >
+    Write an OLC contract for a silver riders table with rider_id, full_name, email,
+    phone, city and signup_date. Treat the personal data properly.
+
+- id: silver-cdc-deletes
+  task: >
+    Write an OLC contract for a silver customers table fed by change-data-capture.
+    Each change row has customer_id, name, email, op (I, U or D) and changed_at. A D means
+    the customer was deleted at the source; keep the row but mark it deleted.
+
+- id: silver-dedup-orders
+  task: >
+    Write an OLC contract that removes duplicate orders: several rows can share an
+    order_id, and the one with the newest updated_at must win. Columns: order_id, amount,
+    updated_at.
+
+- id: gold-daily-revenue
+  task: >
+    Write an OLC contract for a gold table of daily revenue per city, computed from a
+    silver trips table with city, fare and requested_at. Make sure the table is fresh by
+    9am each day.

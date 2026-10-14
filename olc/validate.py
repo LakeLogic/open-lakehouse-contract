@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import urllib.request
 from pathlib import Path
 from typing import Any, Union
@@ -64,7 +65,30 @@ def discover(root: Union[str, Path] = ".") -> list[Path]:
 
 
 class UniqueKeyLoader(yaml.SafeLoader):
-    """Safe YAML loader that rejects duplicate mapping keys."""
+    """Safe YAML loader that rejects duplicate mapping keys.
+
+    Only ``true``/``false`` are booleans (as in YAML 1.2). PyYAML's default (YAML 1.1) also reads
+    ``on``/``off``/``yes``/``no`` as booleans, and ``on`` is an OLC field name
+    (``deduplicate: {on: [id]}``): the key became ``True`` and a valid contract was reported
+    invalid (found 2026-10-14). The resolver table is this subclass's own copy, so loading here
+    never changes what ``yaml.safe_load`` means elsewhere.
+    """
+
+
+UniqueKeyLoader.yaml_implicit_resolvers = {
+    key: [(tag, regex) for tag, regex in mappings if tag != "tag:yaml.org,2002:bool"]
+    for key, mappings in yaml.SafeLoader.yaml_implicit_resolvers.items()
+}
+UniqueKeyLoader.add_implicit_resolver(
+    "tag:yaml.org,2002:bool",
+    re.compile(r"^(?:true|false)$", re.IGNORECASE),
+    list("tTfF"),
+)
+
+
+def load_contract_yaml(text: str) -> Any:
+    """Parse OLC contract YAML: duplicate keys refused, ``on``/``off``/``yes``/``no`` kept as strings."""
+    return yaml.load(text, Loader=UniqueKeyLoader)  # noqa: S506 - a SafeLoader subclass
 
 
 def _construct_unique_mapping(
@@ -101,7 +125,7 @@ def errors_for(doc: Any, validator: Draft202012Validator) -> list[str]:
 
 def validate_file(path: Path, validator: Draft202012Validator) -> dict[str, Any]:
     try:
-        doc = yaml.load(path.read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
+        doc = load_contract_yaml(path.read_text(encoding="utf-8"))
         errors = errors_for(doc, validator)
     except Exception as error:
         errors = [str(error)]
