@@ -206,13 +206,13 @@ materialization:
 
 ```yaml
 schema_policy:
-  evolution: compatible     # strict | append | merge | overwrite | compatible | all
+  evolution: compatible     # strict | append | merge | overwrite | compatible | allow
   unknown_fields: quarantine   # quarantine | drop | allow
 ```
 
 | Field | Values | Meaning |
 |---|---|---|
-| `evolution` | `strict` / `append` / `merge` / `overwrite` / `compatible` / `all` | How much schema change is tolerated on write. `strict` rejects any change; `compatible` allows safe additions; `all` allows anything. |
+| `evolution` | `strict` / `append` / `merge` / `overwrite` / `compatible` / `allow` | How much schema change is tolerated on write. `strict` rejects any change; `compatible` allows safe additions; `allow` (the default) allows anything. |
 | `unknown_fields` | `quarantine` / `drop` / `allow` | What to do with columns not in the contract — route to quarantine, silently drop, or pass through. |
 
 ## Unknown dimension members
