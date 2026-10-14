@@ -57,6 +57,16 @@ REM "can't open file 'lakelogic\tests\conformance.py'". The failure was the luck
 REM part — the preceding steps had already reported green for the wrong repo.
 cd /d "%~dp0"
 
+REM Choose the Python deliberately; never whatever `python` is first on PATH. On the release
+REM box that was the SaaS venv, with an OLDER LakeLogic: the executable-conformance gate then
+REM tested cases written for the new runtime against the old one and failed (2026-10-14).
+REM The gate needs the LakeLogic runtime, so the sibling LakeLogic checkout's venv comes first
+REM (it has this repo's runtime under test); then this repo's own venv; then PATH.
+set "PY=python"
+if exist "%~dp0.venv\Scripts\python.exe" set "PY=%~dp0.venv\Scripts\python.exe"
+if exist "%~dp0..\lakelogic\.venv\Scripts\python.exe" set "PY=%~dp0..\lakelogic\.venv\Scripts\python.exe"
+echo   Python: %PY%
+
 echo.
 echo ======================================================
 echo   Open Lakehouse Contract Release
@@ -78,7 +88,7 @@ REM every skill file that lacks it. Before the tests, so the reference-drift gat
 REM what this release will ship. Unchanged files are not touched.
 echo.
 echo [0a/6] Updating agent skills from the schema...
-python scripts/generate_reference.py
+"%PY%" scripts/generate_reference.py
 if errorlevel 1 (
     echo.
     echo ERROR: Could not regenerate the OLC reference for agent skills.
@@ -89,7 +99,7 @@ git add skills
 REM Step 0b: Unit tests — abort release if they fail
 echo.
 echo [0b/6] Running tests...
-python -m pytest tests/ -x -q --tb=short
+"%PY%" -m pytest tests/ -x -q --tb=short
 if errorlevel 1 (
     echo.
     echo ERROR: Tests failed. Fix them before releasing.
@@ -104,7 +114,7 @@ REM validates examples/ and tests/valid|invalid/ against the schema; it never ex
 REM a contract, so no engine defect can fail it. The behavioural corpus is step 0c2.
 echo.
 echo [0c/6] Running structural conformance (fixtures vs JSON Schema)...
-python tests/conformance.py
+"%PY%" tests/conformance.py
 if errorlevel 1 (
     echo.
     echo ERROR: Structural conformance failed. Do not release with broken fixtures.
@@ -120,11 +130,11 @@ REM release — but it says so out loud rather than passing silently, because "g
 REM not run" and "gate passed" must never look the same.
 echo.
 echo [0c2/6] Running executable conformance corpus (cross-engine)...
-python -c "import lakelogic" 2>NUL
+"%PY%" -c "import lakelogic" 2>NUL
 if errorlevel 1 (
     echo   SKIPPED: LakeLogic runtime not installed - the cross-engine gate did NOT run.
 ) else (
-    python -m pytest conformance -q
+    "%PY%" -m pytest conformance -q
     if errorlevel 1 (
         echo.
         echo ERROR: Executable conformance failed. Do not release with a broken corpus.
@@ -135,17 +145,17 @@ if errorlevel 1 (
 REM Step 0d: Lint and format (auto-fix safe issues)
 echo.
 echo [0d/6] Running ruff lint and format...
-ruff check . --fix --quiet
-ruff format . --quiet
+"%PY%" -m ruff check . --fix --quiet
+"%PY%" -m ruff format . --quiet
 git add -u
 
 REM Step 1: Bump version (creates tag + bump commit)
 echo.
 echo [1/6] Bumping version...
 if "%1"=="" (
-    python -m commitizen bump --yes
+    "%PY%" -m commitizen bump --yes
 ) else (
-    python -m commitizen bump --increment %1 --yes
+    "%PY%" -m commitizen bump --increment %1 --yes
 )
 set "BUMP_RC=%ERRORLEVEL%"
 
