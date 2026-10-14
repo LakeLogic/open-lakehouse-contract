@@ -2267,7 +2267,7 @@ whole statement of what the key is made from; <code>natural_key</code> is deprec
 <h2 id="schema-evolution">Schema evolution</h2>
 <p><code>schema_policy</code> (<code>SchemaPolicy</code>) governs how the target reacts when the incoming schema changes, and what to do with unexpected columns:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">schema_policy</span><span class="p">:</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">evolution</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compatible</span><span class="w">     </span><span class="c1"># strict | append | merge | overwrite | compatible | all</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">evolution</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compatible</span><span class="w">     </span><span class="c1"># strict | append | merge | overwrite | compatible | allow</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">unknown_fields</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">quarantine</span><span class="w">   </span><span class="c1"># quarantine | drop | allow</span>
 </code></pre></div>
 <table>
@@ -2281,8 +2281,8 @@ whole statement of what the key is made from; <code>natural_key</code> is deprec
 <tbody>
 <tr>
 <td><code>evolution</code></td>
-<td><code>strict</code> / <code>append</code> / <code>merge</code> / <code>overwrite</code> / <code>compatible</code> / <code>all</code></td>
-<td>How much schema change is tolerated on write. <code>strict</code> rejects any change; <code>compatible</code> allows safe additions; <code>all</code> allows anything.</td>
+<td><code>strict</code> / <code>append</code> / <code>merge</code> / <code>overwrite</code> / <code>compatible</code> / <code>allow</code></td>
+<td>How much schema change is tolerated on write. <code>strict</code> rejects any change; <code>compatible</code> allows safe additions; <code>allow</code> (the default) allows anything.</td>
 </tr>
 <tr>
 <td><code>unknown_fields</code></td>
