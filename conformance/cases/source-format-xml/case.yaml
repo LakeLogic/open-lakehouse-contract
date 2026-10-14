@@ -1,0 +1,18 @@
+id: OLC-S-009
+spec_version: 1.0.0
+level: core-runtime
+feature: source.format.xml
+description: "A XML source yields the same typed rows on every engine"
+# The same four rows and the same model as every other source.format case: only the bytes differ.
+input: input.jsonl
+input_via: source
+source_format: xml
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 4
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

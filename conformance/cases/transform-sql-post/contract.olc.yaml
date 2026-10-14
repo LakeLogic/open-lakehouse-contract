@@ -1,0 +1,13 @@
+version: 1.0.0
+info: { title: Trips, table_name: trips }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: distance_km, type: float }
+    - { name: long_trip, type: boolean }
+transformations:
+  - phase: post
+    sql: SELECT id, distance_km, distance_km >= 10 AS long_trip FROM source
+quality:
+  row_rules:
+    - { name: distance_nonneg, phase: pre, sql: "distance_km >= 0" }

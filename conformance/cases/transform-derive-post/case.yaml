@@ -1,0 +1,13 @@
+id: OLC-T-024
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.derive
+description: "A post derive adds a column computed from the row"
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+comparison:
+  sort_by: [id]

@@ -1,0 +1,14 @@
+version: 1.0.0
+info: { title: Scores, table_name: scores }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: metric, type: string }
+    - { name: score, type: float }
+transformations:
+  - phase: post
+    unpivot:
+      id_vars: [id]
+      value_vars: [speed, comfort]
+      key_field: metric
+      value_field: score

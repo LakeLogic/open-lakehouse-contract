@@ -1,0 +1,17 @@
+id: OLC-T-028
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.sql
+description: "A post SQL step runs on the rows that passed the pre checks"
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 2
+  rows_quarantined: 1
+  failed_rules:
+    distance_nonneg: 1
+comparison:
+  sort_by: [id]

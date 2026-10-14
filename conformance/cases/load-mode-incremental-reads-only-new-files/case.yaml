@@ -1,0 +1,19 @@
+id: OLC-L-001
+spec_version: 1.0.0
+level: core-runtime
+feature: source.load_mode.incremental
+description: "An incremental source reads, on its second run, only the files that arrived since the first"
+# The harness runs the source, lands second_input as a new file, and runs again. Everything
+# asserted here is the SECOND run. A full reload would return all four rows.
+input: input.jsonl
+second_input: input_2.jsonl
+input_via: source
+source_format: jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_accepted: 2
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

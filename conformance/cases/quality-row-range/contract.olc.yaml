@@ -1,0 +1,9 @@
+version: 1.0.0
+info: { title: Trips, table_name: trips }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: rating, type: float }
+quality:
+  row_rules:
+    - range: { field: rating, min: 1, max: 5, name: rating_in_range }

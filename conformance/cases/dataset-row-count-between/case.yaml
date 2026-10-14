@@ -1,0 +1,17 @@
+id: OLC-D-006
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.dataset.row_count_between
+description: "row_count_between fails when the table has fewer rows than its minimum"
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+  rows_quarantined: 0
+  dataset_rules_failed:
+  - enough_cities
+comparison:
+  sort_by: [id]

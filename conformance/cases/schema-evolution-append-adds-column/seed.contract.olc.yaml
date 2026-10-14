@@ -1,0 +1,9 @@
+version: 1.0.0
+info: { title: Riders, table_name: riders }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: name, type: string }
+materialization:
+  strategy: append
+  format: delta

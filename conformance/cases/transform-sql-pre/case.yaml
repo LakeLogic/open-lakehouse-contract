@@ -1,0 +1,18 @@
+id: OLC-T-027
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.sql
+description: "A pre SQL step reshapes the source before the model and the rules see it"
+# The rule names a column only the SQL creates: it resolves only if the SQL ran first.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+  failed_rules:
+    has_name: 1
+comparison:
+  sort_by: [id]

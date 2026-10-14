@@ -1,0 +1,11 @@
+version: 1.0.0
+info: { title: Trips, table_name: trips }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: city_id, type: integer }
+links:
+  - { name: cities, path: "references/cities.jsonl" }
+quality:
+  row_rules:
+    - referential_integrity: { field: city_id, reference: cities, key: city_id, name: city_exists }

@@ -1,0 +1,19 @@
+id: OLC-S-015
+spec_version: 1.0.0
+level: core-runtime
+feature: source.format.csv
+description: "A CSV value that does not fit its declared type rejects that ROW, not the whole file"
+# CSV is text. A value that cannot become its declared type must be visible as a rejected row.
+# Turning it into a silent NULL (a typed reader schema did, found 2026-10-07) hides bad data.
+input: input.jsonl
+input_via: source
+source_format: csv
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+comparison:
+  sort_by: [id]

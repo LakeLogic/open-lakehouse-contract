@@ -1,0 +1,16 @@
+id: OLC-SP-005
+spec_version: 1.0.0
+level: core-runtime
+feature: schema_policy.unknown_fields
+description: "When both are stated, server.schema_policy wins over the top-level schema_policy"
+# The top level says drop (rows would be kept); the server block says quarantine (rows are rejected).
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 0
+  rows_quarantined: 2
+comparison:
+  sort_by: [id]

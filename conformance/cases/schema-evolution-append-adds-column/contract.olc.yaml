@@ -1,0 +1,14 @@
+version: 1.0.0
+info: { title: Riders, table_name: riders }
+server:
+  type: local
+  path: out
+  schema_policy: { evolution: append }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: name, type: string }
+    - { name: tier, type: string }
+materialization:
+  strategy: append
+  format: delta

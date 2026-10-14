@@ -1,0 +1,16 @@
+version: 1.0.0
+info: { title: Scores wide, table_name: scores_wide }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: speed, type: float }
+    - { name: comfort, type: float }
+transformations:
+  - phase: post
+    pivot:
+      id_vars: [id]
+      pivot_col: metric
+      value_col: score
+      values: [speed, comfort]
+      agg: first
+      name_template: "{pivot_alias}"

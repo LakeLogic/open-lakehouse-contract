@@ -1,0 +1,12 @@
+version: 1.0.0
+info: { title: Trips, table_name: trips }
+source:
+  type: landing
+  path: source.avro
+  format: avro
+model:
+  fields:
+    - { name: id, type: string }
+    - { name: city, type: string }
+    - { name: fare, type: string }
+    - { name: trips, type: string }

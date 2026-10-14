@@ -1,0 +1,9 @@
+version: 1.0.0
+info: { title: Riders, table_name: riders }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: phone, type: string }
+quality:
+  dataset_rules:
+    - null_ratio: { field: phone, max: 0.25, name: phone_mostly_present }

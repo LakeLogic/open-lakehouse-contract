@@ -1,0 +1,13 @@
+version: 1.0.0
+info: { title: Trips, table_name: trips }
+source:
+  type: landing
+  path: source.txt
+  format: fixed_width
+model:
+  fields:
+    # range is [start, end]: counted from 0, end not included. The harness pads every column to 8.
+    - { name: id, type: integer, range: [0, 8] }
+    - { name: city, type: string, range: [8, 16] }
+    - { name: fare, type: float, range: [16, 24] }
+    - { name: trips, type: integer, range: [24, 32] }

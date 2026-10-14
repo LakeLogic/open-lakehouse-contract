@@ -48,6 +48,9 @@ class Materialization:
     format: str = "delta"
     seed: Optional[str] = None  # jsonl of prior target state
     idempotent: bool = False  # run twice; assert target run2 == run1
+    # The contract the seed was written under, when it differs from the case's: the only way
+    # to have a table that is OLDER than the contract now running (schema evolution).
+    seed_contract: Optional[dict] = None
 
 
 @dataclass
@@ -90,6 +93,9 @@ class ConformanceCase:
     # Lines files were 200 rows on one engine and 10 on the other — from the same contract,
     # with the local dry run passing. No amount of parquet cases can see that.
     source_format: str = "parquet"
+    # A SECOND batch, landed after the first run (``second_input: <file>.jsonl``). The case's
+    # expectations then describe the second run: what a load mode reads when it runs again.
+    second_input_rows: list[dict] = field(default_factory=list)
 
     @property
     def is_materialization(self) -> bool:

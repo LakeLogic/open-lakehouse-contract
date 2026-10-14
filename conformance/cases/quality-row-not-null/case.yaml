@@ -1,0 +1,18 @@
+id: OLC-Q-004
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.row.not_null
+description: "not_null rejects the row whose named column is empty"
+# The rule is named <field>_not_null when the contract gives it no name.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+  failed_rules:
+    email_not_null: 1
+comparison:
+  sort_by: [id]

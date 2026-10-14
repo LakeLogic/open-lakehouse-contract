@@ -1,0 +1,16 @@
+id: OLC-Q-007
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.required
+description: "A required field that arrives empty rejects its row"
+# `required: true` is enforced by the engine itself; the contract writes no rule for it.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 1
+  rows_quarantined: 1
+comparison:
+  sort_by: [id]

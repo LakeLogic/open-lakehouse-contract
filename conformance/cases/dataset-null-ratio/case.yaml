@@ -1,0 +1,18 @@
+id: OLC-D-005
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.dataset.null_ratio
+description: "null_ratio fails when too large a share of a column is empty"
+# Two of four are empty: 0.5 is above the 0.25 allowed.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 4
+  rows_quarantined: 0
+  dataset_rules_failed:
+  - phone_mostly_present
+comparison:
+  sort_by: [id]

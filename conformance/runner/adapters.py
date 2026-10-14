@@ -153,6 +153,9 @@ class LakeLogicAdapter:
             pl.DataFrame(case.input_rows).write_parquet(path)
             return str(path)
 
+        if fmt in _FORMAT_WRITERS:
+            return _FORMAT_WRITERS[fmt](list(case.input_rows), directory)
+
         if fmt not in ("json", "jsonl"):
             raise ValueError(f"unsupported source_format {case.source_format!r}")
 
@@ -177,13 +180,17 @@ class LakeLogicAdapter:
         from lakelogic import DataProcessor
 
         cols = _model_fields(case.contract)
-        input_df = self._to_frame(case.input_rows)
+        # A source case's rows go to a FILE, never a frame: they may not fit one type per
+        # column (a number column holding text is the whole point of some cases).
+        input_df = None if case.reads_from_source else self._to_frame(case.input_rows)
 
         try:
             if case.is_materialization:
                 return self._execute_materialization(
                     case, input_df, cols, pl, DataProcessor
                 )
+            if case.second_input_rows:
+                return self._execute_two_runs(case, cols, DataProcessor)
             processor = self._make_processor(DataProcessor, case)
             if case.reads_from_source:
                 good, bad = processor.run_source(self._materialise_source(case))
@@ -210,6 +217,41 @@ class LakeLogicAdapter:
                 ),
             )
 
+    def _execute_two_runs(self, case, cols, DataProcessor) -> ExecutionResult:
+        """Run the source, land a second batch of files, run again; report the SECOND run.
+
+        One contract for both runs, with a run log in a temp directory: the run log is where
+        an incremental load remembers how far it got, and a case must not need to name a path.
+        """
+        import time
+
+        contract = self._contract_with_references(case)
+        metadata = dict(contract.get("metadata") or {})
+        metadata.setdefault("run_log_dir", tempfile.mkdtemp())
+        contract["metadata"] = metadata
+
+        path = self._materialise_source(case)
+        first = DataProcessor(engine=self.engine, contract=dict(contract), strict=self.strict)
+        first.run_source(path)
+        # The pipeline runner writes the run log after each run; run_source alone does not.
+        # Without it no watermark is saved and "incremental" re-reads everything.
+        from lakelogic.core.run_log import write_run_log
+
+        write_run_log(first.last_report, first.contract, engine_name=first.engine_name)
+
+        time.sleep(1.1)  # file timestamps are whole seconds on some filesystems
+        body = "\n".join(json.dumps(r) for r in case.second_input_rows)
+        (Path(path).parent / "part_90.json").write_text(body, encoding="utf-8")
+
+        processor = DataProcessor(engine=self.engine, contract=dict(contract), strict=self.strict)
+        good, bad = processor.run_source(path)
+        good_rows, bad_rows = self._to_rows(good), self._to_rows(bad)
+        return ExecutionResult(
+            accepted=_project(good_rows, cols),
+            quarantined=_project(bad_rows, cols),
+            run_metadata=self._metadata(processor, good_rows, bad_rows, materialized=False),
+        )
+
     def _execute_materialization(
         self, case, input_df, cols, pl, DataProcessor
     ) -> ExecutionResult:
@@ -221,7 +263,11 @@ class LakeLogicAdapter:
         if mat.seed:
             seed_rows = _read_jsonl(case.directory / mat.seed)
             if seed_rows:
-                seeder = self._make_processor(DataProcessor, case)
+                seeder = (
+                    DataProcessor(engine=self.engine, contract=dict(mat.seed_contract), strict=self.strict)
+                    if mat.seed_contract
+                    else self._make_processor(DataProcessor, case)
+                )
                 seeder.run(
                     self._to_frame(seed_rows),
                     materialize=True,
@@ -290,6 +336,155 @@ class LakeLogicAdapter:
         }
 
 
+# ── one writer per file format ───────────────────────────────────────────────────────────────
+# Each takes the case's rows and a fresh directory and returns the path the contract reads.
+# The rows are written AS AUTHORED: a number stays a number in a typed format, which is what
+# lets a case ask "the file says number, the contract says text — what happens?". Text formats
+# (CSV, XML) have no types to keep, and say so by their nature.
+
+
+def _halves(rows: list[dict]) -> list[list[dict]]:
+    """Two files, not one: reading a DIRECTORY is where per-file behaviour shows up."""
+    mid = len(rows) // 2 or len(rows)
+    return [h for h in (rows[:mid], rows[mid:]) if h]
+
+
+def _write_csv(rows: list[dict], directory: Path) -> str:
+    import csv
+
+    cols = list(rows[0]) if rows else []
+    for i, chunk in enumerate(_halves(rows)):
+        with open(directory / f"part_{i:02d}.csv", "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=cols)
+            w.writeheader()
+            for r in chunk:
+                w.writerow({c: ("" if r.get(c) is None else r.get(c)) for c in cols})
+    return str(directory / "*.csv")
+
+
+def _typed_frame(rows: list[dict]):
+    import polars as pl
+
+    return pl.DataFrame(rows)
+
+
+def _write_parquet_parts(rows: list[dict], directory: Path) -> str:
+    schema = _typed_frame(rows).schema  # one schema for every part: the parts agree
+    import polars as pl
+
+    for i, chunk in enumerate(_halves(rows)):
+        pl.DataFrame(chunk, schema=schema).write_parquet(directory / f"part_{i:02d}.parquet")
+    return str(directory / "*.parquet")
+
+
+def _write_avro(rows: list[dict], directory: Path) -> str:
+    path = directory / "source.avro"
+    _typed_frame(rows).write_avro(path)
+    return str(path)
+
+
+def _write_tsv(rows: list[dict], directory: Path) -> str:
+    import csv
+
+    cols = list(rows[0]) if rows else []
+    for i, chunk in enumerate(_halves(rows)):
+        with open(directory / f"part_{i:02d}.tsv", "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=cols, delimiter="\t")
+            w.writeheader()
+            for r in chunk:
+                w.writerow({c: ("" if r.get(c) is None else r.get(c)) for c in cols})
+    return str(directory / "*.tsv")
+
+
+#: Every fixed-width column is this wide, so a case's contract can state its ranges
+#: ([0, 8], [8, 16], …) without the harness reading the contract.
+FIXED_WIDTH = 8
+
+
+def _write_fixed_width(rows: list[dict], directory: Path) -> str:
+    cols = list(rows[0]) if rows else []
+    lines = [
+        "".join(("" if r.get(c) is None else str(r.get(c))).ljust(FIXED_WIDTH) for c in cols)
+        for r in rows
+    ]
+    path = directory / "source.txt"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return str(path)
+
+
+def _write_excel(rows: list[dict], directory: Path) -> str:
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    cols = list(rows[0]) if rows else []
+    ws.append(cols)
+    for r in rows:
+        ws.append([r.get(c) for c in cols])
+    path = directory / "source.xlsx"
+    wb.save(path)
+    return str(path)
+
+
+def _write_xml(rows: list[dict], directory: Path) -> str:
+    from xml.sax.saxutils import escape
+
+    body = "".join(
+        "  <row>" + "".join(f"<{k}>{escape(str(v))}</{k}>" for k, v in r.items() if v is not None) + "</row>\n"
+        for r in rows
+    )
+    path = directory / "source.xml"
+    path.write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<rows>\n{body}</rows>\n', encoding="utf-8")
+    return str(path)
+
+
+def _write_delta(rows: list[dict], directory: Path) -> str:
+    from deltalake import write_deltalake
+
+    path = directory / "source_delta"
+    write_deltalake(str(path), _typed_frame(rows).to_arrow())
+    return str(path)
+
+
+def _write_iceberg(rows: list[dict], directory: Path) -> str:
+    """An Iceberg table at a plain directory, written through a throwaway local catalog.
+
+    The contract reads it by PATH (``source.type: iceberg``), with no catalog: the catalog here
+    only exists to produce the table's metadata and data files.
+    """
+    from pyiceberg.catalog.sql import SqlCatalog
+
+    warehouse = directory / "warehouse"
+    warehouse.mkdir()
+    catalog = SqlCatalog(
+        "conformance",
+        uri=f"sqlite:///{(directory / 'catalog.db').as_posix()}",
+        warehouse=warehouse.as_uri(),
+        # pyiceberg's default (pyarrow) file layer cannot open a local Windows path.
+        **{"py-io-impl": "pyiceberg.io.fsspec.FsspecFileIO"},
+    )
+    catalog.create_namespace("conformance")
+    data = _typed_frame(rows).to_arrow()
+    table = catalog.create_table("conformance.source", schema=data.schema)
+    table.append(data)
+    from urllib.parse import unquote, urlparse
+
+    return str(Path(unquote(urlparse(table.location()).path.lstrip("/"))))
+
+
+_FORMAT_WRITERS = {
+    "csv": _write_csv,
+    "parquet_parts": _write_parquet_parts,
+    "avro": _write_avro,
+    "tsv": _write_tsv,
+    "fixed_width": _write_fixed_width,
+    "excel": _write_excel,
+    "xml": _write_xml,
+    "delta": _write_delta,
+    "iceberg": _write_iceberg,
+}
+
+
 def _read_jsonl(path: Path) -> list[dict]:
     import json
 
@@ -309,7 +504,17 @@ class DuckDBAdapter(LakeLogicAdapter):
     capabilities = {
         "quality.row.sql",
         "quality.row.regex",
+        "quality.row.not_null",
+        "quality.row.range",
+        "quality.row.accepted_values",
+        "quality.row.referential_integrity",
+        "quality.row.lifecycle_window",
+        "quality.required",
         "quality.dataset.unique",
+        "quality.dataset.sql",
+        "quality.dataset.null_ratio",
+        "quality.dataset.row_count_between",
+        "schema_policy.unknown_fields",
         "quarantine.attribution",
         "transformations.pre",
         "transformations.post",
@@ -320,6 +525,13 @@ class DuckDBAdapter(LakeLogicAdapter):
         "transformations.deduplicate.blank_keys",
         "transformations.deduplicate_by_latest",  # deprecated shorthand
         "transformations.lower",
+        "transformations.upper",
+        "transformations.failure",
+        "transformations.derive",
+        "transformations.sql",
+        "transformations.rollup",
+        "transformations.pivot",
+        "transformations.unpivot",
         "transformations.trim",
         "transformations.cast",
         "transformations.coalesce",
@@ -335,6 +547,9 @@ class DuckDBAdapter(LakeLogicAdapter):
         "transformations.explode",
         "transformations.date_range_explode",
         "materialization.merge",
+        "materialization.append",
+        "materialization.overwrite",
+        "schema_policy.evolution",
         "materialization.scd2",
         "external_logic.multi_frame_links",
         "external_logic.deterministic_extraction",
@@ -348,6 +563,23 @@ class DuckDBAdapter(LakeLogicAdapter):
         # for both: a landing zone's byte layout is not a property of the contract, and an
         # engine that reads one shape and silently truncates the other is not conformant.
         "source.json.shape",
+        # One capability per file format a contract can name. Each case reads the SAME rows
+        # through the SAME model, so a format an engine reads differently fails here.
+        "source.format.csv",
+        "source.format.parquet",
+        "source.format.avro",
+        "source.format.tsv",
+        "source.format.fixed_width",
+        # Load modes: what a SECOND run reads (incremental), and what a delete marker does (cdc).
+        "source.load_mode.incremental",
+        "source.load_mode.cdc",
+        "source.format.excel",
+        "source.format.xml",
+        "source.format.delta",
+        "source.format.iceberg",
+        # A typed file read through a contract whose columns are text (a bronze contract):
+        # the file's own types are converted to the contract's, not refused.
+        "source.typed_file_as_text",
     }
 
 
@@ -357,7 +589,17 @@ class PolarsAdapter(LakeLogicAdapter):
     capabilities = {
         "quality.row.sql",
         "quality.row.regex",
+        "quality.row.not_null",
+        "quality.row.range",
+        "quality.row.accepted_values",
+        "quality.row.referential_integrity",
+        "quality.row.lifecycle_window",
+        "quality.required",
         "quality.dataset.unique",
+        "quality.dataset.sql",
+        "quality.dataset.null_ratio",
+        "quality.dataset.row_count_between",
+        "schema_policy.unknown_fields",
         "quarantine.attribution",
         "transformations.pre",
         "transformations.post",
@@ -368,6 +610,13 @@ class PolarsAdapter(LakeLogicAdapter):
         "transformations.deduplicate.blank_keys",
         "transformations.deduplicate_by_latest",  # deprecated shorthand
         "transformations.lower",
+        "transformations.upper",
+        "transformations.failure",
+        "transformations.derive",
+        "transformations.sql",
+        "transformations.rollup",
+        "transformations.pivot",
+        "transformations.unpivot",
         "transformations.trim",
         "transformations.cast",
         "transformations.coalesce",
@@ -383,6 +632,9 @@ class PolarsAdapter(LakeLogicAdapter):
         "transformations.explode",
         "transformations.date_range_explode",
         "materialization.merge",
+        "materialization.append",
+        "materialization.overwrite",
+        "schema_policy.evolution",
         "materialization.scd2",
         "external_logic.multi_frame_links",
         "external_logic.deterministic_extraction",
@@ -396,6 +648,23 @@ class PolarsAdapter(LakeLogicAdapter):
         # for both: a landing zone's byte layout is not a property of the contract, and an
         # engine that reads one shape and silently truncates the other is not conformant.
         "source.json.shape",
+        # One capability per file format a contract can name. Each case reads the SAME rows
+        # through the SAME model, so a format an engine reads differently fails here.
+        "source.format.csv",
+        "source.format.parquet",
+        "source.format.avro",
+        "source.format.tsv",
+        "source.format.fixed_width",
+        # Load modes: what a SECOND run reads (incremental), and what a delete marker does (cdc).
+        "source.load_mode.incremental",
+        "source.load_mode.cdc",
+        "source.format.excel",
+        "source.format.xml",
+        "source.format.delta",
+        "source.format.iceberg",
+        # A typed file read through a contract whose columns are text (a bronze contract):
+        # the file's own types are converted to the contract's, not refused.
+        "source.typed_file_as_text",
     }
 
 

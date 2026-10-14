@@ -1,0 +1,14 @@
+id: OLC-T-030
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.unpivot
+description: "unpivot turns the named columns into one key/value pair per row"
+# include_nulls defaults to false, so a null value produces no row.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 3
+comparison:
+  sort_by: [id, metric]

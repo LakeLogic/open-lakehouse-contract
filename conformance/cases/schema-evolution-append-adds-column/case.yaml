@@ -1,0 +1,18 @@
+id: OLC-EVO-003
+spec_version: 1.0.0
+level: materialization
+feature: schema_policy.evolution
+description: "evolution: append adds the new column and leaves existing ones untouched"
+# The table was written under seed.contract.olc.yaml (id, name). This run's contract adds
+# a nullable column, tier. What the write does is the evolution mode's whole job.
+input: input.jsonl
+expected:
+  target: expected/target.jsonl
+assertions:
+  rows_input: 1
+comparison:
+  sort_by: [id]
+materialization:
+  format: delta
+  seed: seed.jsonl
+  seed_contract: seed.contract.olc.yaml

@@ -1,0 +1,11 @@
+version: 1.0.0
+info: { title: Trips, table_name: trips }
+schema_policy: { evolution: strict, unknown_fields: drop }
+server:
+  type: local
+  path: out
+  schema_policy: { evolution: strict, unknown_fields: quarantine }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: city, type: string }

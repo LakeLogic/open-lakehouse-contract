@@ -1,0 +1,13 @@
+id: OLC-T-029
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.rollup
+description: "rollup groups by the named columns and applies each aggregation"
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 2
+comparison:
+  sort_by: [city]

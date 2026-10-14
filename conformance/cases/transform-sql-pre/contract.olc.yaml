@@ -1,0 +1,12 @@
+version: 1.0.0
+info: { title: Riders, table_name: riders }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: full_name, type: string, required: true }
+transformations:
+  - phase: pre
+    sql: SELECT id, CONCAT(first_name, ' ', last_name) AS full_name FROM source
+quality:
+  row_rules:
+    - { name: has_name, phase: pre, sql: "full_name <> ' '" }

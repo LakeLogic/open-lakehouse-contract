@@ -1,0 +1,4 @@
+{"id": 1, "city": "LON", "fare": 10.5, "trips": 3}
+{"id": 2, "city": "NYC", "fare": 8.25, "trips": 1}
+{"id": 3, "city": "BER", "fare": 12.75, "trips": 7}
+{"id": 4, "city": "PAR", "fare": 4.5, "trips": 2}

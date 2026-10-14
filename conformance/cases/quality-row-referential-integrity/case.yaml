@@ -1,0 +1,18 @@
+id: OLC-Q-008
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.row.referential_integrity
+description: "referential_integrity rejects a row whose key is not in the reference data"
+# `reference` names a links: entry and `key` its column. A null key is not a broken reference.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 2
+  rows_quarantined: 1
+  failed_rules:
+    city_exists: 1
+comparison:
+  sort_by: [id]

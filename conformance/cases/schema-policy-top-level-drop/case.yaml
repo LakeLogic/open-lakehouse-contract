@@ -1,0 +1,17 @@
+id: OLC-SP-003
+spec_version: 1.0.0
+level: core-runtime
+feature: schema_policy.unknown_fields
+description: "A top-level schema_policy is honoured by a contract that has no server block: drop"
+# A contract with no server block (validate-only, or one that writes through materialization)
+# can only state its schema policy here. This used to fail to load: "server.type: Field required".
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

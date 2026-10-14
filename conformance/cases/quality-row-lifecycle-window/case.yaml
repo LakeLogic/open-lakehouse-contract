@@ -1,0 +1,19 @@
+id: OLC-Q-009
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.row.lifecycle_window
+description: "lifecycle_window rejects an event dated outside the life of the record it refers to"
+# A trip must fall between its driver's start and end date. An open end date means still active.
+# Dates are text in ISO form so every engine compares them the same way.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 2
+  rows_quarantined: 2
+  failed_rules:
+    trip_within_driver_tenure: 2
+comparison:
+  sort_by: [id]

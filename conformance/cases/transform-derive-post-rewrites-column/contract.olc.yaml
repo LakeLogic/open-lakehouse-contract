@@ -1,0 +1,9 @@
+version: 1.0.0
+info: { title: Payments, table_name: payments }
+model:
+  fields:
+    - { name: id, type: integer, required: true }
+    - { name: amount, type: float }
+transformations:
+  - phase: post
+    derive: { field: amount, sql: ABS(amount) }

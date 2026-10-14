@@ -1,0 +1,14 @@
+version: 1.0.0
+info: { title: City totals, table_name: city_totals }
+model:
+  fields:
+    - { name: city, type: string, required: true }
+    - { name: trips, type: integer }
+    - { name: revenue, type: float }
+transformations:
+  - phase: post
+    rollup:
+      group_by: [city]
+      aggregations:
+        trips: COUNT(*)
+        revenue: SUM(fare)

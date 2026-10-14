@@ -1,0 +1,14 @@
+id: OLC-T-031
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.pivot
+description: "pivot spreads one column's values into a column each"
+# A combination with no input row is null, not zero and not dropped.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 2
+comparison:
+  sort_by: [id]

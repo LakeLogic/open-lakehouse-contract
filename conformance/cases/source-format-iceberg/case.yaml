@@ -1,0 +1,18 @@
+id: OLC-S-016
+spec_version: 1.0.0
+level: core-runtime
+feature: source.format.iceberg
+description: "An Iceberg table yields the same typed rows on every engine"
+# An Iceberg table read by path, with no catalog (source.type: iceberg).
+input: input.jsonl
+input_via: source
+source_format: iceberg
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 4
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

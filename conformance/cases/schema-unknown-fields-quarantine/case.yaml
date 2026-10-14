@@ -1,0 +1,17 @@
+id: OLC-SP-001
+spec_version: 1.0.0
+level: core-runtime
+feature: schema_policy.unknown_fields
+description: "unknown_fields: quarantine rejects every row that arrives with a column the model does not declare"
+# The check is on the COLUMN, not the value: one undeclared column in the input rejects every
+# row that arrived with it, including rows where it is empty. Confirmed on the engines 2026-10-13.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 0
+  rows_quarantined: 2
+comparison:
+  sort_by: [id]

@@ -1,0 +1,19 @@
+id: OLC-L-002
+spec_version: 1.0.0
+level: core-runtime
+feature: source.load_mode.incremental
+description: "A full source reads every file on every run: the pair to OLC-L-001"
+# Same files and same two runs as OLC-L-001, with load_mode: full. Without this pair an engine
+# that returned only new files for EVERY load mode would pass the incremental case.
+input: input.jsonl
+second_input: input_2.jsonl
+input_via: source
+source_format: jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_accepted: 4
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

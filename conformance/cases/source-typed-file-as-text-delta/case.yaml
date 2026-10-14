@@ -1,0 +1,21 @@
+id: OLC-S-014
+spec_version: 1.0.0
+level: core-runtime
+feature: source.typed_file_as_text
+description: "A bronze contract with text columns reads a typed delta file, converting each value to text"
+# A bronze contract declares every column as text so nothing is lost on the way in. The
+# file here carries real types (integer, float). The engine must read the file with its own
+# types and convert, not hand the contract's types to the reader: Spark's Parquet reader
+# refuses that outright and the whole table fails (found on Databricks, 2026-10-13).
+input: input.jsonl
+input_via: source
+source_format: delta
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 4
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

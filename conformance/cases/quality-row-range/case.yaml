@@ -1,0 +1,17 @@
+id: OLC-Q-005
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.row.range
+description: "range rejects a value outside its inclusive bounds and keeps both bounds"
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 2
+  rows_quarantined: 2
+  failed_rules:
+    rating_in_range: 2
+comparison:
+  sort_by: [id]

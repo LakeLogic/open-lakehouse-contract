@@ -1,0 +1,15 @@
+id: OLC-SP-002
+spec_version: 1.0.0
+level: core-runtime
+feature: schema_policy.unknown_fields
+description: "unknown_fields: drop removes an undeclared column and keeps the row"
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

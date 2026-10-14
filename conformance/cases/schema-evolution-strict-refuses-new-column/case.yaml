@@ -1,0 +1,17 @@
+id: OLC-EVO-001
+spec_version: 1.0.0
+level: materialization
+feature: schema_policy.evolution
+description: "evolution: strict refuses a write that would add a column to the table"
+# The table was written under seed.contract.olc.yaml (id, name). This run's contract adds
+# a nullable column, tier. What the write does is the evolution mode's whole job.
+# strict: the incoming schema must match exactly, or the run fails (docs/reference/server.md).
+input: input.jsonl
+assertions:
+  expects_run_failure: true
+comparison:
+  sort_by: [id]
+materialization:
+  format: delta
+  seed: seed.jsonl
+  seed_contract: seed.contract.olc.yaml

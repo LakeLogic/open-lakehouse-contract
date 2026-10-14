@@ -1,0 +1,14 @@
+id: OLC-T-023
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.upper
+description: "upper uppercases the named fields identically across engines"
+# Only the named field changes, and a null stays null.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+comparison:
+  sort_by: [id]

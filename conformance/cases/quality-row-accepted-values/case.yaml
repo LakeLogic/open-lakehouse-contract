@@ -1,0 +1,17 @@
+id: OLC-Q-006
+spec_version: 1.0.0
+level: core-runtime
+feature: quality.row.accepted_values
+description: "accepted_values rejects a value that is not on the list"
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 3
+  rows_accepted: 2
+  rows_quarantined: 1
+  failed_rules:
+    trip_type_known: 1
+comparison:
+  sort_by: [id]

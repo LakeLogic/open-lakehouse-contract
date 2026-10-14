@@ -1,0 +1,11 @@
+version: 1.0.0
+info: { title: Trips, table_name: trips }
+model:
+  fields:
+    - { name: id, type: integer }
+    - { name: fare, type: float }
+quality:
+  dataset_rules:
+    - name: no_free_trips
+      sql: SELECT COUNT(*) FROM source WHERE fare = 0
+      must_be_less_than: 1

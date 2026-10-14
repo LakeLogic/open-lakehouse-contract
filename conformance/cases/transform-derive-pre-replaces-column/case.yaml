@@ -1,0 +1,18 @@
+id: OLC-T-025
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.derive
+description: "A pre derive onto a column the input already has REPLACES it, on every engine"
+# Found 2026-10-13: Polars SQL's `SELECT * EXCLUDE (x), <expr> AS x` silently drops x, so
+# the column vanished and every row then failed its own required check. A gold table's
+# `system` column is derived exactly like this.
+input: input.jsonl
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 2
+  rows_accepted: 2
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

@@ -121,6 +121,11 @@ def load_case(directory: Path) -> ConformanceCase:
         assertions=manifest.get("assertions") or {},
         input_via=manifest.get("input_via", "frame"),
         source_format=manifest.get("source_format", "parquet"),
+        second_input_rows=(
+            _read_jsonl(directory / manifest["second_input"])
+            if manifest.get("second_input")
+            else []
+        ),
         comparison=Comparison(
             sort_by=comp.get("sort_by", []),
             numeric_tolerance=float(comp.get("numeric_tolerance", 1e-6)),
@@ -131,6 +136,11 @@ def load_case(directory: Path) -> ConformanceCase:
                 format=mat.get("format", "delta"),
                 seed=mat.get("seed"),
                 idempotent=bool(mat.get("idempotent", False)),
+                seed_contract=(
+                    _load_yaml((directory / mat["seed_contract"]).read_text(encoding="utf-8"))
+                    if mat.get("seed_contract")
+                    else None
+                ),
             )
             if mat
             else None
@@ -194,7 +204,11 @@ def compare_result(
         )
 
     # An exception is only acceptable if the case explicitly expects one.
-    expects_error = case.assertions.get("expects_error")
+    #   expects_error       — the CONTRACT is invalid and must be refused (it must also fail
+    #                         strict validation; test_all_case_contracts_are_strict_valid).
+    #   expects_run_failure — the contract is valid, and the RUN must fail: e.g. a write that
+    #                         `schema_policy.evolution: strict` forbids.
+    expects_error = case.assertions.get("expects_error") or case.assertions.get("expects_run_failure")
     if result.exception is not None and not expects_error:
         return Outcome(
             case.id,

@@ -1,0 +1,18 @@
+id: OLC-S-017
+spec_version: 1.0.0
+level: core-runtime
+feature: source.typed_file_as_text
+description: "A bronze contract with text columns reads a typed Iceberg table, converting each value to text"
+# An Iceberg table read by path, with no catalog (source.type: iceberg).
+input: input.jsonl
+input_via: source
+source_format: iceberg
+expected:
+  accepted: expected/accepted.jsonl
+  quarantined: expected/quarantined.jsonl
+assertions:
+  rows_input: 4
+  rows_accepted: 4
+  rows_quarantined: 0
+comparison:
+  sort_by: [id]

@@ -1,0 +1,11 @@
+id: OLC-T-032
+spec_version: 1.0.0
+level: core-runtime
+feature: transformations.failure
+description: "A pre-phase SQL step that errors fails the run"
+# Before 2026-10-14 DuckDB (eight kinds of step) and Polars (four, pre phase) logged a warning,
+# skipped the step and carried on with the UNtransformed rows, reporting success; Spark failed.
+# A gold aggregation that errored wrote silver's rows as gold. The run must fail.
+input: input.jsonl
+assertions:
+  expects_run_failure: true
