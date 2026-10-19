@@ -111,11 +111,16 @@ MISTAKES = [
     "`source.partition_pattern`.",
     "Deduplicate with `deduplicate: {on: [...], sort_by: [...], order: desc}`. The older "
     "`deduplicate_by_latest` takes `key_columns` and `timestamp_column` only; prefer `deduplicate`.",
+    "`deduplicate.on` is the business key ONLY. Never put the `sort_by` column in it: "
+    "`on: [customer_id, updated_at]` makes every row its own group, so nothing is deduplicated "
+    "(lint KEY-002). Write `on: [customer_id]`, `sort_by: [updated_at]`. This holds for scd2 too.",
     "`schedule` is a top-level cron string; `service_levels` holds `freshness` / `row_count`.",
     "EVERY silver or gold table loaded with `merge` or `scd2` must say how source deletes arrive: add "
     "a boolean field (e.g. `is_deleted`) and `materialization.soft_delete_column: is_deleted`. "
     "Without it, rows deleted at the source stay in the table forever (lint DEL-001). Do this even "
     "when the request does not mention deletes.",
+    "`trim`, `lower` and `upper` take an object with `fields`, not a bare list: "
+    "`trim: {fields: [full_name, email]}`, `lower: {fields: [email]}`.",
     "`derive` takes `field` (the column it writes) and `sql`: `derive: {field: total, sql: amount + fee}`. "
     "Not `name`.",
     "`rollup.aggregations` is a MAPPING of output column to expression, not a list: "

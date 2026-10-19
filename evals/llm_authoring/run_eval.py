@@ -41,6 +41,9 @@ LLMS_TXT = ROOT / "docs" / "llms.txt"
 MODELS = {
     "deepseek": {"key": "DEEPSEEK_API_KEY", "model": "deepseek-chat"},
     "claude": {"key": "ANTHROPIC_API_KEY", "model": "claude-sonnet-5-5"},
+    # Claude through the Claude Code CLI (`claude -p`), for a machine with Claude Code signed in
+    # and no API key. Opt in with --claude-cli.
+    "claude-cli": {"key": None, "model": "claude-sonnet-5-5"},
 }
 
 #: Set from the key file's ANTHROPIC_WORKSPACE_ID line, when the key needs it.
@@ -74,7 +77,28 @@ def _post(url: str, headers: dict, body: dict, timeout: int = 180) -> dict:
         raise RuntimeError(f"HTTP {exc.code}: {exc.read().decode('utf-8', 'replace')[:300]}") from None
 
 
+def _ask_claude_cli(model: str, system: str, task: str) -> str:
+    """One answer from `claude -p`, run in an empty folder so no project files or CLAUDE.md
+    reach the model: the system prompt is the only context, as with the API providers."""
+    import subprocess
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        prompt_file = Path(tmp) / "system.txt"
+        prompt_file.write_text(system, encoding="utf-8")
+        done = subprocess.run(
+            ["claude", "-p", task, "--model", model, "--system-prompt-file", str(prompt_file),
+             "--output-format", "text"],
+            cwd=tmp, capture_output=True, text=True, encoding="utf-8", timeout=300,
+        )
+    if done.returncode != 0:
+        raise RuntimeError(f"claude -p exited {done.returncode}: {done.stderr.strip()[:300]}")
+    return done.stdout
+
+
 def ask(provider: str, key: str, model: str, system: str, task: str) -> str:
+    if provider == "claude-cli":
+        return _ask_claude_cli(model, system, task)
     if provider == "deepseek":
         data = _post(
             "https://api.deepseek.com/chat/completions",
@@ -117,9 +141,11 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--env-file", required=True, type=Path)
     ap.add_argument("--only", nargs="*", help="limit to these prompt ids")
+    ap.add_argument("--claude-cli", action="store_true", help="also ask Claude through `claude -p` (no API key)")
+    ap.add_argument("--providers", nargs="*", help="limit to these providers, e.g. claude-cli")
     args = ap.parse_args(argv)
 
-    keys = read_keys(args.env_file)
+    keys = read_keys(args.env_file) if args.env_file.exists() else {}
     global ANTHROPIC_WORKSPACE_ID
     ANTHROPIC_WORKSPACE_ID = keys.get("ANTHROPIC_WORKSPACE_ID", "")
     prompts = yaml.safe_load((HERE / "prompts.yaml").read_text(encoding="utf-8"))
@@ -130,10 +156,17 @@ def main(argv: list[str]) -> int:
 
     results = []
     for provider, cfg in MODELS.items():
-        key = keys.get(cfg["key"])
-        if not key:
-            print(f"skip {provider}: no {cfg['key']} in the key file")
+        if args.providers and provider not in args.providers:
             continue
+        if cfg["key"] is None:  # the CLI provider: no key, opt-in only
+            if not args.claude_cli:
+                continue
+            key = ""
+        else:
+            key = keys.get(cfg["key"])
+            if not key:
+                print(f"skip {provider}: no {cfg['key']} in the key file")
+                continue
         for cond, system in conditions.items():
             for p in prompts:
                 try:
