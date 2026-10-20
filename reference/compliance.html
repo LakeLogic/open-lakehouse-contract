@@ -1214,6 +1214,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#why-its-free-form-and-not-typed" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1613,6 +1624,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#why-its-free-form-and-not-typed" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1655,8 +1677,8 @@
 
 
 <h1 id="compliance-compliance">Compliance (<code>compliance</code>)</h1>
-<p><code>compliance</code> is a <strong>free-form object</strong> — a deliberately open slot for <strong>classification and controls</strong> that belong to the data product but aren't part of its shape: regulatory scope, retention, residency, ownership approvals, and the like. The schema places <strong>no constraints</strong> on its keys (<code>additionalProperties: true</code>), so you attach whatever your organisation's governance model needs.</p>
-<p>These keys are <strong>illustrative, not a schema</strong> — pick what your governance model uses:</p>
+<p><code>compliance</code> is a <strong>free-form object</strong> — a deliberately open slot for <strong>classification and controls</strong> that belong to the data product but aren't part of its shape: regulatory scope, retention, residency, ownership approvals, and the like. The schema places <strong>no constraints</strong> on its keys (<code>additionalProperties: true</code>), so you attach whatever your organisation's governance model needs — with one exception, <a href="#retention"><code>retention</code></a>, which is typed.</p>
+<p>Apart from <code>retention</code>, these keys are <strong>illustrative, not a schema</strong> — pick what your governance model uses:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">compliance</span><span class="p">:</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="c1"># ── Regulatory scope ──</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">regulations</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">GDPR</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">CCPA</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">HIPAA</span><span class="p p-Indicator">]</span><span class="w">        </span><span class="c1"># what applies to this product</span>
@@ -1671,7 +1693,7 @@
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="c1"># ── Residency &amp; retention ──</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nt">data_residency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eu-west</span><span class="w">                 </span><span class="c1"># where it may live</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> period</span><span class="p">:</span><span class="w"> </span><span class="nv">400d</span><span class="p p-Indicator">,</span><span class="nt"> basis</span><span class="p">:</span><span class="w"> </span><span class="nv">legal</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nt">retention</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> period</span><span class="p">:</span><span class="w"> </span><span class="nv">P6Y</span><span class="p p-Indicator">,</span><span class="nt"> column</span><span class="p">:</span><span class="w"> </span><span class="nv">signup_date</span><span class="p p-Indicator">,</span><span class="nt"> basis</span><span class="p">:</span><span class="w"> </span><span class="nv">legal</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># typed: see below</span>
 <a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="nt">legal_hold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nt">right_to_erasure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">                  </span><span class="c1"># supports GDPR/CCPA deletion requests</span>
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
@@ -1688,6 +1710,47 @@
 <a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
 <a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">  </span><span class="c1"># …any org-specific key — the schema places no constraints</span>
 </code></pre></div>
+<h2 id="retention">Retention</h2>
+<p><code>compliance.retention</code> is the one <strong>typed</strong> key: this contract's own retention period. It <strong>overrides the domain's period for the contract's layer</strong> (<code>retention: {bronze: P7D, silver: P90D, gold: P7Y}</code> in <code>_domain.yaml</code>), so one table can be held to a different period than the rest of its layer — driver records six years, trips ninety days.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">compliance</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">retention</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">P6Y</span><span class="w">                 </span><span class="c1"># required: ISO 8601 (P90D, P6Y, P1Y6M) or short form (400d, 6y)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">signup_date</span><span class="w">         </span><span class="c1"># optional: the column whose OLDEST value measures a record's age</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">starts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">record_created</span><span class="w">      </span><span class="c1"># optional: record_created | relationship_ended | custom</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">basis</span><span class="p">:</span><span class="w"> </span><span class="s">"Tax:</span><span class="nv"> </span><span class="s">6</span><span class="nv"> </span><span class="s">years</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">signup"</span><span class="w">   </span><span class="c1"># optional: why this period applies</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>period</code></td>
+<td>yes</td>
+<td>How long a record may be kept. ISO 8601, or the short form <code>400d</code> / <code>12w</code> / <code>18m</code> / <code>6y</code>.</td>
+</tr>
+<tr>
+<td><code>column</code></td>
+<td>no</td>
+<td>The column whose oldest value is the record's age. Omitted: the runtime's default age columns.</td>
+</tr>
+<tr>
+<td><code>starts</code></td>
+<td>no</td>
+<td>When the clock starts. Many obligations run from the <strong>end</strong> of a relationship (six years after an account closes), which a creation date cannot measure — <code>relationship_ended</code> records that, so a reviewer does not read the check as more than it is.</td>
+</tr>
+<tr>
+<td><code>basis</code></td>
+<td>no</td>
+<td>Why this period applies: <code>legal</code>, <code>contract</code>, or a sentence.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Precedence:</strong> the contract's <code>compliance.retention.period</code>, else the domain's period for the contract's layer, else no retention promise. A misspelled key or an invalid period is rejected, because a typo here would silently fall back to the layer's period.</p>
 <h2 id="why-its-free-form-and-not-typed">Why it's free-form (and not typed)</h2>
 <p>Compliance vocabularies differ wildly between organisations and regimes — pinning a fixed schema would either be too narrow or too vague. OLC keeps the <strong>shape</strong> fields strict (see <a href="schema.html#schema-keys">Model &amp; keys</a>) and leaves <code>compliance</code> open, so it's a durable place to carry governance metadata without forcing a one-size-fits-all structure.</p>
 <h2 id="how-its-used">How it's used</h2>
