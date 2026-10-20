@@ -190,7 +190,7 @@ schema_policy:
 
 ## Compliance — `compliance`
 
-A **free-form** slot for classification & controls (regulations, residency, retention, approvals) — no fixed schema. It records the *why*; it's metadata, not a gate. → [Compliance](compliance.md)
+A **free-form** slot for classification & controls (regulations, residency, retention, approvals) — no fixed schema, except a typed `retention` (this contract's own retention period). It records the *why*; it's metadata, not a gate. → [Compliance](compliance.md)
 
 ```yaml
 compliance:

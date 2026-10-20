@@ -125,6 +125,29 @@ class OLCContractV1(BaseModel):
             raise ValueError("info.data_product_output requires info.data_product")
         return self
 
+    @model_validator(mode="after")
+    def _compliance_retention_is_well_formed(self) -> OLCContractV1:
+        """``compliance.retention`` is the one modelled key in the open ``compliance`` map.
+
+        ``compliance`` stays a dict (the runtime reads it by key, and contracts keep their own
+        entries there); only ``retention`` is checked, because a misspelled period or key
+        there would silently fall back to the domain's layer period.
+        """
+        if isinstance(self.compliance, dict) and self.compliance.get("retention") is not None:
+            from pydantic import ValidationError
+
+            from olc.models.compliance import ContractRetention
+
+            try:
+                ContractRetention.model_validate(self.compliance["retention"])
+            except ValidationError as exc:
+                problems = "; ".join(
+                    f"{'.'.join(str(p) for p in e['loc']) or 'retention'}: {e['msg']}"
+                    for e in exc.errors()
+                )
+                raise ValueError(f"compliance.retention is not valid: {problems}") from None
+        return self
+
     # ── required identity ────────────────────────────────────────────────────
     version: SemVer
     info: Info
@@ -166,6 +189,11 @@ class OLCContractV1(BaseModel):
     transformations: List[Transformation] = Field(default_factory=list)
     service_levels: Optional[ServiceLevel] = None
     quarantine: Optional[Quarantine] = None
-    compliance: Dict[str, Any] = Field(default_factory=dict)
+    compliance: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Compliance settings. Open map; `retention` is modelled "
+        "(ContractRetention): this contract's own retention period, overriding its domain's "
+        "layer period.",
+    )
     tier: Optional[str] = None
     contract_file_name: Optional[str] = None

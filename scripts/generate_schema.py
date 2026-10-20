@@ -190,7 +190,27 @@ def build_schema() -> dict:
     _mirror_validation_aliases(schema)  # before closing: accept aliased keys (on/by)
     _close_nested_objects(schema)
     _type_source_options(schema)
+    _type_compliance_retention(schema)
     return schema
+
+
+def _type_compliance_retention(schema: dict) -> None:
+    """Publish ``compliance.retention`` (``olc.models.compliance.ContractRetention``).
+
+    ``compliance`` stays an open map — the runtime reads it by key and contracts keep their
+    own entries there — so this runs AFTER nested closing: ``retention`` is typed and closed,
+    every other key under ``compliance`` is still allowed.
+    """
+    from olc.models.compliance import ContractRetention
+
+    definition = ContractRetention.model_json_schema()
+    definition["additionalProperties"] = False
+    schema.setdefault("$defs", {})["ContractRetention"] = definition
+    compliance = schema["properties"]["compliance"]
+    compliance["properties"] = {
+        "retention": {"anyOf": [{"$ref": "#/$defs/ContractRetention"}, {"type": "null"}]}
+    }
+    compliance["additionalProperties"] = True
 
 
 def _type_source_options(schema: dict) -> None:

@@ -6339,6 +6339,67 @@
       },
       "title": "XmlOptions",
       "type": "object"
+    },
+    "ContractRetention": {
+      "additionalProperties": false,
+      "description": "``compliance.retention`` on a contract.",
+      "properties": {
+        "period": {
+          "description": "How long a record may be kept: ISO 8601 (P90D, P6Y, P1Y6M) or the short form (400d, 6y). Overrides the domain's retention for this contract's layer.",
+          "pattern": "^(P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?|\\d+[dDwWmMyY])$",
+          "title": "Period",
+          "type": "string"
+        },
+        "column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The column whose OLDEST value measures a record's age (e.g. signup_date). Omitted: the runtime's default age columns.",
+          "title": "Column"
+        },
+        "starts": {
+          "anyOf": [
+            {
+              "enum": [
+                "record_created",
+                "relationship_ended",
+                "custom"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When the retention clock starts: record_created, relationship_ended (e.g. six years after an account closes), or custom (explain in `basis`).",
+          "title": "Starts"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Why this period applies (e.g. legal, contract, 'Tax: 6 years from signup').",
+          "title": "Basis"
+        }
+      },
+      "required": [
+        "period"
+      ],
+      "title": "ContractRetention",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -6593,8 +6654,21 @@
     },
     "compliance": {
       "additionalProperties": true,
+      "description": "Compliance settings. Open map; `retention` is modelled (ContractRetention): this contract's own retention period, overriding its domain's layer period.",
       "title": "Compliance",
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "retention": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContractRetention"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
     },
     "tier": {
       "anyOf": [

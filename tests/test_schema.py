@@ -33,7 +33,9 @@ class PublishedSchemaTests(unittest.TestCase):
                 if node.get("type") == "object" and isinstance(
                     node.get("properties"), dict
                 ):
-                    if node.get("title") != "Extensions":
+                    # Open by design: `extensions` (namespaced vendor keys) and `compliance`
+                    # (an open map with one typed key, `retention`, which is itself closed).
+                    if node.get("title") not in ("Extensions", "Compliance"):
                         self.assertFalse(
                             node.get("additionalProperties"),
                             node.get("title", "<object>"),
