@@ -57,7 +57,11 @@ ID = f"{DOCS_SITE}/schema/v1/open-lakehouse-contract.schema.json"
 LATEST_URL = f"{DOCS_SITE}/schema/latest/open-lakehouse-contract.schema.json"
 #: The published copies, beside the canonical file above.
 PUBLISHED = [
-    Path(__file__).resolve().parents[1] / "docs" / "schema" / version / "open-lakehouse-contract.schema.json"
+    Path(__file__).resolve().parents[1]
+    / "docs"
+    / "schema"
+    / version
+    / "open-lakehouse-contract.schema.json"
     for version in ("v1", "latest")
 ]
 
@@ -208,7 +212,9 @@ def _type_compliance_retention(schema: dict) -> None:
     schema.setdefault("$defs", {})["ContractRetention"] = definition
     compliance = schema["properties"]["compliance"]
     compliance["properties"] = {
-        "retention": {"anyOf": [{"$ref": "#/$defs/ContractRetention"}, {"type": "null"}]}
+        "retention": {
+            "anyOf": [{"$ref": "#/$defs/ContractRetention"}, {"type": "null"}]
+        }
     }
     compliance["additionalProperties"] = True
 

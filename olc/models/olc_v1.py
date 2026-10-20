@@ -133,7 +133,10 @@ class OLCContractV1(BaseModel):
         entries there); only ``retention`` is checked, because a misspelled period or key
         there would silently fall back to the domain's layer period.
         """
-        if isinstance(self.compliance, dict) and self.compliance.get("retention") is not None:
+        if (
+            isinstance(self.compliance, dict)
+            and self.compliance.get("retention") is not None
+        ):
             from pydantic import ValidationError
 
             from olc.models.compliance import ContractRetention
@@ -145,7 +148,9 @@ class OLCContractV1(BaseModel):
                     f"{'.'.join(str(p) for p in e['loc']) or 'retention'}: {e['msg']}"
                     for e in exc.errors()
                 )
-                raise ValueError(f"compliance.retention is not valid: {problems}") from None
+                raise ValueError(
+                    f"compliance.retention is not valid: {problems}"
+                ) from None
         return self
 
     # ── required identity ────────────────────────────────────────────────────

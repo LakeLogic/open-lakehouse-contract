@@ -10,7 +10,11 @@ from jsonschema import Draft202012Validator
 from olc.validate import load_contract_yaml, validate_file
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = json.loads((ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(encoding="utf-8"))
+SCHEMA = json.loads(
+    (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+        encoding="utf-8"
+    )
+)
 
 CONTRACT = """version: 1.0.0
 info: { title: Trips, table_name: trips }

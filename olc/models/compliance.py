@@ -27,7 +27,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 #: ISO 8601 (``P90D``, ``P6Y``, ``P1Y6M``, ``PT12H``) or the short form the docs have always
 #: shown (``400d``, ``12w``, ``18m``, ``6y``). No look-ahead: the schema's regex engine has
 #: none, so ``P`` / ``PT`` alone are refused by the validator below.
-RETENTION_PERIOD = r"^(P(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?|\d+[dDwWmMyY])$"
+RETENTION_PERIOD = (
+    r"^(P(\d+Y)?(\d+M)?(\d+W)?(\d+D)?(T(\d+H)?(\d+M)?(\d+S)?)?|\d+[dDwWmMyY])$"
+)
 
 #: When the retention clock starts. A record's creation is the common case; many
 #: obligations run from the END of a relationship (six years after an account closes),
@@ -72,5 +74,7 @@ class ContractRetention(BaseModel):
     @classmethod
     def _period_has_a_length(cls, v: str) -> str:
         if v in ("P", "PT") or v.endswith("T"):
-            raise ValueError(f"{v!r} is not a duration: give at least one amount, e.g. P90D or P6Y")
+            raise ValueError(
+                f"{v!r} is not a duration: give at least one amount, e.g. P90D or P6Y"
+            )
         return v

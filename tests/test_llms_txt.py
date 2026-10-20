@@ -35,9 +35,12 @@ class LlmsTxt(unittest.TestCase):
         links = re.findall(r"\((" + re.escape(SITE) + r"[^)]+)\)", text)
         self.assertGreater(len(links), 10)
         for url in links:
-            rel = url[len(SITE):]
+            rel = url[len(SITE) :]
             local = ROOT / "docs" / (rel[:-5] + ".md" if rel.endswith(".html") else rel)
-            self.assertTrue(local.exists(), f"llms.txt links to {url}, but docs/{local.relative_to(ROOT / 'docs')} does not exist")
+            self.assertTrue(
+                local.exists(),
+                f"llms.txt links to {url}, but docs/{local.relative_to(ROOT / 'docs')} does not exist",
+            )
 
 
 class Skeleton(unittest.TestCase):
@@ -53,7 +56,9 @@ class Skeleton(unittest.TestCase):
             from lakelogic.core.contract_lint import review_contract_dict
         except Exception:  # pragma: no cover
             self.skipTest("LakeLogic not installed; the release gate runs this with it")
-        self.assertEqual([f.check_id for f in review_contract_dict(doc, "skeleton")], [])
+        self.assertEqual(
+            [f.check_id for f in review_contract_dict(doc, "skeleton")], []
+        )
 
 
 class Examples(unittest.TestCase):
@@ -68,7 +73,11 @@ class Examples(unittest.TestCase):
                 load_strict(load_contract_yaml(path.read_text(encoding="utf-8")))
 
     def test_every_example_passes_the_json_schema(self):
-        schema = json.loads((ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(encoding="utf-8"))
+        schema = json.loads(
+            (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
         validator = Draft202012Validator(schema)
         for path in EXAMPLES:
             with self.subTest(example=path.name):
@@ -79,7 +88,9 @@ class Examples(unittest.TestCase):
     def test_every_example_passes_lakelogic_lint(self):
         try:
             from lakelogic.core.contract_lint import review_contract
-        except Exception:  # pragma: no cover - the reference runtime is optional for the standard
+        except (
+            Exception
+        ):  # pragma: no cover - the reference runtime is optional for the standard
             self.skipTest("LakeLogic not installed; the release gate runs this with it")
         for path in EXAMPLES:
             with self.subTest(example=path.name):

@@ -51,8 +51,16 @@ class SchemaDriftTests(unittest.TestCase):
         # versioned copy (the old lakelogic.org identifier returned 404).
         committed = SCHEMA_PATH.read_text(encoding="utf-8")
         for version in ("v1", "latest"):
-            published = ROOT / "docs" / "schema" / version / "open-lakehouse-contract.schema.json"
-            self.assertTrue(published.exists(), f"missing {published.relative_to(ROOT)}")
+            published = (
+                ROOT
+                / "docs"
+                / "schema"
+                / version
+                / "open-lakehouse-contract.schema.json"
+            )
+            self.assertTrue(
+                published.exists(), f"missing {published.relative_to(ROOT)}"
+            )
             self.assertEqual(
                 json.loads(published.read_text(encoding="utf-8")),
                 json.loads(committed),

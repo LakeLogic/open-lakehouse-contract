@@ -50,7 +50,9 @@ def nav_pages() -> list[tuple[str, str, str]]:
         if m:
             section = m.group(1).strip()
             continue
-        m = re.match(r"^  - (.+?):\s+(\S+\.md)\s*$", line)  # a top-level page, outside any section
+        m = re.match(
+            r"^  - (.+?):\s+(\S+\.md)\s*$", line
+        )  # a top-level page, outside any section
         if m:
             pages.append(("Start here", m.group(1).strip(), m.group(2).strip()))
             continue
@@ -104,10 +106,10 @@ schedule: "0 6 * * *"                # TOP LEVEL cron: not under service_levels
 
 MISTAKES = [
     "In a one-line field (`- { name: x, description: ... }`) a comma ends the value: quote any "
-    "text that has a comma or a colon (`description: \"Kept, not removed\"`), or the rest becomes an "
+    'text that has a comma or a colon (`description: "Kept, not removed"`), or the rest becomes an '
     "unknown key.",
     "`primary_key` goes at the TOP LEVEL of the contract, never inside `materialization`.",
-    "A date-partitioned landing folder is `source.partition.format` (e.g. `\"y_%Y/m_%m/d_%d\"`), not "
+    'A date-partitioned landing folder is `source.partition.format` (e.g. `"y_%Y/m_%m/d_%d"`), not '
     "`source.partition_pattern`.",
     "Deduplicate with `deduplicate: {on: [...], sort_by: [...], order: desc}`. The older "
     "`deduplicate_by_latest` takes `key_columns` and `timestamp_column` only; prefer `deduplicate`.",
@@ -239,19 +241,43 @@ def render_llms_full() -> str:
         if section == "Providers" or title in ("Overview", "Contributing"):
             continue
         body = (DOCS / path).read_text(encoding="utf-8").strip()
-        out += ["", "=" * 80, f"# {section}: {title}", f"Source: {page_url(path)}", "=" * 80, "", body, ""]
+        out += [
+            "",
+            "=" * 80,
+            f"# {section}: {title}",
+            f"Source: {page_url(path)}",
+            "=" * 80,
+            "",
+            body,
+            "",
+        ]
     for example in (EXAMPLE, FULL_EXAMPLE):
-        out += ["", "=" * 80, f"# Example: {example.name}", "=" * 80, "", "```yaml",
-                example.read_text(encoding="utf-8").rstrip(), "```", ""]
+        out += [
+            "",
+            "=" * 80,
+            f"# Example: {example.name}",
+            "=" * 80,
+            "",
+            "```yaml",
+            example.read_text(encoding="utf-8").rstrip(),
+            "```",
+            "",
+        ]
     return "\n".join(out).rstrip() + "\n"
 
 
 def main(argv: list[str]) -> int:
     targets = {OUT: render_llms(), OUT_FULL: render_llms_full()}
     if "--check" in argv:
-        stale = [p for p, text in targets.items() if (p.read_text(encoding="utf-8") if p.exists() else "") != text]
+        stale = [
+            p
+            for p, text in targets.items()
+            if (p.read_text(encoding="utf-8") if p.exists() else "") != text
+        ]
         for p in stale:
-            print(f"{p.relative_to(ROOT)} is stale: run python scripts/generate_llms.py")
+            print(
+                f"{p.relative_to(ROOT)} is stale: run python scripts/generate_llms.py"
+            )
         if not stale:
             print("llms.txt and llms-full.txt are up to date")
         return 1 if stale else 0

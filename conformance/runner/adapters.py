@@ -77,7 +77,10 @@ class LakeLogicAdapter:
         """The contract with this case's Iceberg catalog settings in its metadata."""
         if self._iceberg_meta:
             contract = dict(contract)
-            contract["metadata"] = {**(contract.get("metadata") or {}), **self._iceberg_meta}
+            contract["metadata"] = {
+                **(contract.get("metadata") or {}),
+                **self._iceberg_meta,
+            }
         return contract
 
     def _iceberg_catalog_target(self, case: ConformanceCase) -> tuple:
@@ -112,7 +115,7 @@ class LakeLogicAdapter:
         from pyiceberg.catalog import load_catalog
 
         catalog = load_catalog("olc", **self._iceberg_props)
-        identifier = target[len("table:"):].split(".", 1)[1]  # drop the catalog name
+        identifier = target[len("table:") :].split(".", 1)[1]  # drop the catalog name
         return pl.from_arrow(catalog.load_table(identifier).scan().to_arrow())
 
     def _contract_with_references(self, case: ConformanceCase) -> dict:
@@ -580,10 +583,13 @@ def _read_iceberg_dir(path: str):
     if chosen is None:
         chosen = max(
             meta.glob("*.metadata.json"),
-            key=lambda f: int(m.group(1)) if (m := re.match(r"v?(\d+)", f.name)) else -1,
+            key=lambda f: int(m.group(1))
+            if (m := re.match(r"v?(\d+)", f.name))
+            else -1,
         )
     table = StaticTable.from_metadata(
-        chosen.resolve().as_uri(), properties={"py-io-impl": "pyiceberg.io.fsspec.FsspecFileIO"}
+        chosen.resolve().as_uri(),
+        properties={"py-io-impl": "pyiceberg.io.fsspec.FsspecFileIO"},
     )
     return pl.from_arrow(table.scan().to_arrow())
 
@@ -808,7 +814,7 @@ class SparkAdapter(LakeLogicAdapter):
 
     def _read_iceberg_catalog_table(self, target: str):
         """A Hadoop-catalog table is the directory <warehouse>/<namespace>/<table>."""
-        namespace, table = target[len("table:"):].split(".")[1:]
+        namespace, table = target[len("table:") :].split(".")[1:]
         return _read_iceberg_dir(str(self._iceberg_warehouse / namespace / table))
 
     @classmethod
@@ -852,14 +858,20 @@ class SparkAdapter(LakeLogicAdapter):
                     "org.apache.spark.sql.delta.catalog.DeltaCatalog",
                 )
                 # `olc`: an Iceberg catalog for Iceberg cases (Iceberg is a catalog format).
-                .config("spark.sql.catalog.olc", "org.apache.iceberg.spark.SparkCatalog")
+                .config(
+                    "spark.sql.catalog.olc", "org.apache.iceberg.spark.SparkCatalog"
+                )
                 .config("spark.sql.catalog.olc.type", "hadoop")
-                .config("spark.sql.catalog.olc.warehouse", (spark_home / "iceberg").as_uri())
+                .config(
+                    "spark.sql.catalog.olc.warehouse", (spark_home / "iceberg").as_uri()
+                )
             )
             try:
                 from delta import configure_spark_with_delta_pip
 
-                builder = configure_spark_with_delta_pip(builder, extra_packages=[ICEBERG_SPARK_RUNTIME])
+                builder = configure_spark_with_delta_pip(
+                    builder, extra_packages=[ICEBERG_SPARK_RUNTIME]
+                )
             except Exception:  # pragma: no cover - delta-spark not installed
                 pass
             cls._iceberg_warehouse = spark_home / "iceberg"

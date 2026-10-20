@@ -13,23 +13,44 @@ from pathlib import Path
 from olc.models import load_strict
 
 ROOT = Path(__file__).resolve().parents[1]
-SCHEMA = json.loads((ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(encoding="utf-8"))
+SCHEMA = json.loads(
+    (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+        encoding="utf-8"
+    )
+)
 
 
 def contract(compliance: dict) -> dict:
     return {
         "version": "1.0.0",
-        "info": {"title": "Driver profiles", "table_name": "silver_rideflow_driver_profiles"},
-        "model": {"fields": [{"name": "driver_id", "type": "string"}, {"name": "signup_date", "type": "date"}]},
+        "info": {
+            "title": "Driver profiles",
+            "table_name": "silver_rideflow_driver_profiles",
+        },
+        "model": {
+            "fields": [
+                {"name": "driver_id", "type": "string"},
+                {"name": "signup_date", "type": "date"},
+            ]
+        },
         "compliance": compliance,
     }
 
 
 class TestModel(unittest.TestCase):
     def test_a_full_retention_block_validates(self) -> None:
-        c = load_strict(contract({"retention": {
-            "period": "P6Y", "column": "signup_date", "starts": "record_created",
-            "basis": "Tax: 6 years from signup"}}))
+        c = load_strict(
+            contract(
+                {
+                    "retention": {
+                        "period": "P6Y",
+                        "column": "signup_date",
+                        "starts": "record_created",
+                        "basis": "Tax: 6 years from signup",
+                    }
+                }
+            )
+        )
         self.assertEqual(c.compliance["retention"]["period"], "P6Y")
 
     def test_the_period_alone_is_enough(self) -> None:
@@ -53,12 +74,16 @@ class TestModel(unittest.TestCase):
 
     def test_a_misspelled_key_is_refused_not_ignored(self) -> None:
         with self.assertRaises(ValueError) as ctx:
-            load_strict(contract({"retention": {"period": "P6Y", "colum": "signup_date"}}))
+            load_strict(
+                contract({"retention": {"period": "P6Y", "colum": "signup_date"}})
+            )
         self.assertIn("colum", str(ctx.exception))
 
     def test_starts_is_a_closed_vocabulary(self) -> None:
         with self.assertRaises(ValueError):
-            load_strict(contract({"retention": {"period": "P6Y", "starts": "whenever"}}))
+            load_strict(
+                contract({"retention": {"period": "P6Y", "starts": "whenever"}})
+            )
 
     def test_the_period_is_required(self) -> None:
         with self.assertRaises(ValueError):
