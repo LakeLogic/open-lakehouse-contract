@@ -8,6 +8,7 @@ that drifts from the schema teaches every agent the wrong shape. Each one must:
 * say, for every parameter, what it is, its expected format and an example;
 * never carry a secret value — a secret parameter is an env: / vault reference only.
 """
+
 from __future__ import annotations
 
 import re
@@ -19,8 +20,18 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = sorted((ROOT / "recipes").rglob("*.yaml"))
 GROUPS = {"ingest", "stream", "land", "deliver", "logic"}
-REQUIRED = ("id", "group", "title", "when", "load_patterns", "contract", "parameters",
-            "before_you_run", "studio_test", "proven")
+REQUIRED = (
+    "id",
+    "group",
+    "title",
+    "when",
+    "load_patterns",
+    "contract",
+    "parameters",
+    "before_you_run",
+    "studio_test",
+    "proven",
+)
 PARAM_KEYS = ("name", "what", "set_in", "secret", "format", "examples")
 PLACEHOLDER = re.compile(r"\{([a-z][a-z0-9_]*)\}")
 ENV_REF = re.compile(r"(?:env:|\$\{ENV:)([A-Z][A-Z0-9_]*)")
@@ -66,22 +77,40 @@ class TestRecipes(unittest.TestCase):
                 self.assertIn(r["group"], GROUPS)
                 self.assertNotIn(r["id"], ids, "recipe ids are unique")
                 ids.add(r["id"])
-                self.assertTrue(str(r["proven"]).strip(), f"{path.name}: not proven by a real run")
+                self.assertTrue(
+                    str(r["proven"]).strip(), f"{path.name}: not proven by a real run"
+                )
 
                 params = {p["name"]: p for p in r["parameters"]}
                 for p in r["parameters"]:
                     for key in PARAM_KEYS:
-                        self.assertIn(key, p, f"{path.name}: parameter {p.get('name')} has no {key}")
-                    self.assertTrue(p["examples"], f"{path.name}: {p['name']} has no example")
+                        self.assertIn(
+                            key,
+                            p,
+                            f"{path.name}: parameter {p.get('name')} has no {key}",
+                        )
+                    self.assertTrue(
+                        p["examples"], f"{path.name}: {p['name']} has no example"
+                    )
 
                 text = list(_strings(r["contract"]))
                 used = {m for s in text for m in PLACEHOLDER.findall(s)}
-                self.assertEqual(used - set(params), set(), f"{path.name}: undeclared placeholders")
-                self.assertFalse([s for s in text if URL_SECRET.search(s)], f"{path.name}: a password in a URL")
+                self.assertEqual(
+                    used - set(params), set(), f"{path.name}: undeclared placeholders"
+                )
+                self.assertFalse(
+                    [s for s in text if URL_SECRET.search(s)],
+                    f"{path.name}: a password in a URL",
+                )
                 envs = {m for s in text for m in ENV_REF.findall(s)}
-                self.assertEqual(envs - set(params), set(), f"{path.name}: undeclared env vars")
+                self.assertEqual(
+                    envs - set(params), set(), f"{path.name}: undeclared env vars"
+                )
                 for name in envs:
-                    self.assertTrue(params[name]["secret"], f"{path.name}: {name} is read from env but not secret")
+                    self.assertTrue(
+                        params[name]["secret"],
+                        f"{path.name}: {name} is read from env but not secret",
+                    )
 
                 values = {n: str(params[n]["examples"][0]) for n in used}
                 OLCContractV1.model_validate(_filled(r["contract"], values))

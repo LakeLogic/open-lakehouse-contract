@@ -240,7 +240,10 @@ def build_recipes() -> str:
     Generated, like the reference, so an agent is never taught a recipe that no longer holds."""
     import yaml
 
-    recipes = [yaml.safe_load(p.read_text(encoding="utf-8")) for p in sorted(RECIPES_DIR.rglob("*.yaml"))]
+    recipes = [
+        yaml.safe_load(p.read_text(encoding="utf-8"))
+        for p in sorted(RECIPES_DIR.rglob("*.yaml"))
+    ]
     if not recipes:
         return ""
     out = [
@@ -253,13 +256,23 @@ def build_recipes() -> str:
         "| Recipe | Group | Use when |",
         "|---|---|---|",
     ]
-    out += [f"| {_cell(r['title'])} | {r['group']} | {_cell(r['when'])} |" for r in recipes]
+    out += [
+        f"| {_cell(r['title'])} | {r['group']} | {_cell(r['when'])} |" for r in recipes
+    ]
     for r in recipes:
         out += [
-            "", f"## {r['title']}", "",
-            f"`{r['id']}` · {r['group']} · load patterns: " + ", ".join(r.get("load_patterns") or []),
-            "", _cell(r["when"]), "", "```yaml",
-            yaml.safe_dump(r["contract"], sort_keys=False, allow_unicode=True).rstrip(), "```", "",
+            "",
+            f"## {r['title']}",
+            "",
+            f"`{r['id']}` · {r['group']} · load patterns: "
+            + ", ".join(r.get("load_patterns") or []),
+            "",
+            _cell(r["when"]),
+            "",
+            "```yaml",
+            yaml.safe_dump(r["contract"], sort_keys=False, allow_unicode=True).rstrip(),
+            "```",
+            "",
             "| Parameter | What it is | Expected format | Example | Secret | Set in |",
             "|---|---|---|---|---|---|",
         ]
@@ -268,7 +281,9 @@ def build_recipes() -> str:
                 f"| `{p['name']}` | {_cell(p['what'])} | `{_cell(p['format'])}` | "
                 f"`{_cell(p['examples'][0])}` | {'yes' if p['secret'] else 'no'} | {_cell(p['set_in'])} |"
             )
-        out += ["", "**Before you run**", ""] + [f"- {_cell(b)}" for b in r["before_you_run"]]
+        out += ["", "**Before you run**", ""] + [
+            f"- {_cell(b)}" for b in r["before_you_run"]
+        ]
         out += ["", f"**What a design-time test proves:** {_cell(r['studio_test'])}"]
     return "\n".join(out) + "\n"
 
