@@ -2,6 +2,7 @@
 # vendor them into olc/_bundled/ (see setup.py). The wheel bundles copies directly.
 graft schema
 graft skills
+graft recipes
 graft docs/reference
 graft docs/providers
 include pyproject.toml setup.py README.md LICENSE

@@ -23,6 +23,8 @@ ROOT = Path(__file__).parent
 BUNDLE = (
     ("schema", "schema"),
     ("skills", "skills"),
+    # Core playbook recipes: one contract shape + parameter table per job (tests/test_recipes.py).
+    ("recipes", "recipes"),
     ("docs/reference", "docs/reference"),
     ("docs/providers", "docs/providers"),
 )
