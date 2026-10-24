@@ -122,7 +122,7 @@ markdown_extensions:
   - tables
 
 extra_css:
-  - stylesheets/extra.css?v=5
+  - stylesheets/extra.css?v=6
 
 extra_javascript:
   - javascripts/theme-switcher.js
