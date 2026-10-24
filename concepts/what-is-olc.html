@@ -173,7 +173,7 @@
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
     <div class="ll-header-extra">
-      <a class="ll-header-extra__link" href="https://lakelogic.org" target="_blank" rel="noopener">Website</a>
+      <a class="ll-header-extra__link" href="https://www.lakelogic.io" target="_blank" rel="noopener">Website</a>
     </div>
 
     
@@ -1860,7 +1860,7 @@
 </code></pre></div>
 <p>Heavy Spark for the big registration and compaction; DuckDB or Polars for fast, cheap incremental writes — no cluster spun up. The contract doesn't care which engine touched the table: it declares the desired shape and quality, and any conforming engine converges the table toward it.</p>
 <h2 id="the-contract-is-independent-of-the-framework">The contract is independent of the framework</h2>
-<p>Crucially, OLC sits <em>above</em> any particular framework. The contract is portable intent; a <strong>conforming framework</strong> carries it out, and that runtime is itself swappable. <a href="https://lakelogic.org">LakeLogic</a> is the reference framework — but the specification does not depend on it, and a second framework in another language could implement the same contract.</p>
+<p>Crucially, OLC sits <em>above</em> any particular framework. The contract is portable intent; a <strong>conforming framework</strong> carries it out, and that runtime is itself swappable. <a href="https://www.lakelogic.io">LakeLogic</a> is the reference framework — but the specification does not depend on it, and a second framework in another language could implement the same contract.</p>
 <pre class="mermaid"><code>flowchart TD
     OLC[Open Lakehouse Contract&lt;br/&gt;&lt;b&gt;portable intent&lt;/b&gt;] --&gt; R1[LakeLogic&lt;br/&gt;reference framework]
     OLC -.-&gt; R2[Future OLC framework]
@@ -1958,7 +1958,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 22V18.13a3.07 3.07 0 0 0-.94-2.36c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.07 3.07 0 0 0 9 18.13V22"/></svg>
       OLC on GitHub
     </a>
-    <a href="https://lakelogic.org" class="ll-footer__link">
+    <a href="https://www.lakelogic.io" class="ll-footer__link">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       Reference framework: LakeLogic
     </a>
@@ -1983,7 +1983,7 @@
   <!-- Bottom bar -->
   <div class="ll-footer__bottom md-grid">
     <div class="ll-footer__meta">
-      <span>&copy; Copyright &copy; 2026 — the Open Lakehouse Contract is vendor-neutral · Reference framework: <a href="https://lakelogic.org" target="_blank">LakeLogic</a>
+      <span>&copy; Copyright &copy; 2026 — the Open Lakehouse Contract is vendor-neutral · Reference framework: <a href="https://www.lakelogic.io" target="_blank">LakeLogic</a>
 </span>
     </div>
   </div>
