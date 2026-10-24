@@ -1254,7 +1254,9 @@ class DeletionConfig(BaseModel):
         "deleted key that appears again is restored (flag set back to false).",
     )
     max_delete_ratio: float = Field(
-        default=0.2, gt=0, le=1,
+        default=0.2,
+        gt=0,
+        le=1,
         description="Safety stop: when a load would delete more than this share of the current "
         "records, the run FAILS and deletes nothing. An empty or truncated file must never wipe a "
         "table. Raise it only for a source that really does shrink that much.",
@@ -1319,9 +1321,12 @@ class Materialization(BaseModel):
     )
     soft_delete_value: Any = True
     soft_delete_time_column: Optional[str] = Field(
-        default=None, description="Column stamped with when the record was deleted.")
+        default=None, description="Column stamped with when the record was deleted."
+    )
     soft_delete_reason_column: Optional[str] = Field(
-        default=None, description="Column recording why: `cdc_delete_signal` or `missing_from_snapshot`.")
+        default=None,
+        description="Column recording why: `cdc_delete_signal` or `missing_from_snapshot`.",
+    )
     deletion: Optional["DeletionConfig"] = Field(
         default=None,
         description="How deletes are DETECTED when the source never says so. Use "
