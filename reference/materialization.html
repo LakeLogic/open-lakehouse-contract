@@ -26,7 +26,7 @@
       
       
       <link rel="icon" href="../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -34,10 +34,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1410,6 +1410,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#detecting-deletes-from-full-snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detecting deletes from full snapshots
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reprocessing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1847,6 +1858,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#detecting-deletes-from-full-snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detecting deletes from full snapshots
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reprocessing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2258,17 +2280,64 @@ whole statement of what the key is made from; <code>natural_key</code> is deprec
 </tr>
 </tbody>
 </table>
+<h2 id="detecting-deletes-from-full-snapshots">Detecting deletes from full snapshots</h2>
+<p>Some sources never say what was deleted: they send the <strong>complete</strong> current set of records every time (a bank's full daily settlement file over SFTP, a nightly full extract of a table). A record the table holds but today's file lacks has been deleted at source. <code>deletion: {strategy: snapshot_reconcile}</code> finds those records and deletes them, flagged (soft) or removed (hard).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">primary_key</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">settlement_id</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">materialization</span><span class="p">:</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">merge</span><span class="w">                      </span><span class="c1"># required: reconcile compares against the current set</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">soft_delete_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">is_deleted</span><span class="w">       </span><span class="c1"># omit to REMOVE missing records instead</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="nt">soft_delete_time_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deleted_at</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="nt">soft_delete_reason_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">delete_reason</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="nt">deletion</span><span class="p">:</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nt">strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">snapshot_reconcile</span><span class="w">       </span><span class="c1"># every load is the COMPLETE current set</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="nt">max_delete_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.2</span><span class="w">              </span><span class="c1"># safety stop (default 0.2)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="nt">scope</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">country</span><span class="p p-Indicator">]</span><span class="w">                   </span><span class="c1"># optional: one file covers one country</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Behaviour</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A key in the table, not already deleted, absent from the load</td>
+<td>Deleted: <code>is_deleted: true</code>, <code>deleted_at</code> set, <code>delete_reason: missing_from_snapshot</code>. Its other columns keep their last values.</td>
+</tr>
+<tr>
+<td>A deleted key that appears again</td>
+<td>Restored: <code>is_deleted: false</code>, with the new values.</td>
+</tr>
+<tr>
+<td>More than <code>max_delete_ratio</code> of current records would be deleted</td>
+<td>The run <strong>fails and deletes nothing</strong>: an empty or truncated file must never wipe a table.</td>
+</tr>
+<tr>
+<td><code>scope</code> set</td>
+<td>Only records whose scope values appear in the load are compared, so a GB-only file never deletes FR records.</td>
+</tr>
+<tr>
+<td>The first load (empty table)</td>
+<td>Nothing to compare: loaded as is.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Full loads only</p>
+<p>Use it only when <strong>every</strong> load is a complete snapshot. On an incremental feed every record not in that batch would be deleted, and the safety stop is the only thing between you and an emptied table. For a source that sends delete events, use <a href="ingestion.html#change-data-capture-cdc">CDC deletes</a> instead.</p>
+</div>
 <h2 id="reprocessing">Reprocessing</h2>
 <p>Bounded, idempotent re-runs over a date window — replace a slice without duplicating the rest:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">materialization</span><span class="p">:</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">reprocess_policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">window</span><span class="w">          </span><span class="c1"># how a reprocess replaces existing data</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">reprocess_date_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_date</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">materialization</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">reprocess_policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">window</span><span class="w">          </span><span class="c1"># how a reprocess replaces existing data</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">reprocess_date_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">order_date</span>
 </code></pre></div>
 <h2 id="schema-evolution">Schema evolution</h2>
 <p><code>schema_policy</code> (<code>SchemaPolicy</code>) governs how the target reacts when the incoming schema changes, and what to do with unexpected columns:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">schema_policy</span><span class="p">:</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">evolution</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compatible</span><span class="w">     </span><span class="c1"># strict | append | merge | overwrite | compatible | allow</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">unknown_fields</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">quarantine</span><span class="w">   </span><span class="c1"># quarantine | drop | allow</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">schema_policy</span><span class="p">:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">evolution</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compatible</span><span class="w">     </span><span class="c1"># strict | append | merge | overwrite | compatible | allow</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">unknown_fields</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">quarantine</span><span class="w">   </span><span class="c1"># quarantine | drop | allow</span>
 </code></pre></div>
 <table>
 <thead>
@@ -2372,10 +2441,10 @@ whole statement of what the key is made from; <code>natural_key</code> is deprec
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.sections", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.sections", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../javascripts/theme-switcher.js"></script>
       

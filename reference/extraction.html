@@ -26,7 +26,7 @@
       
       
       <link rel="icon" href="../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -34,10 +34,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1478,6 +1478,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#offline-document-reading-provider-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Offline document reading (provider: document)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#model-prompt" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1680,6 +1691,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#offline-document-reading-provider-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Offline document reading (provider: document)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#model-prompt" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1769,7 +1791,7 @@
 <p>OLC isn't limited to tabular sources. The <code>extraction</code> block (<code>ExtractionConfig</code>, 21 fields) turns <strong>unstructured input — documents, transcripts, images, free text — into governed columns</strong> using an LLM, with the same schema, quality, and PII guarantees as any other contract.</p>
 <div class="admonition abstract">
 <p class="admonition-title">Powered by</p>
-<p><code>ExtractionConfig</code> is a <strong>Pydantic</strong> model. Extraction calls the configured LLM through its provider SDK (<strong>anthropic</strong>, <strong>openai</strong>, …); structured output is constrained by a JSON Schema (<code>output_schema</code>) so the model returns valid rows, not prose. Preprocessing uses the right tool per modality — OCR (<strong>tesseract</strong> / pytesseract), speech-to-text (<strong>whisper</strong>), and NLP chunking (<strong>spaCy</strong>).</p>
+<p><code>ExtractionConfig</code> is a <strong>Pydantic</strong> model. Extraction calls the configured LLM through its provider SDK — or, with <code>provider: document</code>, reads files offline with no LLM at all — (<strong>anthropic</strong>, <strong>openai</strong>, …); structured output is constrained by a JSON Schema (<code>output_schema</code>) so the model returns valid rows, not prose. Preprocessing uses the right tool per modality — OCR (<strong>tesseract</strong> / pytesseract), speech-to-text (<strong>whisper</strong>), and NLP chunking (<strong>spaCy</strong>).</p>
 </div>
 <h2 id="shape">Shape</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">extraction</span><span class="p">:</span>
@@ -1787,6 +1809,60 @@
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="nt">temperature</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nt">max_tokens</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1024</span>
 </code></pre></div>
+<h2 id="offline-document-reading-provider-document">Offline document reading (<code>provider: document</code>)</h2>
+<p>When the input is a <strong>file</strong> — a PDF (typed or scanned), an image (<code>.png</code>, <code>.jpg</code>, <code>.tif</code>) or a Word document — and its fields sit next to printed labels, no LLM is needed. <code>provider: document</code> reads each file's text offline and fills each field with a regex that has <strong>one capture group</strong>. Nothing leaves your environment, and the same file always gives the same row.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">source</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">landing</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"{landing_root}/incident_reports/**/*.docx"</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">docx</span><span class="w">                     </span><span class="c1"># pdf | image | docx</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nt">extraction</span><span class="p">:</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">document</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nt">model</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">fields</span><span class="p">:</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">file_path</span><span class="w">              </span><span class="c1"># the document each row came from</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">incident_id</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">extraction_task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metadata</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">      </span><span class="nt">extraction_examples</span><span class="p">:</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">'Incident\s*ID\s*[:\t</span><span class="nv"> </span><span class="s">]*\s*([A-Z]{3}-\d{8}-\d{3})'</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">estimated_cost</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span><span class="w">                 </span><span class="c1"># keep as printed; cast in silver</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="nt">extraction_task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metadata</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="nt">extraction_examples</span><span class="p">:</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">'Estimated\s*cost\s*[:\t</span><span class="nv"> </span><span class="s">]*\s*(\d+\.\d{2})'</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One row per file; each field's pattern is its first <code>extraction_examples</code> entry, or <code>extraction.patterns[field]</code> (which wins).</td>
+<td>The two places a contract already writes a pattern.</td>
+</tr>
+<tr>
+<td>The pattern is <strong>label, then one capture group</strong>: <code>Label\s*[:\t ]*\s*(value)</code>.</td>
+<td>Scans split and misread labels; the reader retries the label tolerating spacing and OCR letter/digit swaps (<code>c0st</code>, <code>Tota1</code>), never the value.</td>
+</tr>
+<tr>
+<td>A capture stops at the end of its line.</td>
+<td>A greedy <code>([^\n]+)</code> cannot swallow the next field on a scan.</td>
+</tr>
+<tr>
+<td>Keep amounts and dates as <code>string</code> in bronze; cast in silver.</td>
+<td>What was printed is kept, and a bad scan fails a silver rule instead of a parse.</td>
+</tr>
+<tr>
+<td>A field with no match is <code>null</code>, never a guess.</td>
+<td>Absent is not zero.</td>
+</tr>
+</tbody>
+</table>
+<p>Running it needs LakeLogic Core <strong>1.82.0+</strong> with the documents extra: <code>pip install "lakelogic[documents]"</code> (pdfplumber, rapidocr, python-docx — pip only, no Tesseract or PyTorch). Use an LLM <code>provider</code> instead when fields are not labelled (free-text letters, emails) or must be inferred.</p>
 <h2 id="model-prompt">Model &amp; prompt</h2>
 <table>
 <thead>
@@ -1872,24 +1948,24 @@
 </div>
 <h2 id="pii-before-the-llm">PII before the LLM</h2>
 <p>Because prompts leave your environment, strip identifiers first:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">extraction</span><span class="p">:</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">redact_pii_before_llm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">pii_fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_email</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">phone</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">ssn</span><span class="p p-Indicator">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">extraction</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">redact_pii_before_llm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">pii_fields</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">customer_email</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">phone</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">ssn</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <p><code>redact_pii_before_llm</code> removes/masks the listed <code>pii_fields</code> <strong>before</strong> the prompt is built, so raw PII never reaches the provider. The field-level <a href="security.html"><code>pii: true</code></a> flags are the source of truth for what's sensitive.</p>
 <h2 id="confidence">Confidence</h2>
 <p><code>confidence</code> (<code>ConfidenceConfig</code>) attaches a confidence signal to each extracted row so low-confidence extractions can be quarantined or reviewed rather than trusted blindly — extraction output flows through the same <a href="quality.html">quality rules</a> as everything else.</p>
 <h2 id="preprocessing-non-text-modalities">Preprocessing non-text modalities</h2>
 <p>Before extraction, <code>preprocessing</code> (<code>PreprocessingConfig</code>) converts documents/media into text:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">extraction</span><span class="p">:</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">preprocessing</span><span class="p">:</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">content_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pdf</span><span class="w">            </span><span class="c1"># pdf | image | audio | video | text</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">ocr</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> lang</span><span class="p">:</span><span class="w"> </span><span class="nv">eng</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">           </span><span class="c1"># scanned docs/images → text (tesseract)</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">transcription</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> model</span><span class="p">:</span><span class="w"> </span><span class="nv">whisper-1</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># audio/video → text</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">frame_extraction</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> fps</span><span class="p">:</span><span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># video → frames for vision models</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">chunking</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> max_tokens</span><span class="p">:</span><span class="w"> </span><span class="nv">1000</span><span class="p p-Indicator">,</span><span class="nt"> overlap</span><span class="p">:</span><span class="w"> </span><span class="nv">100</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># split long docs (spaCy)</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">file_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">file_path</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nt">text_output_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">document_text</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">extraction</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">preprocessing</span><span class="p">:</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">content_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pdf</span><span class="w">            </span><span class="c1"># pdf | image | audio | video | text</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">ocr</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> lang</span><span class="p">:</span><span class="w"> </span><span class="nv">eng</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">           </span><span class="c1"># scanned docs/images → text (tesseract)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">transcription</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> model</span><span class="p">:</span><span class="w"> </span><span class="nv">whisper-1</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># audio/video → text</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">frame_extraction</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> fps</span><span class="p">:</span><span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="c1"># video → frames for vision models</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nt">chunking</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> max_tokens</span><span class="p">:</span><span class="w"> </span><span class="nv">1000</span><span class="p p-Indicator">,</span><span class="nt"> overlap</span><span class="p">:</span><span class="w"> </span><span class="nv">100</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># split long docs (spaCy)</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="nt">file_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">file_path</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="nt">text_output_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">document_text</span>
 </code></pre></div>
 <table>
 <thead>
@@ -1927,12 +2003,12 @@
 </table>
 <h2 id="field-level-extraction-hints">Field-level extraction hints</h2>
 <p>Individual fields can carry extraction guidance in <code>model.fields[]</code>, so the "what to pull" lives next to the column:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">model</span><span class="p">:</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">fields</span><span class="p">:</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sentiment</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">      </span><span class="nt">extraction_task</span><span class="p">:</span><span class="w"> </span><span class="s">"Classify</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">customer's</span><span class="nv"> </span><span class="s">sentiment."</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">      </span><span class="nt">extraction_examples</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"'love</span><span class="nv"> </span><span class="s">it'</span><span class="nv"> </span><span class="s">→</span><span class="nv"> </span><span class="s">pos"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"'terrible'</span><span class="nv"> </span><span class="s">→</span><span class="nv"> </span><span class="s">neg"</span><span class="p p-Indicator">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">model</span><span class="p">:</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">fields</span><span class="p">:</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sentiment</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="nt">extraction_task</span><span class="p">:</span><span class="w"> </span><span class="s">"Classify</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">customer's</span><span class="nv"> </span><span class="s">sentiment."</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">      </span><span class="nt">extraction_examples</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"'love</span><span class="nv"> </span><span class="s">it'</span><span class="nv"> </span><span class="s">→</span><span class="nv"> </span><span class="s">pos"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"'terrible'</span><span class="nv"> </span><span class="s">→</span><span class="nv"> </span><span class="s">neg"</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Governed all the way down</p>
@@ -2017,10 +2093,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.sections", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.sections", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../javascripts/theme-switcher.js"></script>
       

@@ -1465,7 +1465,9 @@ The reference framework needs the `dlt` extra (`pip install lakelogic[dlt]`).
 
 ### SFTP drop folder
 
-Fetch files from an SFTP server, then validate them like any landing file.
+Fetch files from an SFTP server, then validate them like any landing file. Once downloaded they are
+read by the engine's own landing reader, so every landing `format` and its [options](#source-options)
+apply, and `incremental` compares each file's **server** modification time with the run log's watermark.
 
 ```yaml
 source:
@@ -1488,6 +1490,7 @@ source:
 | `options.username` | Used when the URI has no user. |
 | `options.password` / `options.private_key_path` | Authentication. Use one. A password must be `env:VAR` — a literal is rejected. |
 | `options.known_hosts` | Host-key file. Omitted means the default `~/.ssh/known_hosts`. Only an explicit `known_hosts: null` turns verification off, and the reference framework warns when it does. |
+| `options.staging_path` | Where the files are downloaded before they are read. **Required on Spark** (a Volume or lakehouse Files folder the cluster can read); a local temporary folder otherwise. |
 
 Credentials can come from the environment instead of the contract:
 
@@ -3018,6 +3021,34 @@ materialization:
 | `soft_delete_time_column` | When the delete happened. |
 | `soft_delete_reason_column` | Why (e.g. the CDC op or a rule). |
 
+## Detecting deletes from full snapshots
+
+Some sources never say what was deleted: they send the **complete** current set of records every time (a bank's full daily settlement file over SFTP, a nightly full extract of a table). A record the table holds but today's file lacks has been deleted at source. `deletion: {strategy: snapshot_reconcile}` finds those records and deletes them, flagged (soft) or removed (hard).
+
+```yaml
+primary_key: [settlement_id]
+materialization:
+  strategy: merge                      # required: reconcile compares against the current set
+  soft_delete_column: is_deleted       # omit to REMOVE missing records instead
+  soft_delete_time_column: deleted_at
+  soft_delete_reason_column: delete_reason
+  deletion:
+    strategy: snapshot_reconcile       # every load is the COMPLETE current set
+    max_delete_ratio: 0.2              # safety stop (default 0.2)
+    scope: [country]                   # optional: one file covers one country
+```
+
+| Behaviour | |
+|---|---|
+| A key in the table, not already deleted, absent from the load | Deleted: `is_deleted: true`, `deleted_at` set, `delete_reason: missing_from_snapshot`. Its other columns keep their last values. |
+| A deleted key that appears again | Restored: `is_deleted: false`, with the new values. |
+| More than `max_delete_ratio` of current records would be deleted | The run **fails and deletes nothing**: an empty or truncated file must never wipe a table. |
+| `scope` set | Only records whose scope values appear in the load are compared, so a GB-only file never deletes FR records. |
+| The first load (empty table) | Nothing to compare: loaded as is. |
+
+!!! warning "Full loads only"
+    Use it only when **every** load is a complete snapshot. On an incremental feed every record not in that batch would be deleted, and the safety stop is the only thing between you and an emptied table. For a source that sends delete events, use [CDC deletes](ingestion.md#change-data-capture-cdc) instead.
+
 ## Reprocessing
 
 Bounded, idempotent re-runs over a date window — replace a slice without duplicating the rest:
@@ -3574,7 +3605,7 @@ Source: https://lakelogic.github.io/open-lakehouse-contract/reference/extraction
 OLC isn't limited to tabular sources. The `extraction` block (`ExtractionConfig`, 21 fields) turns **unstructured input — documents, transcripts, images, free text — into governed columns** using an LLM, with the same schema, quality, and PII guarantees as any other contract.
 
 !!! abstract "Powered by"
-    `ExtractionConfig` is a **Pydantic** model. Extraction calls the configured LLM through its provider SDK (**anthropic**, **openai**, …); structured output is constrained by a JSON Schema (`output_schema`) so the model returns valid rows, not prose. Preprocessing uses the right tool per modality — OCR (**tesseract** / pytesseract), speech-to-text (**whisper**), and NLP chunking (**spaCy**).
+    `ExtractionConfig` is a **Pydantic** model. Extraction calls the configured LLM through its provider SDK — or, with `provider: document`, reads files offline with no LLM at all — (**anthropic**, **openai**, …); structured output is constrained by a JSON Schema (`output_schema`) so the model returns valid rows, not prose. Preprocessing uses the right tool per modality — OCR (**tesseract** / pytesseract), speech-to-text (**whisper**), and NLP chunking (**spaCy**).
 
 ## Shape
 
@@ -3594,6 +3625,43 @@ extraction:
   temperature: 0
   max_tokens: 1024
 ```
+
+## Offline document reading (`provider: document`)
+
+When the input is a **file** — a PDF (typed or scanned), an image (`.png`, `.jpg`, `.tif`) or a Word document — and its fields sit next to printed labels, no LLM is needed. `provider: document` reads each file's text offline and fills each field with a regex that has **one capture group**. Nothing leaves your environment, and the same file always gives the same row.
+
+```yaml
+source:
+  type: landing
+  path: "{landing_root}/incident_reports/**/*.docx"
+  format: docx                     # pdf | image | docx
+extraction:
+  provider: document
+model:
+  fields:
+    - name: file_path              # the document each row came from
+      type: string
+    - name: incident_id
+      type: string
+      extraction_task: metadata
+      extraction_examples:
+        - 'Incident\s*ID\s*[:\t ]*\s*([A-Z]{3}-\d{8}-\d{3})'
+    - name: estimated_cost
+      type: string                 # keep as printed; cast in silver
+      extraction_task: metadata
+      extraction_examples:
+        - 'Estimated\s*cost\s*[:\t ]*\s*(\d+\.\d{2})'
+```
+
+| Rule | Why |
+|---|---|
+| One row per file; each field's pattern is its first `extraction_examples` entry, or `extraction.patterns[field]` (which wins). | The two places a contract already writes a pattern. |
+| The pattern is **label, then one capture group**: `Label\s*[:\t ]*\s*(value)`. | Scans split and misread labels; the reader retries the label tolerating spacing and OCR letter/digit swaps (`c0st`, `Tota1`), never the value. |
+| A capture stops at the end of its line. | A greedy `([^\n]+)` cannot swallow the next field on a scan. |
+| Keep amounts and dates as `string` in bronze; cast in silver. | What was printed is kept, and a bad scan fails a silver rule instead of a parse. |
+| A field with no match is `null`, never a guess. | Absent is not zero. |
+
+Running it needs LakeLogic Core **1.82.0+** with the documents extra: `pip install "lakelogic[documents]"` (pdfplumber, rapidocr, python-docx — pip only, no Tesseract or PyTorch). Use an LLM `provider` instead when fields are not labelled (free-text letters, emails) or must be inferred.
 
 ## Model & prompt
 

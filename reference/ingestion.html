@@ -26,7 +26,7 @@
       
       
       <link rel="icon" href="../assets/logo.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -34,10 +34,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2171,7 +2171,9 @@ API, DocumentDB); <code>dataset</code> is the collection and each document is on
 </table>
 <p>The reference framework needs the <code>dlt</code> extra (<code>pip install lakelogic[dlt]</code>).</p>
 <h3 id="sftp-drop-folder">SFTP drop folder</h3>
-<p>Fetch files from an SFTP server, then validate them like any landing file.</p>
+<p>Fetch files from an SFTP server, then validate them like any landing file. Once downloaded they are
+read by the engine's own landing reader, so every landing <code>format</code> and its <a href="#source-options">options</a>
+apply, and <code>incremental</code> compares each file's <strong>server</strong> modification time with the run log's watermark.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">source</span><span class="p">:</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sftp</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"sftp://ingest@files.example.com:22/inbound/"</span><span class="w">   </span><span class="c1"># user@host[:port]/remote-dir</span>
@@ -2217,6 +2219,10 @@ API, DocumentDB); <code>dataset</code> is the collection and each document is on
 <tr>
 <td><code>options.known_hosts</code></td>
 <td>Host-key file. Omitted means the default <code>~/.ssh/known_hosts</code>. Only an explicit <code>known_hosts: null</code> turns verification off, and the reference framework warns when it does.</td>
+</tr>
+<tr>
+<td><code>options.staging_path</code></td>
+<td>Where the files are downloaded before they are read. <strong>Required on Spark</strong> (a Volume or lakehouse Files folder the cluster can read); a local temporary folder otherwise.</td>
 </tr>
 </tbody>
 </table>
@@ -2543,10 +2549,10 @@ rejected with a suggestion (<code>header_rows</code> → "did you mean <code>hea
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.sections", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.top", "navigation.footer", "navigation.indexes", "navigation.sections", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../javascripts/theme-switcher.js"></script>
       
