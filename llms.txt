@@ -78,60 +78,60 @@ Found by running LLMs against this file; each one fails validation or lint:
 
 ## Schema
 
-- [JSON Schema, v1](https://lakelogic.github.io/open-lakehouse-contract/schema/v1/open-lakehouse-contract.schema.json): pin this version.
-- [JSON Schema, latest](https://lakelogic.github.io/open-lakehouse-contract/schema/latest/open-lakehouse-contract.schema.json): the current version.
+- [JSON Schema, v1](https://olc.lakelogic.io/schema/v1/open-lakehouse-contract.schema.json): pin this version.
+- [JSON Schema, latest](https://olc.lakelogic.io/schema/latest/open-lakehouse-contract.schema.json): the current version.
 
 ## Lint rules
 
-- [Lint rule catalogue](https://lakelogic.github.io/LakeLogic/contracts/lint_rules.html): every `lakelogic lint` rule with why it matters, a failing contract and the fix.
+- [Lint rule catalogue](https://docs.lakelogic.io/contracts/lint_rules.html): every `lakelogic lint` rule with why it matters, a failing contract and the fix.
 
 ## Start here
 
-- [Overview](https://lakelogic.github.io/open-lakehouse-contract/index.html)
-- [Getting Started](https://lakelogic.github.io/open-lakehouse-contract/getting-started.html)
-- [Contributing](https://lakelogic.github.io/open-lakehouse-contract/contributing.html)
+- [Overview](https://olc.lakelogic.io/index.html)
+- [Getting Started](https://olc.lakelogic.io/getting-started.html)
+- [Contributing](https://olc.lakelogic.io/contributing.html)
 
 ## Reference
 
-- [Overview & Libraries](https://lakelogic.github.io/open-lakehouse-contract/reference/schema.html)
-- [Anatomy of a Contract (all options)](https://lakelogic.github.io/open-lakehouse-contract/reference/anatomy.html)
-- [Execution Order (pre & post)](https://lakelogic.github.io/open-lakehouse-contract/reference/execution-order.html)
-- [Ingestion & Sources](https://lakelogic.github.io/open-lakehouse-contract/reference/ingestion.html)
-- [Post-Ingestion Lifecycle](https://lakelogic.github.io/open-lakehouse-contract/reference/lifecycle.html)
-- [Validation & Quality](https://lakelogic.github.io/open-lakehouse-contract/reference/quality.html)
-- [Security & PII](https://lakelogic.github.io/open-lakehouse-contract/reference/security.html)
-- [Compliance](https://lakelogic.github.io/open-lakehouse-contract/reference/compliance.html)
-- [Transformation](https://lakelogic.github.io/open-lakehouse-contract/reference/transformation.html)
-- [External Logic (Spark / notebooks)](https://lakelogic.github.io/open-lakehouse-contract/reference/external-logic.html)
-- [Materialization & Storage](https://lakelogic.github.io/open-lakehouse-contract/reference/materialization.html)
-- [Server & Output](https://lakelogic.github.io/open-lakehouse-contract/reference/server.html)
-- [Lineage](https://lakelogic.github.io/open-lakehouse-contract/reference/lineage.html)
-- [Data Products](https://lakelogic.github.io/open-lakehouse-contract/reference/data-products.html)
-- [Service Levels (SLOs)](https://lakelogic.github.io/open-lakehouse-contract/reference/slo.html)
-- [Notifications](https://lakelogic.github.io/open-lakehouse-contract/reference/notifications.html)
-- [Unstructured (LLM Extraction)](https://lakelogic.github.io/open-lakehouse-contract/reference/extraction.html)
-- [Conformance Suite](https://lakelogic.github.io/open-lakehouse-contract/reference/conformance.html)
-- [CLI](https://lakelogic.github.io/open-lakehouse-contract/reference/cli.html)
+- [Overview & Libraries](https://olc.lakelogic.io/reference/schema.html)
+- [Anatomy of a Contract (all options)](https://olc.lakelogic.io/reference/anatomy.html)
+- [Execution Order (pre & post)](https://olc.lakelogic.io/reference/execution-order.html)
+- [Ingestion & Sources](https://olc.lakelogic.io/reference/ingestion.html)
+- [Post-Ingestion Lifecycle](https://olc.lakelogic.io/reference/lifecycle.html)
+- [Validation & Quality](https://olc.lakelogic.io/reference/quality.html)
+- [Security & PII](https://olc.lakelogic.io/reference/security.html)
+- [Compliance](https://olc.lakelogic.io/reference/compliance.html)
+- [Transformation](https://olc.lakelogic.io/reference/transformation.html)
+- [External Logic (Spark / notebooks)](https://olc.lakelogic.io/reference/external-logic.html)
+- [Materialization & Storage](https://olc.lakelogic.io/reference/materialization.html)
+- [Server & Output](https://olc.lakelogic.io/reference/server.html)
+- [Lineage](https://olc.lakelogic.io/reference/lineage.html)
+- [Data Products](https://olc.lakelogic.io/reference/data-products.html)
+- [Service Levels (SLOs)](https://olc.lakelogic.io/reference/slo.html)
+- [Notifications](https://olc.lakelogic.io/reference/notifications.html)
+- [Unstructured (LLM Extraction)](https://olc.lakelogic.io/reference/extraction.html)
+- [Conformance Suite](https://olc.lakelogic.io/reference/conformance.html)
+- [CLI](https://olc.lakelogic.io/reference/cli.html)
 
 ## Concepts
 
-- [What is OLC?](https://lakelogic.github.io/open-lakehouse-contract/concepts/what-is-olc.html)
-- [Why Pydantic](https://lakelogic.github.io/open-lakehouse-contract/concepts/why-pydantic.html)
-- [AI Data Agents](https://lakelogic.github.io/open-lakehouse-contract/concepts/ai-data-agents.html)
-- [Agent-Native](https://lakelogic.github.io/open-lakehouse-contract/concepts/agent-native.html)
-- [Agent Workflow](https://lakelogic.github.io/open-lakehouse-contract/concepts/agent-workflow.html)
-- [OLC & ODCS](https://lakelogic.github.io/open-lakehouse-contract/concepts/vs-odcs.html)
+- [What is OLC?](https://olc.lakelogic.io/concepts/what-is-olc.html)
+- [Why Pydantic](https://olc.lakelogic.io/concepts/why-pydantic.html)
+- [AI Data Agents](https://olc.lakelogic.io/concepts/ai-data-agents.html)
+- [Agent-Native](https://olc.lakelogic.io/concepts/agent-native.html)
+- [Agent Workflow](https://olc.lakelogic.io/concepts/agent-workflow.html)
+- [OLC & ODCS](https://olc.lakelogic.io/concepts/vs-odcs.html)
 
 ## Providers
 
-- [Overview (matrix)](https://lakelogic.github.io/open-lakehouse-contract/providers/index.html)
-- [DuckDB / DuckLake](https://lakelogic.github.io/open-lakehouse-contract/providers/duckdb-ducklake.html)
-- [MotherDuck](https://lakelogic.github.io/open-lakehouse-contract/providers/motherduck.html)
-- [Databricks](https://lakelogic.github.io/open-lakehouse-contract/providers/databricks.html)
-- [Snowflake](https://lakelogic.github.io/open-lakehouse-contract/providers/snowflake.html)
-- [BigQuery (GCP)](https://lakelogic.github.io/open-lakehouse-contract/providers/bigquery.html)
-- [Microsoft Fabric](https://lakelogic.github.io/open-lakehouse-contract/providers/fabric.html)
-- [AWS (Glue)](https://lakelogic.github.io/open-lakehouse-contract/providers/aws.html)
+- [Overview (matrix)](https://olc.lakelogic.io/providers/index.html)
+- [DuckDB / DuckLake](https://olc.lakelogic.io/providers/duckdb-ducklake.html)
+- [MotherDuck](https://olc.lakelogic.io/providers/motherduck.html)
+- [Databricks](https://olc.lakelogic.io/providers/databricks.html)
+- [Snowflake](https://olc.lakelogic.io/providers/snowflake.html)
+- [BigQuery (GCP)](https://olc.lakelogic.io/providers/bigquery.html)
+- [Microsoft Fabric](https://olc.lakelogic.io/providers/fabric.html)
+- [AWS (Glue)](https://olc.lakelogic.io/providers/aws.html)
 
 ## Example
 
@@ -206,4 +206,4 @@ materialization:
 
 ## Optional
 
-- [llms-full.txt](https://lakelogic.github.io/open-lakehouse-contract/llms-full.txt): every reference page and example in one file.
+- [llms-full.txt](https://olc.lakelogic.io/llms-full.txt): every reference page and example in one file.

@@ -1,11 +1,11 @@
 # Open Lakehouse Contract (OLC): full reference
 
-Generated from the OLC docs (https://lakelogic.github.io/open-lakehouse-contract). The summary and the rules for writing a contract that validates first time are in https://lakelogic.github.io/open-lakehouse-contract/llms.txt.
+Generated from the OLC docs (https://olc.lakelogic.io). The summary and the rules for writing a contract that validates first time are in https://olc.lakelogic.io/llms.txt.
 
 
 ================================================================================
 # Start here: Getting Started
-Source: https://lakelogic.github.io/open-lakehouse-contract/getting-started.html
+Source: https://olc.lakelogic.io/getting-started.html
 ================================================================================
 
 # Getting Started
@@ -112,7 +112,7 @@ the dedicated [CLI](reference/cli.md) page.
 
 ================================================================================
 # Concepts: What is OLC?
-Source: https://lakelogic.github.io/open-lakehouse-contract/concepts/what-is-olc.html
+Source: https://olc.lakelogic.io/concepts/what-is-olc.html
 ================================================================================
 
 # What is OLC?
@@ -230,7 +230,7 @@ That question bounds the spec. Schema, quality, PII, lineage, materialization, a
 
 ================================================================================
 # Concepts: Why Pydantic
-Source: https://lakelogic.github.io/open-lakehouse-contract/concepts/why-pydantic.html
+Source: https://olc.lakelogic.io/concepts/why-pydantic.html
 ================================================================================
 
 # Why Pydantic
@@ -290,7 +290,7 @@ A JSON Schema derived from strict types is the ideal target for an LLM: it can b
 
 ================================================================================
 # Concepts: AI Data Agents
-Source: https://lakelogic.github.io/open-lakehouse-contract/concepts/ai-data-agents.html
+Source: https://olc.lakelogic.io/concepts/ai-data-agents.html
 ================================================================================
 
 # AI Data Agents
@@ -358,7 +358,7 @@ An OLC contract plus a framework answers the harder, data-specific question: **"
 
 ================================================================================
 # Concepts: Agent-Native
-Source: https://lakelogic.github.io/open-lakehouse-contract/concepts/agent-native.html
+Source: https://olc.lakelogic.io/concepts/agent-native.html
 ================================================================================
 
 # Agent-Native
@@ -425,7 +425,7 @@ See the **[Agent Workflow](agent-workflow.md)** for the concrete `/olc:propose �
 
 ================================================================================
 # Concepts: Agent Workflow
-Source: https://lakelogic.github.io/open-lakehouse-contract/concepts/agent-workflow.html
+Source: https://olc.lakelogic.io/concepts/agent-workflow.html
 ================================================================================
 
 # Agent Workflow
@@ -626,7 +626,7 @@ The verbs stay identical; only the wrapper differs — **all eleven ship today**
 
 ================================================================================
 # Concepts: OLC & ODCS
-Source: https://lakelogic.github.io/open-lakehouse-contract/concepts/vs-odcs.html
+Source: https://olc.lakelogic.io/concepts/vs-odcs.html
 ================================================================================
 
 # OLC & ODCS
@@ -746,7 +746,7 @@ OLC keeps its **native vocabulary lean** — the field names that map directly t
 
 ================================================================================
 # Reference: Overview & Libraries
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/schema.html
+Source: https://olc.lakelogic.io/reference/schema.html
 ================================================================================
 
 # Field Reference
@@ -872,7 +872,7 @@ Everything else layers on top. See [`examples/orders.olc.yaml`](https://github.c
 
 ================================================================================
 # Reference: Anatomy of a Contract (all options)
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/anatomy.html
+Source: https://olc.lakelogic.io/reference/anatomy.html
 ================================================================================
 
 ---
@@ -1230,7 +1230,7 @@ schedule: "0 * * * *"
 
 ================================================================================
 # Reference: Execution Order (pre & post)
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/execution-order.html
+Source: https://olc.lakelogic.io/reference/execution-order.html
 ================================================================================
 
 # Execution Order (pre & post)
@@ -1325,7 +1325,7 @@ Every runtime follows this order. Conformance cases `OLC-EO-001`–`OLC-EO-005` 
 
 ================================================================================
 # Reference: Ingestion & Sources
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/ingestion.html
+Source: https://olc.lakelogic.io/reference/ingestion.html
 ================================================================================
 
 # Ingestion & Sources
@@ -1670,7 +1670,7 @@ Every option has its meaning, default and an example in the generated reference 
 
 ================================================================================
 # Reference: Post-Ingestion Lifecycle
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/lifecycle.html
+Source: https://olc.lakelogic.io/reference/lifecycle.html
 ================================================================================
 
 # Post-Ingestion Lifecycle
@@ -1731,7 +1731,7 @@ Cleanup is one part of the run lifecycle. The neighbours:
 
 ================================================================================
 # Reference: Validation & Quality
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/quality.html
+Source: https://olc.lakelogic.io/reference/quality.html
 ================================================================================
 
 # Validation & Quality
@@ -2148,7 +2148,7 @@ quarantine:
 
 ================================================================================
 # Reference: Security & PII
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/security.html
+Source: https://olc.lakelogic.io/reference/security.html
 ================================================================================
 
 # Security & PII
@@ -2223,7 +2223,7 @@ When a masked field flows into a downstream dataset, the masking follows it. A d
 
 ================================================================================
 # Reference: Compliance
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/compliance.html
+Source: https://olc.lakelogic.io/reference/compliance.html
 ================================================================================
 
 ---
@@ -2308,7 +2308,7 @@ Compliance vocabularies differ wildly between organisations and regimes — pinn
 
 ================================================================================
 # Reference: Transformation
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/transformation.html
+Source: https://olc.lakelogic.io/reference/transformation.html
 ================================================================================
 
 # Transformation
@@ -2716,7 +2716,7 @@ UNPIVOT source ON clicks, impressions INTO NAME metric VALUE value   -- id_vars 
 
 ================================================================================
 # Reference: External Logic (Spark / notebooks)
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/external-logic.html
+Source: https://olc.lakelogic.io/reference/external-logic.html
 ================================================================================
 
 # External Logic — Spark, notebooks & complex processes
@@ -2826,7 +2826,7 @@ The compute is pluggable; the governance is the invariant.
 
 ================================================================================
 # Reference: Materialization & Storage
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/materialization.html
+Source: https://olc.lakelogic.io/reference/materialization.html
 ================================================================================
 
 # Materialization & Storage
@@ -3081,7 +3081,7 @@ schema_policy:
 
 ================================================================================
 # Reference: Server & Output
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/server.html
+Source: https://olc.lakelogic.io/reference/server.html
 ================================================================================
 
 ---
@@ -3164,7 +3164,7 @@ The write side (`strategy`, `format`, `location`) is in [Materialization & Stora
 
 ================================================================================
 # Reference: Lineage
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/lineage.html
+Source: https://olc.lakelogic.io/reference/lineage.html
 ================================================================================
 
 # Lineage
@@ -3373,7 +3373,7 @@ external source  ─(external_sources)→  bronze  ─(depends_on / upstream)→
 
 ================================================================================
 # Reference: Data Products
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/data-products.html
+Source: https://olc.lakelogic.io/reference/data-products.html
 ================================================================================
 
 # Data Products
@@ -3455,7 +3455,7 @@ implements, an output claimed by two contracts — belong to the platform that r
 
 ================================================================================
 # Reference: Service Levels (SLOs)
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/slo.html
+Source: https://olc.lakelogic.io/reference/slo.html
 ================================================================================
 
 # Service Levels (SLOs)
@@ -3517,7 +3517,7 @@ SLO breaches integrate with the control plane (incidents, dashboards) — the co
 
 ================================================================================
 # Reference: Notifications
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/notifications.html
+Source: https://olc.lakelogic.io/reference/notifications.html
 ================================================================================
 
 # Notifications
@@ -3597,7 +3597,7 @@ notifications:
 
 ================================================================================
 # Reference: Unstructured (LLM Extraction)
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/extraction.html
+Source: https://olc.lakelogic.io/reference/extraction.html
 ================================================================================
 
 # Unstructured / LLM Extraction
@@ -3752,7 +3752,7 @@ model:
 
 ================================================================================
 # Reference: Conformance Suite
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/conformance.html
+Source: https://olc.lakelogic.io/reference/conformance.html
 ================================================================================
 
 # Conformance Suite
@@ -3842,7 +3842,7 @@ Because the spec is a language-neutral JSON Schema, a framework written in any l
 
 ================================================================================
 # Reference: CLI
-Source: https://lakelogic.github.io/open-lakehouse-contract/reference/cli.html
+Source: https://olc.lakelogic.io/reference/cli.html
 ================================================================================
 
 ---
@@ -3920,7 +3920,7 @@ whole install stops before writing anything — review and merge it yourself, or
 (validate + quarantine + materialize across engines), or to validate the **mesh
 registry** that supplies contracts their shared defaults, use the LakeLogic reference
 framework and its `lakelogic` CLI — see
-[LakeLogic CLI](https://lakelogic.github.io/LakeLogic/cli/). The boundary is deliberate:
+[LakeLogic CLI](https://docs.lakelogic.io/cli/). The boundary is deliberate:
 the standard stays small and portable; the framework does the heavy lifting.
 
 
