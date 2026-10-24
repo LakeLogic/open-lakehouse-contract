@@ -71,7 +71,7 @@ Heavy Spark for the big registration and compaction; DuckDB or Polars for fast, 
 
 ## The contract is independent of the framework
 
-Crucially, OLC sits *above* any particular framework. The contract is portable intent; a **conforming framework** carries it out, and that runtime is itself swappable. [LakeLogic](https://lakelogic.org) is the reference framework — but the specification does not depend on it, and a second framework in another language could implement the same contract.
+Crucially, OLC sits *above* any particular framework. The contract is portable intent; a **conforming framework** carries it out, and that runtime is itself swappable. [LakeLogic](https://www.lakelogic.io) is the reference framework — but the specification does not depend on it, and a second framework in another language could implement the same contract.
 
 ```mermaid
 flowchart TD

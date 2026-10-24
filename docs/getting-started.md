@@ -60,7 +60,7 @@ The full vocabulary is in the [Field Reference](reference/schema.md); a complete
 
 ## 3. Execute it with the reference framework
 
-The contract becomes *executable* through a conforming framework. [LakeLogic](https://lakelogic.org) is the reference implementation:
+The contract becomes *executable* through a conforming framework. [LakeLogic](https://www.lakelogic.io) is the reference implementation:
 
 ```bash
 pip install lakelogic

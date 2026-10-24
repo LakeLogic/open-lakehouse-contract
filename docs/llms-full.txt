@@ -70,7 +70,7 @@ The full vocabulary is in the [Field Reference](reference/schema.md); a complete
 
 ## 3. Execute it with the reference framework
 
-The contract becomes *executable* through a conforming framework. [LakeLogic](https://lakelogic.org) is the reference implementation:
+The contract becomes *executable* through a conforming framework. [LakeLogic](https://www.lakelogic.io) is the reference implementation:
 
 ```bash
 pip install lakelogic
@@ -188,7 +188,7 @@ Heavy Spark for the big registration and compaction; DuckDB or Polars for fast, 
 
 ## The contract is independent of the framework
 
-Crucially, OLC sits *above* any particular framework. The contract is portable intent; a **conforming framework** carries it out, and that runtime is itself swappable. [LakeLogic](https://lakelogic.org) is the reference framework — but the specification does not depend on it, and a second framework in another language could implement the same contract.
+Crucially, OLC sits *above* any particular framework. The contract is portable intent; a **conforming framework** carries it out, and that runtime is itself swappable. [LakeLogic](https://www.lakelogic.io) is the reference framework — but the specification does not depend on it, and a second framework in another language could implement the same contract.
 
 ```mermaid
 flowchart TD
@@ -279,7 +279,7 @@ flowchart TB
 ```
 
 - **This repo** owns the canonical strict Pydantic model (`olc/models/`), generates the JSON Schema from it, and publishes both plus a conformance corpus. It is vendor-neutral: any framework can implement it, and anyone can regenerate the schema from public code — no private dependency.
-- **[LakeLogic](https://lakelogic.org)** is the reference framework that *consumes* this standard: it validates and executes the same contracts, and its behaviour is held to the model by the executable-conformance suite.
+- **[LakeLogic](https://www.lakelogic.io)** is the reference framework that *consumes* this standard: it validates and executes the same contracts, and its behaviour is held to the model by the executable-conformance suite.
 
 That's the honest version of "open standard + reference implementation": the standard is a *file you can validate against in any language*, generated from a *public* model in this repo — not extracted from a private runtime.
 
@@ -3589,7 +3589,7 @@ notifications:
 
 - **Quarantine** — `quarantine.notifications[]`, gated by `notifications_enabled` and `strict_notifications`. See [Validation & Quality](quality.md#quarantine).
 - **SLOs** — a breach of any [service level](slo.md) can raise a notification.
-- **Control plane** — in the [LakeLogic](https://lakelogic.org) framework, these same events also drive incidents, dashboards, and Zeus (agentic diagnosis) — the contract declares *what* to alert on; the platform decides *how far* to escalate.
+- **Control plane** — in the [LakeLogic](https://www.lakelogic.io) framework, these same events also drive incidents, dashboards, and Zeus (agentic diagnosis) — the contract declares *what* to alert on; the platform decides *how far* to escalate.
 
 !!! tip "Keep secrets out of the contract"
     Webhook URLs and SMTP credentials are environment configuration, not contract content. Reference them via env/secret settings on the framework; the contract only names the *channel* and *event*, so it stays safe to commit and share.

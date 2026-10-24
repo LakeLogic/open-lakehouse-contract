@@ -39,7 +39,7 @@ dependencies = ["jsonschema>=4.18", "pyyaml>=6.0"]
 models = ["pydantic>=2"]
 
 [project.urls]
-Homepage = "https://lakelogic.org"
+Homepage = "https://www.lakelogic.io"
 Repository = "https://github.com/LakeLogic/open-lakehouse-contract"
 Documentation = "https://lakelogic.github.io/open-lakehouse-contract/"
 Changelog = "https://github.com/LakeLogic/open-lakehouse-contract/blob/main/CHANGELOG.md"

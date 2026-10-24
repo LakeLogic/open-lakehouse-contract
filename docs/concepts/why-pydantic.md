@@ -44,7 +44,7 @@ flowchart TB
 ```
 
 - **This repo** owns the canonical strict Pydantic model (`olc/models/`), generates the JSON Schema from it, and publishes both plus a conformance corpus. It is vendor-neutral: any framework can implement it, and anyone can regenerate the schema from public code — no private dependency.
-- **[LakeLogic](https://lakelogic.org)** is the reference framework that *consumes* this standard: it validates and executes the same contracts, and its behaviour is held to the model by the executable-conformance suite.
+- **[LakeLogic](https://www.lakelogic.io)** is the reference framework that *consumes* this standard: it validates and executes the same contracts, and its behaviour is held to the model by the executable-conformance suite.
 
 That's the honest version of "open standard + reference implementation": the standard is a *file you can validate against in any language*, generated from a *public* model in this repo — not extracted from a private runtime.
 

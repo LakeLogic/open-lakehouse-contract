@@ -67,7 +67,7 @@ notifications:
 
 - **Quarantine** — `quarantine.notifications[]`, gated by `notifications_enabled` and `strict_notifications`. See [Validation & Quality](quality.md#quarantine).
 - **SLOs** — a breach of any [service level](slo.md) can raise a notification.
-- **Control plane** — in the [LakeLogic](https://lakelogic.org) framework, these same events also drive incidents, dashboards, and Zeus (agentic diagnosis) — the contract declares *what* to alert on; the platform decides *how far* to escalate.
+- **Control plane** — in the [LakeLogic](https://www.lakelogic.io) framework, these same events also drive incidents, dashboards, and Zeus (agentic diagnosis) — the contract declares *what* to alert on; the platform decides *how far* to escalate.
 
 !!! tip "Keep secrets out of the contract"
     Webhook URLs and SMTP credentials are environment configuration, not contract content. Reference them via env/secret settings on the framework; the contract only names the *channel* and *event*, so it stays safe to commit and share.
