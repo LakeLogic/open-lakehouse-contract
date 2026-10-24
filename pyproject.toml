@@ -5,12 +5,31 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "open-lakehouse-contract"
 version = "0.27.0"
-description = "The Open Lakehouse Contract — an open, executable, SQL-native data-product contract. CLI + validator + agent integrations."
+description = "Define and validate lakehouse data contracts in YAML. Includes a Python CLI, JSON Schema and AI agent integrations."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
 authors = [{ name = "LakeLogic" }]
-keywords = ["data-contract", "lakehouse", "data-quality", "odcs", "spec-driven"]
+# What people search for when they need this (data contract validation, schema validation…);
+# `odcs` because the README explains how OLC and ODCS relate (docs/concepts/vs-odcs.md).
+keywords = ["data-contracts", "lakehouse", "data-contract-validation", "schema-validation",
+            "data-quality", "data-governance", "yaml", "json-schema", "cli", "odcs"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Quality Assurance",
+]
 dependencies = ["jsonschema>=4.18", "pyyaml>=6.0"]
 
 # The `olc validate` CLI stays lightweight (jsonschema only). The strict Pydantic
@@ -22,6 +41,9 @@ models = ["pydantic>=2"]
 [project.urls]
 Homepage = "https://lakelogic.org"
 Repository = "https://github.com/LakeLogic/open-lakehouse-contract"
+Documentation = "https://lakelogic.github.io/open-lakehouse-contract/"
+Changelog = "https://github.com/LakeLogic/open-lakehouse-contract/blob/main/CHANGELOG.md"
+Issues = "https://github.com/LakeLogic/open-lakehouse-contract/issues"
 
 [project.scripts]
 olc = "olc.cli:main"
