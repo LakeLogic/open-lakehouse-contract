@@ -1,22 +1,23 @@
 <div align="center">
 
-<img src="assets/banner.svg" alt="Open Lakehouse Contract" width="100%">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/LakeLogic/open-lakehouse-contract/main/assets/olc_banner_light.png">
+  <img src="https://raw.githubusercontent.com/LakeLogic/open-lakehouse-contract/main/assets/olc_banner_dark.png" width="100%" alt="Open Lakehouse Contract: define your lakehouse data contracts in YAML. An open contract format for sources, schemas, quality rules and processing steps. The standard is a portable contract.yaml; a compatible runtime validates and executes it on Spark, DuckDB or Polars, writing Delta, Iceberg or DuckLake. LakeLogic Core is the reference runtime.">
+</picture>
 
 # Open Lakehouse Contract
 
-**The open standard for portable, executable lakehouse data contracts.**
+**An open standard for lakehouse data contracts in YAML.**
 
 [Documentation](https://lakelogic.github.io/open-lakehouse-contract/) · [Quickstart](docs/getting-started.md) · [Contract reference](docs/reference/schema.md) · [Compatibility evidence](docs/providers/index.md)
 
 </div>
 
-Define a data product's sources, schema, ownership, quality rules, PII handling, lineage, service levels (SLAs and SLOs), transformations and materialisation in one portable, vendor-neutral contract.
+Define your data's structure, quality rules, ownership and processing steps in one YAML file. Keep the contract in Git so people and AI agents can review changes before they are applied.
 
-Open Lakehouse Contract (OLC) captures that definition in a portable YAML document.
+Use the included Python CLI to check that your contract follows the Open Lakehouse Contract (OLC) schema. Use [LakeLogic Core](https://github.com/LakeLogic/LakeLogic) to execute supported transformations and data quality checks.
 
-The contract declares the intent. Any tool can validate its structure with JSON Schema, and a conforming runtime such as [LakeLogic Core](https://github.com/LakeLogic/LakeLogic) can execute that intent.
-
-## Validate a contract in 60 seconds
+## Validate your first YAML contract
 
 ```yaml
 version: 1.0.0
@@ -43,7 +44,7 @@ python -m pip install -e .
 olc validate examples/orders.olc.yaml
 ```
 
-The validator uses the published JSON Schema. It does not require a data engine or LakeLogic Core.
+The validator checks the contract's structure against the published JSON Schema; it does not check the dataset itself. It does not require a data engine or LakeLogic Core.
 
 ## What OLC gives you
 

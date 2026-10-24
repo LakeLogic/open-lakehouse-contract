@@ -3,7 +3,7 @@ title: Open Lakehouse Contract
 description: The open standard for portable, executable lakehouse data contracts.
 ---
 
-<img src="assets/banner.svg" alt="Open Lakehouse Contract: the open standard for portable, executable lakehouse data contracts" width="100%">
+<img src="assets/olc_banner_dark.png#only-dark" alt="Open Lakehouse Contract: define your lakehouse data contracts in YAML. A compatible runtime validates and executes them; LakeLogic Core is the reference runtime." width="100%"><img src="assets/olc_banner_light.png#only-light" alt="Open Lakehouse Contract: define your lakehouse data contracts in YAML. A compatible runtime validates and executes them; LakeLogic Core is the reference runtime." width="100%">
 
 # The open standard for portable, executable lakehouse data contracts
 
