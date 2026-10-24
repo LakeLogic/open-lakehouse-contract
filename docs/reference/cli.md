@@ -73,5 +73,5 @@ whole install stops before writing anything — review and merge it yourself, or
 (validate + quarantine + materialize across engines), or to validate the **mesh
 registry** that supplies contracts their shared defaults, use the LakeLogic reference
 framework and its `lakelogic` CLI — see
-[LakeLogic CLI](https://lakelogic.github.io/LakeLogic/cli/). The boundary is deliberate:
+[LakeLogic CLI](https://docs.lakelogic.io/cli/). The boundary is deliberate:
 the standard stays small and portable; the framework does the heavy lifting.

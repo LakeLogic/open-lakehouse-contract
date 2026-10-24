@@ -41,7 +41,7 @@ models = ["pydantic>=2"]
 [project.urls]
 Homepage = "https://www.lakelogic.io"
 Repository = "https://github.com/LakeLogic/open-lakehouse-contract"
-Documentation = "https://lakelogic.github.io/open-lakehouse-contract/"
+Documentation = "https://olc.lakelogic.io/"
 Changelog = "https://github.com/LakeLogic/open-lakehouse-contract/blob/main/CHANGELOG.md"
 Issues = "https://github.com/LakeLogic/open-lakehouse-contract/issues"
 

@@ -2,7 +2,7 @@ name: Deploy Documentation
 
 # Mirrors the LakeLogic (LL) docs deploy: on every push to main, build the mkdocs
 # site and publish it to the gh-pages branch, which GitHub Pages serves at
-# https://lakelogic.github.io/open-lakehouse-contract/ (mkdocs.yml site_url).
+# https://olc.lakelogic.io/ (mkdocs.yml site_url).
 # OLC installs docs deps from docs-requirements.txt (mkdocs-material) rather than
 # a [docs] extra, and has no notebook-sync step, so those LL-specific bits are omitted.
 

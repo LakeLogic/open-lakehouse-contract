@@ -17,7 +17,7 @@ from olc.models import load_strict
 from olc.validate import load_contract_yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-SITE = "https://lakelogic.github.io/open-lakehouse-contract/"
+SITE = "https://olc.lakelogic.io"
 EXAMPLES = sorted((ROOT / "examples").glob("*.olc.yaml"))
 
 
@@ -35,7 +35,7 @@ class LlmsTxt(unittest.TestCase):
         links = re.findall(r"\((" + re.escape(SITE) + r"[^)]+)\)", text)
         self.assertGreater(len(links), 10)
         for url in links:
-            rel = url[len(SITE) :]
+            rel = url[len(SITE) :].lstrip("/")
             local = ROOT / "docs" / (rel[:-5] + ".md" if rel.endswith(".html") else rel)
             self.assertTrue(
                 local.exists(),

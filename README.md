@@ -9,7 +9,7 @@
 
 **An open standard for lakehouse data contracts in YAML.**
 
-[Documentation](https://lakelogic.github.io/open-lakehouse-contract/) · [Quickstart](docs/getting-started.md) · [Contract reference](docs/reference/schema.md) · [Compatibility evidence](docs/providers/index.md)
+[Documentation](https://olc.lakelogic.io/) · [Quickstart](docs/getting-started.md) · [Contract reference](docs/reference/schema.md) · [Compatibility evidence](docs/providers/index.md)
 
 </div>
 

@@ -26,10 +26,10 @@ from olc.models._nested import SOURCE_TYPES, Transformation  # noqa: E402
 from olc.models.source_options import SOURCE_FORMATS  # noqa: E402
 
 DOCS = ROOT / "docs"
-SITE = "https://lakelogic.github.io/open-lakehouse-contract"
+SITE = "https://olc.lakelogic.io"
 SCHEMA_V1 = f"{SITE}/schema/v1/open-lakehouse-contract.schema.json"
 SCHEMA_LATEST = f"{SITE}/schema/latest/open-lakehouse-contract.schema.json"
-LINT_RULES = "https://lakelogic.github.io/LakeLogic/contracts/lint_rules.html"
+LINT_RULES = "https://docs.lakelogic.io/contracts/lint_rules.html"
 EXAMPLE = ROOT / "examples" / "orders.olc.yaml"
 FULL_EXAMPLE = ROOT / "examples" / "full.olc.yaml"
 OUT = DOCS / "llms.txt"
