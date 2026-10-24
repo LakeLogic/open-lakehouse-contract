@@ -1049,8 +1049,17 @@ class FieldDefinition(BaseModel):
     masking: Optional[str] = None
     masking_format: Optional[str] = None
     pii_vault: Optional[str] = None
-    extraction_task: Optional[str] = None
-    extraction_examples: List[str] = Field(default_factory=list)
+    extraction_task: Optional[str] = Field(
+        None,
+        description="What extraction fills this field from. `metadata`: a labelled value read with "
+        "a regex (the first `extraction_examples` entry) under `provider: document` or `regex`.",
+    )
+    extraction_examples: List[str] = Field(
+        default_factory=list,
+        description="Examples for extraction. Under `provider: document` the FIRST entry is the "
+        "field's regex: the printed label then ONE capture group, e.g. "
+        r"`Invoice\s*No\s*[:\t ]*\s*([A-Z]{3}-\d{4})`. Keep amounts and dates `string`; cast in silver.",
+    )
     max_length: Optional[int] = None
     #: Fixed-width sources only (``source.format: fixed_width``): the field's character
     #: positions in each record, ``[start, end]`` — 0-based, end-exclusive, so ``[0, 1]`` is
@@ -1222,6 +1231,42 @@ class SecondaryTarget(BaseModel):
     mode: Optional[str] = None
 
 
+class DeletionConfig(BaseModel):
+    """Delete detection for a source that sends complete snapshots and never a delete signal.
+
+    Example YAML (a bank's full daily settlement file):
+        primary_key: [settlement_id]
+        materialization:
+          strategy: merge
+          soft_delete_column: is_deleted
+          soft_delete_time_column: deleted_at
+          deletion:
+            strategy: snapshot_reconcile
+            max_delete_ratio: 0.2
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    strategy: Literal["snapshot_reconcile"] = Field(
+        ...,
+        description="`snapshot_reconcile`: every load is the COMPLETE current set. A key present in "
+        "the table (and not already deleted) but absent from the load is deleted - flagged with "
+        "`soft_delete_column` (reason `missing_from_snapshot`), or removed when that is not set. A "
+        "deleted key that appears again is restored (flag set back to false).",
+    )
+    max_delete_ratio: float = Field(
+        default=0.2, gt=0, le=1,
+        description="Safety stop: when a load would delete more than this share of the current "
+        "records, the run FAILS and deletes nothing. An empty or truncated file must never wipe a "
+        "table. Raise it only for a source that really does shrink that much.",
+    )
+    scope: List[str] = Field(
+        default_factory=list,
+        description="Columns a load covers when each file holds only part of the table (e.g. one "
+        "`country` per file): only records whose scope values appear in the load are reconciled. "
+        "Empty: the load covers the whole table.",
+    )
+
+
 class Materialization(BaseModel):
     """Materialization settings for writing outputs."""
 
@@ -1266,10 +1311,25 @@ class Materialization(BaseModel):
         ),
     )
     fact: Optional[FactConfig] = None
-    soft_delete_column: Optional[str] = None
+    soft_delete_column: Optional[str] = Field(
+        default=None,
+        description="With `strategy: merge`: the column set to `soft_delete_value` when a record is "
+        "deleted - by a source delete signal (`source.cdc_op_field` / `cdc_delete_values`) or by "
+        "`deletion: {strategy: snapshot_reconcile}`. Omit it and deleted records are REMOVED (hard delete).",
+    )
     soft_delete_value: Any = True
-    soft_delete_time_column: Optional[str] = None
-    soft_delete_reason_column: Optional[str] = None
+    soft_delete_time_column: Optional[str] = Field(
+        default=None, description="Column stamped with when the record was deleted.")
+    soft_delete_reason_column: Optional[str] = Field(
+        default=None, description="Column recording why: `cdc_delete_signal` or `missing_from_snapshot`.")
+    deletion: Optional["DeletionConfig"] = Field(
+        default=None,
+        description="How deletes are DETECTED when the source never says so. Use "
+        "`{strategy: snapshot_reconcile}` when every load is a FULL file of the current records (a "
+        "daily full extract, e.g. over SFTP): a key in the table but missing from the load is "
+        "deleted. Needs `strategy: merge` and `primary_key`. Never use it on an incremental feed - "
+        "every record not in that batch would be deleted.",
+    )
     table_properties: Optional[Dict[str, str]] = None
     compaction: Optional[Dict[str, Any]] = None
     unknown_member: Optional[Dict[str, Any]] = None
@@ -1298,6 +1358,7 @@ class Materialization(BaseModel):
         "soft_delete_value",
         "soft_delete_time_column",
         "soft_delete_reason_column",
+        "deletion",
         "table_properties",
         "compaction",
         "unknown_member",
@@ -1307,6 +1368,14 @@ class Materialization(BaseModel):
         "dlt_credentials",
         "dlt_dataset_name",
     }
+
+    @model_validator(mode="after")
+    def _deletion_needs_merge(self) -> "Materialization":
+        # A snapshot is reconciled against the records a MERGE keeps; append and overwrite keep
+        # no current set to compare it with, so the setting would silently do nothing.
+        if self.deletion is not None and str(self.strategy).lower() != "merge":
+            raise ValueError("materialization.deletion needs strategy: merge")
+        return self
 
 
 class UpstreamContractRef(BaseModel):
@@ -1524,7 +1593,14 @@ class ExtractionConfig(BaseModel):
     """
 
     model_config = ConfigDict(extra="allow")
-    provider: str
+    provider: str = Field(
+        ...,
+        description="Who extracts. `document`: offline, no LLM - reads each PDF, scan, image or "
+        "Word file (source.format pdf | image | docx) into one row, each field filled by its regex "
+        "(see `patterns` / field `extraction_examples`); needs LakeLogic Core 1.82+ with "
+        "`lakelogic[documents]`. `regex`: the same over a text column. Otherwise an LLM provider "
+        "(`openai`, `anthropic`, ...) for values that are not labelled or must be inferred.",
+    )
     model: str = "auto"
     temperature: float = 0.1
     max_tokens: int = 1000
@@ -1538,7 +1614,13 @@ class ExtractionConfig(BaseModel):
     # provider: regex — deterministic, offline extraction. Maps each output field
     # to a regex with one capture group applied to the text_column. No LLM/network;
     # makes the extraction path testable and conformance-checkable across engines.
-    patterns: Optional[Dict[str, str]] = None
+    # provider: document — the same patterns over each FILE's text (PDF, scan, image, Word),
+    # read offline; a field's first `extraction_examples` entry is its pattern when absent here.
+    patterns: Optional[Dict[str, str]] = Field(
+        None,
+        description="field -> regex with ONE capture group, for `provider: document` / `regex`. "
+        "Wins over a field's `extraction_examples`.",
+    )
     batch_size: int = 50
     concurrency: int = 5
     retry: Optional[RetryConfig] = Field(default_factory=RetryConfig)

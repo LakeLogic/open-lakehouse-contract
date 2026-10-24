@@ -374,6 +374,13 @@ class SftpOptions(_Options):
         description="known_hosts file used to verify the server. Default `~/.ssh/known_hosts`; "
         "an explicit null turns host verification off (not recommended).",
     )
+    staging_path: Optional[str] = Field(
+        default=None,
+        description="Folder the files are downloaded into before they are read - by the same "
+        "reader, with the same format options, as a landing folder. Required on Spark: a path the "
+        "cluster can read (a Volume or lakehouse Files folder). Default elsewhere: a local "
+        "temporary folder.",
+    )
 
 
 _STARTING_OFFSETS = Field(

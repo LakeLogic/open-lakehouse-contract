@@ -135,7 +135,9 @@ The reference framework needs the `dlt` extra (`pip install lakelogic[dlt]`).
 
 ### SFTP drop folder
 
-Fetch files from an SFTP server, then validate them like any landing file.
+Fetch files from an SFTP server, then validate them like any landing file. Once downloaded they are
+read by the engine's own landing reader, so every landing `format` and its [options](#source-options)
+apply, and `incremental` compares each file's **server** modification time with the run log's watermark.
 
 ```yaml
 source:
@@ -158,6 +160,7 @@ source:
 | `options.username` | Used when the URI has no user. |
 | `options.password` / `options.private_key_path` | Authentication. Use one. A password must be `env:VAR` — a literal is rejected. |
 | `options.known_hosts` | Host-key file. Omitted means the default `~/.ssh/known_hosts`. Only an explicit `known_hosts: null` turns verification off, and the reference framework warns when it does. |
+| `options.staging_path` | Where the files are downloaded before they are read. **Required on Spark** (a Volume or lakehouse Files folder the cluster can read); a local temporary folder otherwise. |
 
 Credentials can come from the environment instead of the contract:
 

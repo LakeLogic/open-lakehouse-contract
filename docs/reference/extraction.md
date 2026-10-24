@@ -3,7 +3,7 @@
 OLC isn't limited to tabular sources. The `extraction` block (`ExtractionConfig`, 21 fields) turns **unstructured input — documents, transcripts, images, free text — into governed columns** using an LLM, with the same schema, quality, and PII guarantees as any other contract.
 
 !!! abstract "Powered by"
-    `ExtractionConfig` is a **Pydantic** model. Extraction calls the configured LLM through its provider SDK (**anthropic**, **openai**, …); structured output is constrained by a JSON Schema (`output_schema`) so the model returns valid rows, not prose. Preprocessing uses the right tool per modality — OCR (**tesseract** / pytesseract), speech-to-text (**whisper**), and NLP chunking (**spaCy**).
+    `ExtractionConfig` is a **Pydantic** model. Extraction calls the configured LLM through its provider SDK — or, with `provider: document`, reads files offline with no LLM at all — (**anthropic**, **openai**, …); structured output is constrained by a JSON Schema (`output_schema`) so the model returns valid rows, not prose. Preprocessing uses the right tool per modality — OCR (**tesseract** / pytesseract), speech-to-text (**whisper**), and NLP chunking (**spaCy**).
 
 ## Shape
 
@@ -23,6 +23,43 @@ extraction:
   temperature: 0
   max_tokens: 1024
 ```
+
+## Offline document reading (`provider: document`)
+
+When the input is a **file** — a PDF (typed or scanned), an image (`.png`, `.jpg`, `.tif`) or a Word document — and its fields sit next to printed labels, no LLM is needed. `provider: document` reads each file's text offline and fills each field with a regex that has **one capture group**. Nothing leaves your environment, and the same file always gives the same row.
+
+```yaml
+source:
+  type: landing
+  path: "{landing_root}/incident_reports/**/*.docx"
+  format: docx                     # pdf | image | docx
+extraction:
+  provider: document
+model:
+  fields:
+    - name: file_path              # the document each row came from
+      type: string
+    - name: incident_id
+      type: string
+      extraction_task: metadata
+      extraction_examples:
+        - 'Incident\s*ID\s*[:\t ]*\s*([A-Z]{3}-\d{8}-\d{3})'
+    - name: estimated_cost
+      type: string                 # keep as printed; cast in silver
+      extraction_task: metadata
+      extraction_examples:
+        - 'Estimated\s*cost\s*[:\t ]*\s*(\d+\.\d{2})'
+```
+
+| Rule | Why |
+|---|---|
+| One row per file; each field's pattern is its first `extraction_examples` entry, or `extraction.patterns[field]` (which wins). | The two places a contract already writes a pattern. |
+| The pattern is **label, then one capture group**: `Label\s*[:\t ]*\s*(value)`. | Scans split and misread labels; the reader retries the label tolerating spacing and OCR letter/digit swaps (`c0st`, `Tota1`), never the value. |
+| A capture stops at the end of its line. | A greedy `([^\n]+)` cannot swallow the next field on a scan. |
+| Keep amounts and dates as `string` in bronze; cast in silver. | What was printed is kept, and a bad scan fails a silver rule instead of a parse. |
+| A field with no match is `null`, never a guess. | Absent is not zero. |
+
+Running it needs LakeLogic Core **1.82.0+** with the documents extra: `pip install "lakelogic[documents]"` (pdfplumber, rapidocr, python-docx — pip only, no Tesseract or PyTorch). Use an LLM `provider` instead when fields are not labelled (free-text letters, emails) or must be inferred.
 
 ## Model & prompt
 

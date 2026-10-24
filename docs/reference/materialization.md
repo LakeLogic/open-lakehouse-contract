@@ -190,6 +190,34 @@ materialization:
 | `soft_delete_time_column` | When the delete happened. |
 | `soft_delete_reason_column` | Why (e.g. the CDC op or a rule). |
 
+## Detecting deletes from full snapshots
+
+Some sources never say what was deleted: they send the **complete** current set of records every time (a bank's full daily settlement file over SFTP, a nightly full extract of a table). A record the table holds but today's file lacks has been deleted at source. `deletion: {strategy: snapshot_reconcile}` finds those records and deletes them, flagged (soft) or removed (hard).
+
+```yaml
+primary_key: [settlement_id]
+materialization:
+  strategy: merge                      # required: reconcile compares against the current set
+  soft_delete_column: is_deleted       # omit to REMOVE missing records instead
+  soft_delete_time_column: deleted_at
+  soft_delete_reason_column: delete_reason
+  deletion:
+    strategy: snapshot_reconcile       # every load is the COMPLETE current set
+    max_delete_ratio: 0.2              # safety stop (default 0.2)
+    scope: [country]                   # optional: one file covers one country
+```
+
+| Behaviour | |
+|---|---|
+| A key in the table, not already deleted, absent from the load | Deleted: `is_deleted: true`, `deleted_at` set, `delete_reason: missing_from_snapshot`. Its other columns keep their last values. |
+| A deleted key that appears again | Restored: `is_deleted: false`, with the new values. |
+| More than `max_delete_ratio` of current records would be deleted | The run **fails and deletes nothing**: an empty or truncated file must never wipe a table. |
+| `scope` set | Only records whose scope values appear in the load are compared, so a GB-only file never deletes FR records. |
+| The first load (empty table) | Nothing to compare: loaded as is. |
+
+!!! warning "Full loads only"
+    Use it only when **every** load is a complete snapshot. On an incremental feed every record not in that batch would be deleted, and the safety stop is the only thing between you and an emptied table. For a source that sends delete events, use [CDC deletes](ingestion.md#change-data-capture-cdc) instead.
+
 ## Reprocessing
 
 Bounded, idempotent re-runs over a date window — replace a slice without duplicating the rest:
