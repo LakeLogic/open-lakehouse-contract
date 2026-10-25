@@ -11,7 +11,7 @@ Define a data product's sources, schema, ownership, quality rules, PII handling,
 
 Open Lakehouse Contract (OLC) captures that definition in a portable YAML document.
 
-The contract holds the intent. JSON Schema validates its structure, while a conforming runtime such as [LakeLogic Core](https://github.com/LakeLogic/LakeLogic) executes the declared behaviour.
+The contract holds the intent. JSON Schema validates its structure, while a conforming runtime such as [LakeLogic Core](https://docs.lakelogic.io/) executes the declared behaviour.
 
 <div class="grid cards" markdown>
 

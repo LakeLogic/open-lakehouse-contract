@@ -1,6 +1,6 @@
 # Field Reference
 
-The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contract.schema.json`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/schema/open-lakehouse-contract.schema.json). It has **30 top-level fields** and **65 nested model definitions**. A contract requires `version`, `info`, and `model`; other capabilities are opt-in.
+The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contract.schema.json`](https://olc.lakelogic.io/schema/v1/open-lakehouse-contract.schema.json). It has **30 top-level fields** and **65 nested model definitions**. A contract requires `version`, `info`, and `model`; other capabilities are opt-in.
 
 Typed OLC objects are strict: unknown keys fail validation instead of being silently ignored. Vendor-specific fields belong under the explicit `extensions` object and use a namespaced key such as `com.acme.retention`.
 

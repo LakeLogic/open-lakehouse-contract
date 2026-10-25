@@ -15,7 +15,7 @@
 
 Define your data's structure, quality rules, ownership and processing steps in one YAML file. Keep the contract in Git so people and AI agents can review changes before they are applied.
 
-Use the included Python CLI to check that your contract follows the Open Lakehouse Contract (OLC) schema. Use [LakeLogic Core](https://github.com/LakeLogic/LakeLogic) to execute supported transformations and data quality checks.
+Use the included Python CLI to check that your contract follows the Open Lakehouse Contract (OLC) schema. Use [LakeLogic Core](https://docs.lakelogic.io/) to execute supported transformations and data quality checks.
 
 ## Validate your first YAML contract
 
@@ -57,7 +57,7 @@ The validator checks the contract's structure against the published JSON Schema;
 
 ## Execute with LakeLogic Core
 
-OLC is the standard. [LakeLogic Core](https://github.com/LakeLogic/LakeLogic) is the open-source reference runtime.
+OLC is the standard. [LakeLogic Core](https://docs.lakelogic.io/) is the open-source reference runtime.
 
 ```bash
 python -m pip install lakelogic

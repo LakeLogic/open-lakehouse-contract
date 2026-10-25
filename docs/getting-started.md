@@ -4,7 +4,7 @@ An Open Lakehouse Contract is just a YAML file plus a JSON Schema to validate it
 
 ## 1. Validate a contract against the spec
 
-The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contract.schema.json`](https://github.com/LakeLogic/open-lakehouse-contract/blob/main/schema/open-lakehouse-contract.schema.json). Validate any OLC file against it with any JSON-Schema tool, in any language.
+The spec is a single JSON Schema (Draft 2020-12): [`schema/open-lakehouse-contract.schema.json`](https://olc.lakelogic.io/schema/v1/open-lakehouse-contract.schema.json). Validate any OLC file against it with any JSON-Schema tool, in any language.
 
 ```bash
 pip install jsonschema pyyaml

@@ -9,7 +9,7 @@ repo_url: https://github.com/LakeLogic/open-lakehouse-contract
 edit_uri: edit/main/docs/
 copyright: >
   Copyright &copy; 2026 — the Open Lakehouse Contract is vendor-neutral ·
-  Reference framework: <a href="https://www.lakelogic.io" target="_blank">LakeLogic</a>
+  Reference framework: <a href="https://docs.lakelogic.io/" target="_blank">LakeLogic</a>
 
 use_directory_urls: false
 dev_addr: 127.0.0.1:8011
