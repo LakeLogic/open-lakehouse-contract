@@ -9,7 +9,7 @@
 
 **An open standard for lakehouse data contracts in YAML.**
 
-[Documentation](https://olc.lakelogic.io/) · [Quickstart](docs/getting-started.md) · [Contract reference](docs/reference/schema.md) · [Compatibility evidence](docs/providers/index.md)
+[Documentation](https://olc.lakelogic.io/) · [Quickstart](https://olc.lakelogic.io/getting-started.html) · [Contract reference](https://olc.lakelogic.io/reference/schema.html) · [Compatibility evidence](https://olc.lakelogic.io/providers/index.html)
 
 </div>
 
@@ -86,7 +86,7 @@ You can use the OLC schema without LakeLogic Core, and another runtime may imple
 | Operations | Lineage, notifications and run controls |
 | Materialisation and delivery | Write strategy, table format, target location and downstream consumers |
 
-See the [field reference](docs/reference/schema.md) for the complete vocabulary.
+See the [field reference](https://olc.lakelogic.io/reference/schema.html) for the complete vocabulary.
 
 ## Compatibility and evidence
 
@@ -96,18 +96,18 @@ OLC separates portable contract intent from runtime and platform configuration. 
 - **Runtime conformance** compares observable behaviour across supported engines.
 - **Provider evidence** records what was deployed and materialised on each platform.
 
-DuckDB and Polars run in the default executable-conformance suite. Other engines and platforms have their own stated scope and limitations. See the [conformance suite](docs/reference/conformance.md) and [provider evidence matrix](docs/providers/index.md) rather than assuming every engine × format × platform combination has identical coverage.
+DuckDB and Polars run in the default executable-conformance suite. Other engines and platforms have their own stated scope and limitations. See the [conformance suite](https://olc.lakelogic.io/reference/conformance.html) and [provider evidence matrix](https://olc.lakelogic.io/providers/index.html) rather than assuming every engine × format × platform combination has identical coverage.
 
 ## Documentation
 
-- [Getting started](docs/getting-started.md) — validate and execute your first contract.
-- [What is OLC?](docs/concepts/what-is-olc.md) — understand the contract/runtime boundary.
-- [Contract reference](docs/reference/schema.md) — define sources, ownership, quality, transformation, lineage, service levels and materialisation.
-- [Conformance](docs/reference/conformance.md) — see how structural and runtime behaviour are tested.
-- [Providers](docs/providers/index.md) — inspect evidence and limitations by platform.
-- [OLC and ODCS](docs/concepts/vs-odcs.md) — understand how the standards complement each other.
+- [Getting started](https://olc.lakelogic.io/getting-started.html) — validate and execute your first contract.
+- [What is OLC?](https://olc.lakelogic.io/concepts/what-is-olc.html) — understand the contract/runtime boundary.
+- [Contract reference](https://olc.lakelogic.io/reference/schema.html) — define sources, ownership, quality, transformation, lineage, service levels and materialisation.
+- [Conformance](https://olc.lakelogic.io/reference/conformance.html) — see how structural and runtime behaviour are tested.
+- [Providers](https://olc.lakelogic.io/providers/index.html) — inspect evidence and limitations by platform.
+- [OLC and ODCS](https://olc.lakelogic.io/concepts/vs-odcs.html) — understand how the standards complement each other.
 
-Contributions are welcome. Start with the [contributing guide](docs/contributing.md).
+Contributions are welcome. Start with the [contributing guide](https://olc.lakelogic.io/contributing.html).
 
 ## Licence
 
