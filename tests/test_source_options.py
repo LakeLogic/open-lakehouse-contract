@@ -214,22 +214,41 @@ def test_a_landing_folder_can_be_read_as_a_stream():
     """`kind: files`: a landing folder streamed (Auto Loader on Databricks), 2026-10-27."""
     from olc.models.source_options import FileStreamOptions, options_models_for
 
-    src = {"type": "stream", "path": "abfss://landing@acct.dfs.core.windows.net/rideflow/trips/",
-           "format": "csv", "options": {"kind": "files", "header": True, "max_files_per_trigger": 10}}
+    src = {
+        "type": "stream",
+        "path": "abfss://landing@acct.dfs.core.windows.net/rideflow/trips/",
+        "format": "csv",
+        "options": {"kind": "files", "header": True, "max_files_per_trigger": 10},
+    }
     assert options_models_for(src) == (FileStreamOptions,)
 
 
 def test_a_kinesis_stream_has_its_own_options():
     from olc.models.source_options import KinesisStreamOptions, options_models_for
 
-    src = {"type": "stream", "path": "trip_requests",
-           "options": {"kind": "kinesis", "region": "eu-west-1", "access_key_id": "env:K", "secret_access_key": "env:S"}}
+    src = {
+        "type": "stream",
+        "path": "trip_requests",
+        "options": {
+            "kind": "kinesis",
+            "region": "eu-west-1",
+            "access_key_id": "env:K",
+            "secret_access_key": "env:S",
+        },
+    }
     assert options_models_for(src) == (KinesisStreamOptions,)
 
 
 def test_a_pubsub_stream_has_its_own_options():
     from olc.models.source_options import PubSubStreamOptions, options_models_for
 
-    src = {"type": "stream", "path": "trip_requests",
-           "options": {"kind": "pubsub", "project": "rideflow-dev", "credentials_json": "env:K"}}
+    src = {
+        "type": "stream",
+        "path": "trip_requests",
+        "options": {
+            "kind": "pubsub",
+            "project": "rideflow-dev",
+            "credentials_json": "env:K",
+        },
+    }
     assert options_models_for(src) == (PubSubStreamOptions,)

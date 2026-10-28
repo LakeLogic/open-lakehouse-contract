@@ -537,11 +537,15 @@ class FileStreamOptions(_Options):
     )
     processing_time: Optional[str] = _PROCESSING_TIME
     header: Optional[bool] = Field(
-        default=None, description="CSV: the first line names the columns. Default `true`."
+        default=None,
+        description="CSV: the first line names the columns. Default `true`.",
     )
-    delimiter: Optional[str] = Field(default=None, description="CSV: the field separator. Default `,`.")
+    delimiter: Optional[str] = Field(
+        default=None, description="CSV: the field separator. Default `,`."
+    )
     multiline: Optional[bool] = Field(
-        default=None, description="JSON: each file is one document (or an array), not one record per line."
+        default=None,
+        description="JSON: each file is one document (or an array), not one record per line.",
     )
     max_files_per_trigger: Optional[int] = Field(
         default=None, ge=1, description="At most this many new files per micro-batch."
@@ -555,19 +559,26 @@ class KinesisStreamOptions(_Options):
     position is kept in the checkpoint. Secrets must be `env:VAR`."""
 
     kind: Literal["kinesis"] = Field(description="`kinesis`.")
-    stream: Optional[str] = Field(default=None, description="The Kinesis stream. Default: `source.path`.")
-    region: str = Field(description="The AWS region, e.g. `eu-west-1` (`env:VAR` allowed).")
+    stream: Optional[str] = Field(
+        default=None, description="The Kinesis stream. Default: `source.path`."
+    )
+    region: str = Field(
+        description="The AWS region, e.g. `eu-west-1` (`env:VAR` allowed)."
+    )
     starting_position: Optional[Literal["earliest", "latest"]] = Field(
-        default=None, description="Where a first run starts: `earliest` (default) or `latest`."
+        default=None,
+        description="Where a first run starts: `earliest` (default) or `latest`.",
     )
     role_arn: Optional[str] = Field(
         default=None, description="An IAM role the compute assumes to read the stream."
     )
     access_key_id: Optional[str] = Field(
-        default=None, description="AWS access key id, as `env:VAR` (with `secret_access_key`)."
+        default=None,
+        description="AWS access key id, as `env:VAR` (with `secret_access_key`).",
     )
     secret_access_key: Optional[str] = Field(
-        default=None, description="AWS secret access key, as `env:VAR`. Never a literal."
+        default=None,
+        description="AWS secret access key, as `env:VAR`. Never a literal.",
     )
     checkpoint: Optional[str] = _CHECKPOINT
     trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
@@ -583,9 +594,16 @@ class PubSubStreamOptions(_Options):
     quarantined. The position is kept in the checkpoint. The login is a service account key."""
 
     kind: Literal["pubsub"] = Field(description="`pubsub`.")
-    subscription: Optional[str] = Field(default=None, description="The subscription to read. Default: `source.path`.")
-    topic: Optional[str] = Field(default=None, description="The topic it subscribes to. Default: the subscription.")
-    project: str = Field(description="The Google Cloud project, e.g. `rideflow-dev` (`env:VAR` allowed).")
+    subscription: Optional[str] = Field(
+        default=None, description="The subscription to read. Default: `source.path`."
+    )
+    topic: Optional[str] = Field(
+        default=None,
+        description="The topic it subscribes to. Default: the subscription.",
+    )
+    project: str = Field(
+        description="The Google Cloud project, e.g. `rideflow-dev` (`env:VAR` allowed)."
+    )
     credentials_json: Optional[str] = Field(
         default=None,
         description="A service account key file's JSON, as `env:VAR` (one secret holds the whole key). "
