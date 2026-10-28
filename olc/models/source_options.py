@@ -489,6 +489,115 @@ class EventHubsOptions(_Options):
     max_offsets_per_trigger: Optional[int] = _MAX_OFFSETS
 
 
+class DeltaStreamOptions(_Options):
+    """Options for `type: stream` with `kind: delta`: read a Delta table as a stream (Spark
+    Structured Streaming), each micro-batch processed and written with its position kept in the
+    checkpoint. Engines without streaming read the table incrementally instead."""
+
+    kind: Literal["delta"] = Field(description="`delta`.")
+    table: Optional[str] = Field(
+        default=None,
+        description="The table to stream from, e.g. `catalog.schema.bronze_events`. Default: `source.path`.",
+    )
+    checkpoint: Optional[str] = _CHECKPOINT
+    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
+        _TRIGGER
+    )
+    processing_time: Optional[str] = _PROCESSING_TIME
+
+
+class IcebergStreamOptions(_Options):
+    """Options for `type: stream` with `kind: iceberg`: read an Iceberg table as a stream (Spark
+    Structured Streaming over its appended snapshots), each micro-batch processed and written with
+    its position kept in the checkpoint. Snapshots that overwrite or delete are skipped: a stream
+    carries appends. Engines without streaming read the table incrementally instead."""
+
+    kind: Literal["iceberg"] = Field(description="`iceberg`.")
+    table: Optional[str] = Field(
+        default=None,
+        description="The table to stream from, e.g. `catalog.schema.bronze_events`. Default: `source.path`.",
+    )
+    checkpoint: Optional[str] = _CHECKPOINT
+    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
+        _TRIGGER
+    )
+    processing_time: Optional[str] = _PROCESSING_TIME
+
+
+class FileStreamOptions(_Options):
+    """Options for `type: stream` with `kind: files`: read a landing folder as a stream (Spark
+    Structured Streaming; Auto Loader on Databricks). Each new file is read once, its place kept in
+    the checkpoint; `source.path` is the folder and `source.format` the file format. Every column
+    is read as text, as Bronze keeps it. Engines without streaming read the folder incrementally."""
+
+    kind: Literal["files"] = Field(description="`files`.")
+    checkpoint: Optional[str] = _CHECKPOINT
+    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
+        _TRIGGER
+    )
+    processing_time: Optional[str] = _PROCESSING_TIME
+    header: Optional[bool] = Field(
+        default=None, description="CSV: the first line names the columns. Default `true`."
+    )
+    delimiter: Optional[str] = Field(default=None, description="CSV: the field separator. Default `,`.")
+    multiline: Optional[bool] = Field(
+        default=None, description="JSON: each file is one document (or an array), not one record per line."
+    )
+    max_files_per_trigger: Optional[int] = Field(
+        default=None, ge=1, description="At most this many new files per micro-batch."
+    )
+
+
+class KinesisStreamOptions(_Options):
+    """Options for `type: stream` with `kind: kinesis`: read an Amazon Kinesis data stream of JSON
+    records with Databricks' built-in source (Spark on Databricks only; elsewhere use `kind: kafka`
+    with AWS MSK). Each record becomes a row; one that is not a JSON object is quarantined. The
+    position is kept in the checkpoint. Secrets must be `env:VAR`."""
+
+    kind: Literal["kinesis"] = Field(description="`kinesis`.")
+    stream: Optional[str] = Field(default=None, description="The Kinesis stream. Default: `source.path`.")
+    region: str = Field(description="The AWS region, e.g. `eu-west-1` (`env:VAR` allowed).")
+    starting_position: Optional[Literal["earliest", "latest"]] = Field(
+        default=None, description="Where a first run starts: `earliest` (default) or `latest`."
+    )
+    role_arn: Optional[str] = Field(
+        default=None, description="An IAM role the compute assumes to read the stream."
+    )
+    access_key_id: Optional[str] = Field(
+        default=None, description="AWS access key id, as `env:VAR` (with `secret_access_key`)."
+    )
+    secret_access_key: Optional[str] = Field(
+        default=None, description="AWS secret access key, as `env:VAR`. Never a literal."
+    )
+    checkpoint: Optional[str] = _CHECKPOINT
+    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
+        _TRIGGER
+    )
+    processing_time: Optional[str] = _PROCESSING_TIME
+
+
+class PubSubStreamOptions(_Options):
+    """Options for `type: stream` with `kind: pubsub`: read a Google Pub/Sub subscription of JSON
+    messages with Databricks' built-in source (Spark on Databricks only; elsewhere use `kind: kafka`
+    with Google Managed Kafka). Each message becomes a row; one that is not a JSON object is
+    quarantined. The position is kept in the checkpoint. The login is a service account key."""
+
+    kind: Literal["pubsub"] = Field(description="`pubsub`.")
+    subscription: Optional[str] = Field(default=None, description="The subscription to read. Default: `source.path`.")
+    topic: Optional[str] = Field(default=None, description="The topic it subscribes to. Default: the subscription.")
+    project: str = Field(description="The Google Cloud project, e.g. `rideflow-dev` (`env:VAR` allowed).")
+    credentials_json: Optional[str] = Field(
+        default=None,
+        description="A service account key file's JSON, as `env:VAR` (one secret holds the whole key). "
+        "Without it the compute's own identity is used.",
+    )
+    checkpoint: Optional[str] = _CHECKPOINT
+    trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
+        _TRIGGER
+    )
+    processing_time: Optional[str] = _PROCESSING_TIME
+
+
 #: Every options model, in reference order.
 OPTIONS_MODELS: Tuple[Type[BaseModel], ...] = (
     CsvOptions,
@@ -505,6 +614,11 @@ OPTIONS_MODELS: Tuple[Type[BaseModel], ...] = (
     SftpOptions,
     KafkaOptions,
     EventHubsOptions,
+    DeltaStreamOptions,
+    IcebergStreamOptions,
+    FileStreamOptions,
+    KinesisStreamOptions,
+    PubSubStreamOptions,
 )
 
 _BY_FORMAT: Dict[str, Type[BaseModel]] = {
@@ -565,6 +679,16 @@ def options_models_for(source: Dict[str, Any]) -> Tuple[Type[BaseModel], ...]:
         return (KafkaOptions,)
     if stype == "stream" and kind == "eventhubs":
         return (EventHubsOptions,)
+    if stype == "stream" and kind == "delta":
+        return (DeltaStreamOptions,)
+    if stype == "stream" and kind == "iceberg":
+        return (IcebergStreamOptions,)
+    if stype == "stream" and kind == "files":
+        return (FileStreamOptions,)
+    if stype == "stream" and kind == "kinesis":
+        return (KinesisStreamOptions,)
+    if stype == "stream" and kind == "pubsub":
+        return (PubSubStreamOptions,)
     if stype == "database":
         if path.startswith(("mongodb://", "mongodb+srv://")):
             return (MongoDbOptions,)
@@ -605,9 +729,14 @@ def check_source_options(source: Dict[str, Any], path: str = "source.") -> List[
         None,
         "kafka",
         "eventhubs",
+        "delta",
+        "iceberg",
+        "files",
+        "kinesis",
+        "pubsub",
     ):
         return problems + [
-            f"{path}options.kind: '{opts.get('kind')}' is not one of: kafka, eventhubs"
+            f"{path}options.kind: '{opts.get('kind')}' is not one of: kafka, eventhubs, delta, iceberg, files, kinesis, pubsub"
         ]
 
     models = options_models_for(source)

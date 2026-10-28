@@ -1350,7 +1350,7 @@ source:
 | `type` | Reads | Key fields |
 |---|---|---|
 | `landing` | Files in a landing directory or object store (CSV, JSON, JSONL, Parquet) | `path`, `format`, `pattern` |
-| `stream` | A file or table location read in micro-batches by watermark | `path`, `format`, `watermark_field` |
+| `stream` | Events, a table or a folder of files read as a stream: `options.kind` is `eventhubs`, `kafka`, `kinesis`, `pubsub`, `files`, `delta` or `iceberg` | `path`, `options.kind`, `options.checkpoint` |
 | `table` | An upstream lakehouse table (catalog name or `table:` reference) | `path`, `format` |
 | `delta` | A Delta table directory | `path` |
 | `iceberg` | An Iceberg table directory | `path` |
@@ -1500,45 +1500,109 @@ Credentials can come from the environment instead of the contract:
 | `LAKELOGIC_SFTP_PASSWORD` | `options.password` |
 | `LAKELOGIC_SFTP_KEY` | `options.private_key_path` |
 
-### Kafka and Azure Event Hubs
+### Streaming sources
 
-`type: stream` with `options.kind` reads a message broker. Every micro-batch is validated and written, and the read
-position is committed after each write, so the next run continues where the last one stopped. Messages must be JSON
-objects; one that is not is quarantined with the reason and the stream continues.
+`type: stream` with `options.kind` reads events, a table or a folder of files **as a stream**: each micro-batch is
+validated and written (good rows to the target, bad rows to quarantine), and the read position is kept in a
+`checkpoint`, so the next run continues where the last one stopped. With `trigger: available_now` (the default) a run
+reads everything that arrived since the last one and stops, which is the first load and every incremental load in one
+scheduled job, at batch cost. `trigger: continuous` keeps running.
+
+| `kind` | Reads | Runs on | Secrets |
+|---|---|---|---|
+| `eventhubs` | Azure Event Hubs (its Kafka endpoint); the event hub is `topic` | Spark; Polars/DuckDB | `connection_string: env:VAR` |
+| `kafka` | any Kafka: Confluent, AWS MSK, Google Managed Kafka, self-hosted | Spark; Polars/DuckDB | `sasl_password: env:VAR` |
+| `kinesis` | an Amazon Kinesis data stream of JSON records | Spark on Databricks only | `access_key_id` / `secret_access_key: env:VAR`, or `role_arn` |
+| `pubsub` | a Google Pub/Sub subscription of JSON messages | Spark on Databricks only | `credentials_json: env:VAR` (a service account key) |
+| `files` | a landing folder: each new file read once (Auto Loader on Databricks) | Spark; Polars/DuckDB read the folder incrementally | none |
+| `delta` | a Delta table: the usual Silver over a streaming Bronze | Spark; others read the table incrementally | none |
+| `iceberg` | an Iceberg table's appended snapshots | Spark; others read the table incrementally | none |
+
+Which one: events from a broker are `eventhubs` (Azure), `kafka` (anything Kafka, including AWS MSK and Google
+Managed Kafka), `kinesis` (AWS, on Databricks) or `pubsub` (Google Cloud, on Databricks). Files that land in a folder are `files`. A Silver that should follow a
+streaming Bronze reads it with `delta` (or `iceberg` for an Iceberg lakehouse), by position, so equal or late
+timestamps are never missed. Messages and records must be JSON objects; one that is not is quarantined with its reason
+(and its partition and offset, or shard and sequence number) and the stream continues.
 
 ```yaml
+# Azure Event Hubs: the namespace connection string holds the brokers and the login.
+source:
+  type: stream
+  path: trip_requests                  # the event hub
+  options:
+    kind: eventhubs
+    connection_string: env:EVENTHUBS_RIDEFLOW_CONNECTION_STRING
+    starting_offsets: earliest         # earliest | latest — first run only
+    checkpoint: "{log_root}/_checkpoints/trip_requests"
+    trigger: available_now             # available_now (drain, then stop) | continuous
+```
+
+```yaml
+# Any Kafka (Confluent, AWS MSK, Google Managed Kafka, self-hosted).
 source:
   type: stream
   options:
-    kind: kafka                        # kafka | eventhubs
+    kind: kafka
     brokers: env:KAFKA_BROKERS         # host:port[,host:port]
     topic: rides
-    starting_offsets: earliest         # earliest | latest — first run only
-    trigger: available_now             # available_now (drain, then stop) | continuous
     security_protocol: SASL_SSL        # PLAINTEXT | SSL | SASL_PLAINTEXT | SASL_SSL
     sasl_mechanism: PLAIN
-    sasl_username: my-user
+    sasl_username: env:KAFKA_USERNAME
     sasl_password: env:KAFKA_PASSWORD  # never a literal
 ```
 
-`kind: eventhubs` needs only `connection_string: env:VAR`: the brokers and the SASL login come from it. Every key is
-listed under `KafkaOptions` and `EventHubsOptions` in the generated reference.
-
-### Streaming / micro-batch
-
-A streaming source is a table/file source read in **micro-batches** driven by a watermark. The contract stays the same; the framework reads incrementally each trigger. Combine `load_mode: incremental` with a `watermark_field` and (optionally) a streaming engine on the framework side.
-
 ```yaml
+# Amazon Kinesis (Databricks): a key pair from the secret store, or a role the compute assumes.
 source:
   type: stream
-  path: "s3://bucket/events/"
-  format: json
-  load_mode: incremental
-  watermark_field: event_time
-  watermark_strategy: append          # how the watermark advances per batch
+  path: trip_requests                  # the stream
+  options:
+    kind: kinesis
+    region: eu-west-1
+    access_key_id: env:KINESIS_ACCESS_KEY_ID
+    secret_access_key: env:KINESIS_SECRET_ACCESS_KEY
+    starting_position: earliest        # earliest | latest — first run only
 ```
 
-> The same governance (schema, quality, quarantine, PII, lineage) applies to every micro-batch. See the reference framework's `StreamSink` for the native structured-streaming path.
+```yaml
+# Google Pub/Sub (Databricks): the whole service account key in one secret.
+source:
+  type: stream
+  path: trip_requests                  # the subscription
+  options:
+    kind: pubsub
+    topic: trip_requests
+    project: rideflow-dev
+    credentials_json: env:PUBSUB_SERVICE_ACCOUNT_JSON
+```
+
+```yaml
+# A landing folder as a stream: every column read as text, as Bronze keeps it.
+source:
+  type: stream
+  path: "{landing_root}/driver_profiles"
+  format: csv                          # csv, tsv, json, parquet, avro, xml
+  options:
+    kind: files
+    header: true
+    max_files_per_trigger: 100         # optional
+```
+
+```yaml
+# Silver following a streaming Bronze, by position.
+source:
+  type: stream
+  path: "table:{bronze_root}.bronze_rideflow_trip_requests"
+  options:
+    kind: delta                        # or iceberg
+    checkpoint: "{log_root}/_checkpoints/silver_rideflow_trip_requests"
+```
+
+Every key is listed under `EventHubsOptions`, `KafkaOptions`, `KinesisStreamOptions`, `PubSubStreamOptions`, `FileStreamOptions`,
+`DeltaStreamOptions` and `IcebergStreamOptions` in the generated reference.
+
+> The same governance (schema, quality, quarantine, PII, lineage) applies to every micro-batch. Each streamed row
+> records where it came from: its file for `kind: files`.
 
 ---
 
@@ -1653,7 +1717,7 @@ rejected with a suggestion (`header_rows` → "did you mean `header_row`?"):
 | every file format | | `archive_member`, `implied_decimals`, `date_formats`, `decimal_comma` |
 | `type: database` | `DatabaseOptions` / `MongoDbOptions` | see [Database](#database-sql-query) |
 | `type: sftp` | `SftpOptions` + the format's | `username`, `password`, `private_key_path`, `known_hosts` |
-| `type: stream` + `kind` | `KafkaOptions` / `EventHubsOptions` | see [Kafka and Azure Event Hubs](#kafka-and-azure-event-hubs) |
+| `type: stream` + `kind` | `KafkaOptions` / `EventHubsOptions` / `KinesisStreamOptions` / `PubSubStreamOptions` / `FileStreamOptions` / `DeltaStreamOptions` / `IcebergStreamOptions` | see [Streaming sources](#streaming-sources) |
 
 Every option has its meaning, default and an example in the generated reference (`skills/olc-reference.md`).
 

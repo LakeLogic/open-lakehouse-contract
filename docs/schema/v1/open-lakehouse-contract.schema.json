@@ -2803,6 +2803,21 @@
               "$ref": "#/$defs/EventHubsOptions"
             },
             {
+              "$ref": "#/$defs/DeltaStreamOptions"
+            },
+            {
+              "$ref": "#/$defs/IcebergStreamOptions"
+            },
+            {
+              "$ref": "#/$defs/FileStreamOptions"
+            },
+            {
+              "$ref": "#/$defs/KinesisStreamOptions"
+            },
+            {
+              "$ref": "#/$defs/PubSubStreamOptions"
+            },
+            {
               "type": "null"
             }
           ],
@@ -5236,6 +5251,94 @@
       "title": "DatabaseOptions",
       "type": "object"
     },
+    "DeltaStreamOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: delta`: read a Delta table as a stream (Spark\nStructured Streaming), each micro-batch processed and written with its position kept in the\ncheckpoint. Engines without streaming read the table incrementally instead.",
+      "properties": {
+        "kind": {
+          "const": "delta",
+          "description": "`delta`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The table to stream from, e.g. `catalog.schema.bronze_events`. Default: `source.path`.",
+          "title": "Table"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DeltaStreamOptions",
+      "type": "object"
+    },
     "DocumentOptions": {
       "additionalProperties": false,
       "description": "Options for document formats read by `extraction` (`pdf`, `docx`, \u2026): none yet.",
@@ -5544,6 +5647,134 @@
       "title": "ExcelOptions",
       "type": "object"
     },
+    "FileStreamOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: files`: read a landing folder as a stream (Spark\nStructured Streaming; Auto Loader on Databricks). Each new file is read once, its place kept in\nthe checkpoint; `source.path` is the folder and `source.format` the file format. Every column\nis read as text, as Bronze keeps it. Engines without streaming read the folder incrementally.",
+      "properties": {
+        "kind": {
+          "const": "files",
+          "description": "`files`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "header": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "CSV: the first line names the columns. Default `true`.",
+          "title": "Header"
+        },
+        "delimiter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "CSV: the field separator. Default `,`.",
+          "title": "Delimiter"
+        },
+        "multiline": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "JSON: each file is one document (or an array), not one record per line.",
+          "title": "Multiline"
+        },
+        "max_files_per_trigger": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "At most this many new files per micro-batch.",
+          "title": "Max Files Per Trigger"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "FileStreamOptions",
+      "type": "object"
+    },
     "FixedWidthColumn": {
       "additionalProperties": false,
       "description": "One column of a fixed-width layout.",
@@ -5736,6 +5967,94 @@
         }
       },
       "title": "FixedWidthOptions",
+      "type": "object"
+    },
+    "IcebergStreamOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: iceberg`: read an Iceberg table as a stream (Spark\nStructured Streaming over its appended snapshots), each micro-batch processed and written with\nits position kept in the checkpoint. Snapshots that overwrite or delete are skipped: a stream\ncarries appends. Engines without streaming read the table incrementally instead.",
+      "properties": {
+        "kind": {
+          "const": "iceberg",
+          "description": "`iceberg`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The table to stream from, e.g. `catalog.schema.bronze_events`. Default: `source.path`.",
+          "title": "Table"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "IcebergStreamOptions",
       "type": "object"
     },
     "JsonOptions": {
@@ -6046,6 +6365,156 @@
       "title": "KafkaOptions",
       "type": "object"
     },
+    "KinesisStreamOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: kinesis`: read an Amazon Kinesis data stream of JSON\nrecords with Databricks' built-in source (Spark on Databricks only; elsewhere use `kind: kafka`\nwith AWS MSK). Each record becomes a row; one that is not a JSON object is quarantined. The\nposition is kept in the checkpoint. Secrets must be `env:VAR`.",
+      "properties": {
+        "kind": {
+          "const": "kinesis",
+          "description": "`kinesis`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "stream": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The Kinesis stream. Default: `source.path`.",
+          "title": "Stream"
+        },
+        "region": {
+          "description": "The AWS region, e.g. `eu-west-1` (`env:VAR` allowed).",
+          "title": "Region",
+          "type": "string"
+        },
+        "starting_position": {
+          "anyOf": [
+            {
+              "enum": [
+                "earliest",
+                "latest"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where a first run starts: `earliest` (default) or `latest`.",
+          "title": "Starting Position"
+        },
+        "role_arn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "An IAM role the compute assumes to read the stream.",
+          "title": "Role Arn"
+        },
+        "access_key_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "AWS access key id, as `env:VAR` (with `secret_access_key`).",
+          "title": "Access Key Id"
+        },
+        "secret_access_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "AWS secret access key, as `env:VAR`. Never a literal.",
+          "title": "Secret Access Key"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind",
+        "region"
+      ],
+      "title": "KinesisStreamOptions",
+      "type": "object"
+    },
     "MongoDbOptions": {
       "additionalProperties": false,
       "description": "Options for `type: database` with a `mongodb://` or `mongodb+srv://` path: MongoDB, Atlas,\nAzure Cosmos DB (MongoDB API), Amazon DocumentDB. `dataset` is the collection.",
@@ -6201,6 +6670,126 @@
         }
       },
       "title": "ParquetOptions",
+      "type": "object"
+    },
+    "PubSubStreamOptions": {
+      "additionalProperties": false,
+      "description": "Options for `type: stream` with `kind: pubsub`: read a Google Pub/Sub subscription of JSON\nmessages with Databricks' built-in source (Spark on Databricks only; elsewhere use `kind: kafka`\nwith Google Managed Kafka). Each message becomes a row; one that is not a JSON object is\nquarantined. The position is kept in the checkpoint. The login is a service account key.",
+      "properties": {
+        "kind": {
+          "const": "pubsub",
+          "description": "`pubsub`.",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subscription": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The subscription to read. Default: `source.path`.",
+          "title": "Subscription"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The topic it subscribes to. Default: the subscription.",
+          "title": "Topic"
+        },
+        "project": {
+          "description": "The Google Cloud project, e.g. `rideflow-dev` (`env:VAR` allowed).",
+          "title": "Project",
+          "type": "string"
+        },
+        "credentials_json": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A service account key file's JSON, as `env:VAR` (one secret holds the whole key). Without it the compute's own identity is used.",
+          "title": "Credentials Json"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract.",
+          "title": "Checkpoint"
+        },
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "available_now",
+                "continuous",
+                "processing_time"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`available_now` (default): read everything there now, then stop \u2014 for scheduled jobs. `continuous`: keep running and read new events as they arrive.",
+          "title": "Trigger"
+        },
+        "processing_time": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default).",
+          "title": "Processing Time"
+        },
+        "engine_options": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Engine-specific extras, passed through as they are and not checked. The only free-form corner of `options`; prefer a declared key when one exists.",
+          "title": "Engine Options"
+        }
+      },
+      "required": [
+        "kind",
+        "project"
+      ],
+      "title": "PubSubStreamOptions",
       "type": "object"
     },
     "SftpOptions": {
