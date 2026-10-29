@@ -6,6 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.30.0] — 2026-10-29
+
+### Added
+
+- Profiling block on contracts; business map fields
+
+### Documentation
+
+- Update changelog for v0.29.1
 ## [0.29.1] — 2026-10-28
 
 ### Documentation
@@ -334,6 +343,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.30.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.29.1...v0.30.0
 [0.29.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.29.0...v0.29.1
 [0.29.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.28.0...v0.29.0
 [0.28.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.27.0...v0.28.0
