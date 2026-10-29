@@ -863,6 +863,32 @@
           ],
           "default": null
         },
+        "identifies": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Business map: the concept this column identifies (e.g. `Customer`), by its name in the domain file's `concepts`. Optional; merging it confirms the mapping.",
+          "title": "Identifies"
+        },
+        "role": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Business map: the role the identified concept plays here, when one concept plays several (e.g. `payer`, `driver`). Optional.",
+          "title": "Role"
+        },
         "nullable": {
           "anyOf": [
             {
@@ -1957,6 +1983,70 @@
         "content_type"
       ],
       "title": "PreprocessingConfig",
+      "type": "object"
+    },
+    "Profiling": {
+      "additionalProperties": false,
+      "description": "How a runtime profiles this contract's data (``lakelogic profile --contract``).\n\nStatistics only, never rows: row and null counts, distinct counts, min/max (withheld for\ncolumns the contract marks ``pii`` or ``classification``). ``full`` reads everything;\n``sample`` reads ``sample_rows`` rows or ``sample_percent`` of the data, newest first\n(by a timestamp column) or at random. ``findings`` also runs the profile checks and lists\nconfirmed issues, potential issues and control gaps. A runtime with telemetry configured\nmay send the result to its observability service.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "mode": {
+          "default": "full",
+          "enum": [
+            "full",
+            "sample"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "sample_rows": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Rows"
+        },
+        "sample_percent": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 100,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Percent"
+        },
+        "sample_order": {
+          "default": "newest",
+          "enum": [
+            "newest",
+            "random"
+          ],
+          "title": "Sample Order",
+          "type": "string"
+        },
+        "findings": {
+          "default": true,
+          "title": "Findings",
+          "type": "boolean"
+        }
+      },
+      "title": "Profiling",
       "type": "object"
     },
     "Quality": {
@@ -7295,6 +7385,17 @@
       ],
       "default": null
     },
+    "profiling": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Profiling"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "quarantine": {
       "anyOf": [
         {
@@ -7335,6 +7436,19 @@
       ],
       "default": null,
       "title": "Tier"
+    },
+    "entity": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Business map: the business concept this contract represents (e.g. `Payment`), by its name in the domain file's `concepts`. Optional; merging it confirms the mapping.",
+      "title": "Entity"
     },
     "contract_file_name": {
       "anyOf": [

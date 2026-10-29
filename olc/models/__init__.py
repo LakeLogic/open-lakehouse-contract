@@ -16,6 +16,9 @@ from olc.models._strict_keys import collect_unknown_nested_keys
 from olc.models.compliance import ContractRetention
 from olc.models.olc_v1 import OLCContractV1, StrictServer
 from olc.models.registry_v1 import (
+    BusinessConcept,
+    BusinessRelationship,
+    BusinessStory,
     DataProductEntry,
     ExpectedOutputEntry,
     OLCDomainV1,
@@ -25,6 +28,9 @@ from olc.models.registry_v1 import (
 )
 
 __all__ = [
+    "BusinessConcept",
+    "BusinessRelationship",
+    "BusinessStory",
     "ContractRetention",
     "DataProductEntry",
     "ExpectedOutputEntry",

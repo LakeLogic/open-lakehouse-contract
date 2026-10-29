@@ -951,6 +951,35 @@ class Quarantine(BaseModel):
     notifications: List[Notification] = Field(default_factory=list)
 
 
+class Profiling(BaseModel):
+    """How a runtime profiles this contract's data (``lakelogic profile --contract``).
+
+    Statistics only, never rows: row and null counts, distinct counts, min/max (withheld for
+    columns the contract marks ``pii`` or ``classification``). ``full`` reads everything;
+    ``sample`` reads ``sample_rows`` rows or ``sample_percent`` of the data, newest first
+    (by a timestamp column) or at random. ``findings`` also runs the profile checks and lists
+    confirmed issues, potential issues and control gaps. A runtime with telemetry configured
+    may send the result to its observability service.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = True
+    mode: Literal["full", "sample"] = "full"
+    sample_rows: Optional[int] = Field(default=None, ge=1000, le=1_000_000)
+    sample_percent: Optional[float] = Field(default=None, gt=0, le=100)
+    sample_order: Literal["newest", "random"] = "newest"
+    findings: bool = True
+
+    @model_validator(mode="after")
+    def _sample_size(self) -> "Profiling":
+        if self.mode == "sample" and not (self.sample_rows or self.sample_percent):
+            raise ValueError("profiling.mode: sample needs sample_rows or sample_percent")
+        if self.sample_rows and self.sample_percent:
+            raise ValueError("profiling: set sample_rows or sample_percent, not both")
+        return self
+
+
 class ServiceLevelObjective(BaseModel):
     """Service-level objective definition."""
 
@@ -1042,6 +1071,16 @@ class FieldDefinition(BaseModel):
     min: Optional[float] = None
     max: Optional[float] = None
     foreign_key: Optional[ForeignKeyRef] = None
+    identifies: Optional[str] = Field(
+        None,
+        description="Business map: the concept this column identifies (e.g. `Customer`), by its "
+        "name in the domain file's `concepts`. Optional; merging it confirms the mapping.",
+    )
+    role: Optional[str] = Field(
+        None,
+        description="Business map: the role the identified concept plays here, when one concept "
+        "plays several (e.g. `payer`, `driver`). Optional.",
+    )
     nullable: Optional[bool] = None
     milestone: bool = False
     generated: bool = False

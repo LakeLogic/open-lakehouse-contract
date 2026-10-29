@@ -31,6 +31,7 @@ from olc.models._nested import (
     Quality,
     Quarantine,
     SchemaPolicy,
+    Profiling,
     ServiceLevel,
     SourceConfig,
     Transformation,
@@ -193,6 +194,7 @@ class OLCContractV1(BaseModel):
     quality: Optional[Quality] = None
     transformations: List[Transformation] = Field(default_factory=list)
     service_levels: Optional[ServiceLevel] = None
+    profiling: Optional[Profiling] = None
     quarantine: Optional[Quarantine] = None
     compliance: Dict[str, Any] = Field(
         default_factory=dict,
@@ -201,4 +203,9 @@ class OLCContractV1(BaseModel):
         "layer period.",
     )
     tier: Optional[str] = None
+    entity: Optional[str] = Field(
+        None,
+        description="Business map: the business concept this contract represents (e.g. `Payment`), "
+        "by its name in the domain file's `concepts`. Optional; merging it confirms the mapping.",
+    )
     contract_file_name: Optional[str] = None

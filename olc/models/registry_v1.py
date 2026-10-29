@@ -51,6 +51,12 @@ __all__ = [
     "NOTIFICATION_EVENT_TOKENS",
     "PRODUCT_ID_PATTERN",
     "ActiveGates",
+    "BusinessConcept",
+    "BusinessRelationship",
+    "BusinessStory",
+    "Cardinality",
+    "StoryStep",
+    "StoryStepKind",
     "DataProductEntry",
     "DomainCompliance",
     "DomainCost",
@@ -727,6 +733,107 @@ class RegistryQuarantine(Quarantine):
     mode: Optional[str] = None
 
 
+# ── Business map ──────────────────────────────────────────────────────────────
+
+#: How many of one concept relate to the other. ``unknown`` is a real answer: it is what
+#: the keys say when they do not settle it, and it is never replaced by a guess.
+Cardinality = Literal[
+    "one_to_one", "one_to_many", "many_to_one", "many_to_many", "unknown"
+]
+
+
+class BusinessConcept(_Base):
+    """One business concept (Customer, Trip), defined once for the domain.
+
+    Contracts refer to it by name (``entity: Trip``, ``identifies: Customer``) instead of
+    copying the definition, so the definition cannot drift between copies.
+    """
+
+    definition: Optional[str] = None
+    also_called: List[str] = Field(default_factory=list)
+    not_to_be_confused_with: Optional[str] = None
+    #: The column that identifies one instance, e.g. ``customer_id``.
+    identifier: Optional[str] = None
+    example: Optional[str] = None
+
+    @field_validator("also_called", mode="before")
+    @classmethod
+    def _declared_but_empty_is_empty(cls, value: Any) -> Any:
+        return [] if value is None else value
+
+
+class BusinessRelationship(_Base):
+    """``Customer books Trip (one to many)`` — a relationship people agreed between two concepts."""
+
+    from_: str = Field(alias="from")
+    verb: str
+    to: str
+    cardinality: Cardinality = "unknown"
+
+
+#: ``step`` — something the business does; ``branch`` — an alternative to the step(s) it
+#: shares its ``after`` with ("or"); ``gap`` — a step the business has that no data contract
+#: records yet.
+StoryStepKind = Literal["step", "branch", "gap"]
+
+
+class StoryStep(_Base):
+    """One step of the business story, in plain words: ``Rider requests a trip``."""
+
+    id: str
+    #: Who does it — one of the story's ``actors``.
+    actor: str
+    text: str
+    #: The business concepts the step involves, by their names in ``concepts``.
+    concepts: List[str] = Field(default_factory=list)
+    #: The steps that come before this one, by ``id``. Empty = the story starts here.
+    after: List[str] = Field(default_factory=list)
+    kind: StoryStepKind = "step"
+    note: Optional[str] = None
+
+    @field_validator("concepts", "after", mode="before")
+    @classmethod
+    def _declared_but_empty_is_empty(cls, value: Any) -> Any:
+        return [] if value is None else value
+
+
+class BusinessStory(_Base):
+    """The domain's business story: who does what, in order. Merging it confirms it.
+
+    A step names its actor from ``actors`` and its predecessors by ``id``; both are checked,
+    so a story cannot point at a step or a person it does not contain.
+    """
+
+    actors: List[str] = Field(default_factory=list)
+    steps: List[StoryStep] = Field(default_factory=list)
+
+    @field_validator("actors", "steps", mode="before")
+    @classmethod
+    def _declared_but_empty_is_empty(cls, value: Any) -> Any:
+        return [] if value is None else value
+
+    @field_validator("steps")
+    @classmethod
+    def _steps_hang_together(cls, steps: List[StoryStep], info: Any) -> List[StoryStep]:
+        ids = [s.id for s in steps]
+        dupes = sorted({i for i in ids if ids.count(i) > 1})
+        if dupes:
+            raise ValueError(f"story step id declared more than once: {', '.join(dupes)}")
+        known = set(ids)
+        for s in steps:
+            missing = [a for a in s.after if a not in known]
+            if missing:
+                raise ValueError(f"story step '{s.id}' comes after unknown step(s): {', '.join(missing)}")
+            if s.id in s.after:
+                raise ValueError(f"story step '{s.id}' comes after itself")
+        actors = (info.data or {}).get("actors") or []
+        if actors:
+            strangers = sorted({s.actor for s in steps if s.actor not in actors})
+            if strangers:
+                raise ValueError(f"story step actor(s) not in actors: {', '.join(strangers)}")
+        return steps
+
+
 # ── The documents ─────────────────────────────────────────────────────────────
 
 
@@ -805,6 +912,19 @@ class OLCDomainV1(_RegistryDocument):
     #: The data products this domain defines. Domain-only: a ``_system.yaml`` does not declare or
     #: override products.
     products: List[DataProductEntry] = Field(default_factory=list)
+    #: Business map: the concepts this domain defines, by name. Domain-only.
+    concepts: Dict[str, BusinessConcept] = Field(default_factory=dict)
+    #: Business map: agreed relationships between concepts. Domain-only.
+    relationships: List[BusinessRelationship] = Field(default_factory=list)
+    #: Business map: the agreed business story (actors and ordered steps). Domain-only.
+    story: Optional[BusinessStory] = None
+
+    @field_validator("concepts", "relationships", mode="before")
+    @classmethod
+    def _business_map_declared_but_empty(cls, value: Any, info: Any) -> Any:
+        if value is not None:
+            return value
+        return {} if info.field_name == "concepts" else []
 
     @field_validator("products")
     @classmethod
