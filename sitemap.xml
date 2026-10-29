@@ -2,146 +2,146 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://olc.lakelogic.io/index.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/contributing.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/getting-started.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/concepts/agent-native.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/concepts/agent-workflow.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/concepts/ai-data-agents.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/concepts/vs-odcs.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/concepts/what-is-olc.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/concepts/why-pydantic.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/providers/index.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/providers/aws.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/providers/bigquery.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/providers/databricks.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/providers/duckdb-ducklake.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/providers/fabric.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/providers/motherduck.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/providers/snowflake.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/anatomy.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/cli.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/compliance.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/conformance.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/data-products.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/execution-order.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/external-logic.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/extraction.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/ingestion.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/lifecycle.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/lineage.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/materialization.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/notifications.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/quality.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/schema.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/security.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/server.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/slo.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
     <url>
          <loc>https://olc.lakelogic.io/reference/transformation.html</loc>
-         <lastmod>2026-10-28</lastmod>
+         <lastmod>2026-10-29</lastmod>
     </url>
 </urlset>
