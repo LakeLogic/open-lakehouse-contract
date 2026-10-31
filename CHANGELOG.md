@@ -6,6 +6,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.31.0] — 2026-10-31
+
+### Added
+
+- **post_ingestion**: On_error moves files that failed to read; archive_path is a root
+
+### CI/CD
+
+- Run Python 3.9 on ubuntu-24.04; profiling block test uses unittest
+
+### Documentation
+
+- Update changelog for v0.30.0
 ## [0.30.0] — 2026-10-29
 
 ### Added
@@ -343,6 +356,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.31.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.30.0...v0.31.0
 [0.30.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.29.1...v0.30.0
 [0.29.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.29.0...v0.29.1
 [0.29.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.28.0...v0.29.0
