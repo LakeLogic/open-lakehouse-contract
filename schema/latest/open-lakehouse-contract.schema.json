@@ -1867,7 +1867,7 @@
       "type": "object"
     },
     "PostIngestionConfig": {
-      "description": "Landing zone lifecycle policy \u2014 what to do with source files after\nsuccessful Bronze ingestion.\n\nActions:\n  delete  \u2014 remove source files after commit (zero-retention)\n  archive \u2014 move source files to archive_path after commit\n  retain  \u2014 leave source files in place (default / no-op)\n\nSafety guarantees:\n  - Cleanup only executes AFTER a successful Bronze Delta commit.\n  - If cleanup fails, the pipeline still succeeds (unless\n    cleanup_is_blocking is True).\n  - Cleanup failures are logged as warnings for manual intervention.\n\nExample YAML (system-level default)::\n\n    server:\n      bronze:\n        post_ingestion:\n          action: delete\n          cleanup_is_blocking: false\n\nExample YAML (contract-level with archive)::\n\n    source:\n      post_ingestion:\n        action: archive\n        archive_path: \"/archive/crm/customers\"",
+      "description": "Landing zone lifecycle policy \u2014 what to do with source files after\nsuccessful Bronze ingestion.\n\nActions:\n  delete  \u2014 remove source files after commit (zero-retention)\n  archive \u2014 move source files to archive_path after commit\n  retain  \u2014 leave source files in place (default / no-op)\n\nWhere archived files go. ``archive_path`` is a ROOT, not a folder: the runtime adds the\nentity and the outcome beneath it, so one system-level root serves every entity::\n\n    <archive_path>/<table>/success/<path relative to the landing folder>\n    <archive_path>/<table>/error/<path relative to the landing folder>\n\n``on_error`` says what happens to the files of a load that FAILED while being read:\n  retain  \u2014 leave them in the landing folder (default)\n  move    \u2014 move them to ``<archive_path>/<table>/error/``; needs an ``archive_path``\n            (or the system's ``storage.archive_path``), whatever ``action`` is.\nA file is an error when it cannot be read or parsed. Rows that fail quality rules are\nnot file errors: they go to quarantine and the file is cleaned up as usual.\n\nSafety guarantees:\n  - Cleanup only executes AFTER a successful Bronze Delta commit.\n  - If cleanup fails, the pipeline still succeeds (unless\n    cleanup_is_blocking is True).\n  - Cleanup failures are logged as warnings for manual intervention.\n\nExample YAML (system-level default)::\n\n    server:\n      bronze:\n        post_ingestion:\n          action: delete\n          cleanup_is_blocking: false\n\nExample YAML (contract-level with archive)::\n\n    source:\n      post_ingestion:\n        action: archive\n        archive_path: \"/archive/crm/customers\"",
       "properties": {
         "action": {
           "default": "retain",
@@ -1895,6 +1895,15 @@
           ],
           "default": null,
           "title": "Archive Path"
+        },
+        "on_error": {
+          "default": "retain",
+          "enum": [
+            "retain",
+            "move"
+          ],
+          "title": "On Error",
+          "type": "string"
         }
       },
       "title": "PostIngestionConfig",
