@@ -57,6 +57,19 @@ class PostIngestionConfig(BaseModel):
       archive — move source files to archive_path after commit
       retain  — leave source files in place (default / no-op)
 
+    Where archived files go. ``archive_path`` is a ROOT, not a folder: the runtime adds the
+    entity and the outcome beneath it, so one system-level root serves every entity::
+
+        <archive_path>/<table>/success/<path relative to the landing folder>
+        <archive_path>/<table>/error/<path relative to the landing folder>
+
+    ``on_error`` says what happens to the files of a load that FAILED while being read:
+      retain  — leave them in the landing folder (default)
+      move    — move them to ``<archive_path>/<table>/error/``; needs an ``archive_path``
+                (or the system's ``storage.archive_path``), whatever ``action`` is.
+    A file is an error when it cannot be read or parsed. Rows that fail quality rules are
+    not file errors: they go to quarantine and the file is cleaned up as usual.
+
     Safety guarantees:
       - Cleanup only executes AFTER a successful Bronze Delta commit.
       - If cleanup fails, the pipeline still succeeds (unless
@@ -82,6 +95,7 @@ class PostIngestionConfig(BaseModel):
     action: Literal["delete", "archive", "retain"] = "retain"
     cleanup_is_blocking: bool = False
     archive_path: Optional[str] = None
+    on_error: Literal["retain", "move"] = "retain"
 
 
 class Environment(BaseModel):
