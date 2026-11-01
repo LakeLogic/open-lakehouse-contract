@@ -838,19 +838,25 @@ class BusinessStory(_Base):
         ids = [s.id for s in steps]
         dupes = sorted({i for i in ids if ids.count(i) > 1})
         if dupes:
-            raise ValueError(f"story step id declared more than once: {', '.join(dupes)}")
+            raise ValueError(
+                f"story step id declared more than once: {', '.join(dupes)}"
+            )
         known = set(ids)
         for s in steps:
             missing = [a for a in s.after if a not in known]
             if missing:
-                raise ValueError(f"story step '{s.id}' comes after unknown step(s): {', '.join(missing)}")
+                raise ValueError(
+                    f"story step '{s.id}' comes after unknown step(s): {', '.join(missing)}"
+                )
             if s.id in s.after:
                 raise ValueError(f"story step '{s.id}' comes after itself")
         actors = (info.data or {}).get("actors") or []
         if actors:
             strangers = sorted({s.actor for s in steps if s.actor not in actors})
             if strangers:
-                raise ValueError(f"story step actor(s) not in actors: {', '.join(strangers)}")
+                raise ValueError(
+                    f"story step actor(s) not in actors: {', '.join(strangers)}"
+                )
         return steps
 
 

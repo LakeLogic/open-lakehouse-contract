@@ -988,7 +988,9 @@ class Profiling(BaseModel):
     @model_validator(mode="after")
     def _sample_size(self) -> "Profiling":
         if self.mode == "sample" and not (self.sample_rows or self.sample_percent):
-            raise ValueError("profiling.mode: sample needs sample_rows or sample_percent")
+            raise ValueError(
+                "profiling.mode: sample needs sample_rows or sample_percent"
+            )
         if self.sample_rows and self.sample_percent:
             raise ValueError("profiling: set sample_rows or sample_percent, not both")
         return self

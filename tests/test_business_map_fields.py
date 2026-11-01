@@ -93,12 +93,19 @@ class DomainFileTest(unittest.TestCase):
                 "Trip": {"definition": "A journey from pickup to drop-off."},
             },
             "relationships": [
-                {"from": "Customer", "verb": "books", "to": "Trip", "cardinality": "one_to_many"},
+                {
+                    "from": "Customer",
+                    "verb": "books",
+                    "to": "Trip",
+                    "cardinality": "one_to_many",
+                },
                 {"from": "Trip", "verb": "has", "to": "Payment"},
             ],
         }
         domain = load_strict_domain(doc)
-        self.assertEqual(domain.concepts["Customer"].also_called, ["Rider", "Passenger"])
+        self.assertEqual(
+            domain.concepts["Customer"].also_called, ["Rider", "Passenger"]
+        )
         self.assertEqual(domain.relationships[0].from_, "Customer")
         self.assertEqual(domain.relationships[1].cardinality, "unknown")
         dumped = domain.model_dump(by_alias=True, exclude_unset=True)
@@ -127,13 +134,34 @@ class DomainFileTest(unittest.TestCase):
 _STORY = {
     "actors": ["Customer", "Warehouse"],
     "steps": [
-        {"id": "order", "actor": "Customer", "text": "Customer places an order", "concepts": ["Order"]},
-        {"id": "ship", "actor": "Warehouse", "text": "Warehouse ships the order",
-         "concepts": ["Shipment", "Order"], "after": ["order"]},
-        {"id": "cancel", "actor": "Customer", "text": "Customer cancels the order",
-         "after": ["order"], "kind": "branch"},
-        {"id": "pack", "actor": "Warehouse", "text": "Warehouse packs the parcel",
-         "after": ["order"], "kind": "gap", "note": "No data contract records packing."},
+        {
+            "id": "order",
+            "actor": "Customer",
+            "text": "Customer places an order",
+            "concepts": ["Order"],
+        },
+        {
+            "id": "ship",
+            "actor": "Warehouse",
+            "text": "Warehouse ships the order",
+            "concepts": ["Shipment", "Order"],
+            "after": ["order"],
+        },
+        {
+            "id": "cancel",
+            "actor": "Customer",
+            "text": "Customer cancels the order",
+            "after": ["order"],
+            "kind": "branch",
+        },
+        {
+            "id": "pack",
+            "actor": "Warehouse",
+            "text": "Warehouse packs the parcel",
+            "after": ["order"],
+            "kind": "gap",
+            "note": "No data contract records packing.",
+        },
     ],
 }
 
@@ -146,14 +174,17 @@ class DomainStoryTest(unittest.TestCase):
         domain = load_strict_domain({"domain": "shop", "story": copy.deepcopy(_STORY)})
         story = domain.story
         assert story is not None
-        self.assertEqual([s.id for s in story.steps], ["order", "ship", "cancel", "pack"])
+        self.assertEqual(
+            [s.id for s in story.steps], ["order", "ship", "cancel", "pack"]
+        )
         self.assertEqual(story.steps[0].kind, "step")
         self.assertEqual(story.steps[0].after, [])
         self.assertEqual(story.steps[3].kind, "gap")
         dumped = domain.model_dump(by_alias=True, exclude_unset=True)
         self.assertEqual(dumped["story"], _STORY)
         self.assertEqual(
-            load_strict_domain(dumped).model_dump(by_alias=True, exclude_unset=True), dumped
+            load_strict_domain(dumped).model_dump(by_alias=True, exclude_unset=True),
+            dumped,
         )
 
     def test_declared_but_empty(self) -> None:
