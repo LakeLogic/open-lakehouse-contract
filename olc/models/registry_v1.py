@@ -508,6 +508,22 @@ class RegistryEnvironment(_Base):
     external_location_root: Optional[str] = None
     path: Optional[str] = None
     format: Optional[str] = None
+    #: Where the deployed project lives on the platform: a workspace folder, a lakehouse or a
+    #: repository object. Contracts reference it as ``{project_root}``.
+    project_root: Optional[str] = None
+    #: Where the pipeline writes its run logs, e.g. a Volume, OneLake ``Files`` folder or
+    #: stage. ``{log_path}``; may itself use ``{domain}``.
+    log_path: Optional[str] = None
+    #: The landing-storage location, in parts: catalog, schema, volume and folder of the
+    #: files a Bronze contract reads (``{ls_catalog}``, ``{ls_schema}``, ``{ls_volume}``,
+    #: ``{ls_folder}``). Each may use ``{domain}``.
+    ls_catalog: Optional[str] = None
+    #: The landing location as one path or stage, where the platform addresses it whole
+    #: (``@DB.FILES.LANDING/{system}``). ``{landing_path}``.
+    landing_path: Optional[str] = None
+    ls_schema: Optional[str] = None
+    ls_volume: Optional[str] = None
+    ls_folder: Optional[str] = None
 
 
 class SystemMetadata(_Base):
@@ -531,6 +547,10 @@ class SystemMetadata(_Base):
 
     run_log_table: Optional[str] = None
     run_log_backend: Optional[str] = None
+    #: The platform these records are written on (``fabric``, ``databricks``, …). A runtime
+    #: uses it where table naming differs by platform, e.g. the evidence tables beside the
+    #: run log.
+    platform: Optional[str] = None
     slo_checks_table: Optional[str] = None
     slo_checks_backend: Optional[str] = None
     # Backend-neutral qualification for the tables above.
@@ -944,6 +964,9 @@ class OLCSystemV1(_RegistryDocument):
     configuration, plus any domain field it overrides."""
 
     system: Optional[str] = None
+    #: How contract targets are addressed: ``catalog`` (``catalog.schema.table``) or ``path``
+    #: (a storage URI). Legacy ``uc`` and ``direct`` are accepted by runtimes as aliases.
+    storage_mode: Optional[str] = None
     metadata: Optional[SystemMetadata] = None
     storage: Optional[SystemStorage] = None
     contracts: List[SystemContractEntry] = Field(default_factory=list)

@@ -293,3 +293,32 @@ class QuarantineTableNameTests(unittest.TestCase):
             }
         )
         self.assertEqual(doc.storage.quarantine_table_name, "quarantine_{table}")
+
+
+class StudioRegistryKeys(unittest.TestCase):
+    """Studio writes, and the runtime reads, `storage_mode`, `metadata.platform` and the
+    environment's project, log and landing locations. Strict validation rejected every system
+    file carrying them, so editing any RideFlow `_system.yaml` failed review (2026-11-01)."""
+
+    def test_a_system_may_declare_its_layout_keys(self):
+        doc = load_strict_system(
+            {
+                "system": "rideflow",
+                "storage_mode": "catalog",
+                "metadata": {"run_log_backend": "spark", "platform": "fabric"},
+                "environments": {
+                    "dev": {
+                        "project_root": "rideflow_dev",
+                        "log_path": "/Volumes/rideflow_dev_{domain}/files/lakelogic_logs",
+                        "landing_path": "@RIDEFLOW_DEV_{domain}.FILES.LANDING/{system}",
+                        "ls_catalog": "rideflow_dev",
+                        "ls_schema": "files",
+                        "ls_volume": "landing",
+                        "ls_folder": "",
+                    }
+                },
+            }
+        )
+        self.assertEqual(doc.storage_mode, "catalog")
+        self.assertEqual(doc.metadata.platform, "fabric")
+        self.assertEqual(doc.environments["dev"].ls_volume, "landing")
