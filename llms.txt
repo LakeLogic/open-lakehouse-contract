@@ -107,6 +107,7 @@ Found by running LLMs against this file; each one fails validation or lint:
 - [Server & Output](https://olc.lakelogic.io/reference/server.html)
 - [Lineage](https://olc.lakelogic.io/reference/lineage.html)
 - [Data Products](https://olc.lakelogic.io/reference/data-products.html)
+- [Business Map](https://olc.lakelogic.io/reference/business-map.html)
 - [Service Levels (SLOs)](https://olc.lakelogic.io/reference/slo.html)
 - [Notifications](https://olc.lakelogic.io/reference/notifications.html)
 - [Unstructured (LLM Extraction)](https://olc.lakelogic.io/reference/extraction.html)
