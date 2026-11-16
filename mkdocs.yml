@@ -91,6 +91,7 @@ nav:
       - Server & Output: reference/server.md
       - Lineage: reference/lineage.md
       - Data Products: reference/data-products.md
+      - Business Map: reference/business-map.md
       - Service Levels (SLOs): reference/slo.md
       - Notifications: reference/notifications.md
       - Unstructured (LLM Extraction): reference/extraction.md

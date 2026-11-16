@@ -77,6 +77,38 @@ quality:
   `category`, `description`. Anything else (`column:`, `key:`) is rejected.
 """
 
+#: The business map: what agents get wrong is placement (entity is top level) and agreement.
+BUSINESS_MAP = """Business names live in the domain file; contracts refer to them by name. Do not copy a
+definition into a contract.
+
+```yaml
+# _domain.yaml — domain-only (never _system.yaml)
+concepts:
+  Trip:                                  # the business name contracts refer to
+    definition: One ride from pickup to drop-off.
+    identifier: trip_id                  # one column
+    also_called: [ride, fct_trip]        # keep the old technical name when renaming
+relationships:
+  - {from: Rider, verb: books, to: Trip, cardinality: one_to_many}   # or unknown — never guess
+```
+
+```yaml
+# a contract
+entity: Trip                             # TOP LEVEL — never under `info`
+model:
+  fields:
+    - {name: rider_id, type: string, identifies: Rider}
+    - {name: payer_id, type: string, identifies: Customer, role: payer}
+```
+
+- Concepts, links and names you infer are **suggestions**. Propose them as a change to
+  `_domain.yaml` for a person to merge; never write them as agreed.
+- When editing `_domain.yaml`, change only `concepts:` / `relationships:` / `story:` and
+  leave comments, headers and the rest of the file untouched.
+- A date dimension (`date_key`) is not a business relationship; do not link concepts
+  through it.
+"""
+
 EXAMPLES = """```yaml
 quality:
   fail_pipeline_on_dataset_error: true
@@ -197,6 +229,10 @@ def build_reference(schema: dict) -> str:
         "## Common shapes",
         "",
         EXAMPLES,
+        "",
+        "## Business map",
+        "",
+        BUSINESS_MAP,
         "",
         "## Top level",
         "",
