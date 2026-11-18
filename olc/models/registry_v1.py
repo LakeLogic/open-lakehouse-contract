@@ -556,9 +556,12 @@ class SystemMetadata(_Base):
     #: ``run_log_backend: dlt`` writes the run log to a database (Postgres, SQL Server, …);
     #: these say which one, as on a target or quarantine (2026-11-18: wherever data can be
     #: written, its run log can be written too - the runtime reads them, the schema did not).
-    dlt_destination: Optional[str] = None
-    dlt_credentials: Optional[Any] = None
-    dlt_dataset_name: Optional[str] = None
+    dlt_destination: Optional[str] = Field(default=None, description=(
+        "With `run_log_backend: dlt`, the database the run log is written to: postgres, mssql, …"))
+    dlt_credentials: Optional[Any] = Field(default=None, description=(
+        "A secret reference for that database (`env:NAME`, `keyvault://…`), never a literal password."))
+    dlt_dataset_name: Optional[str] = Field(default=None, description=(
+        "The schema the run log is written in. Default: an existing `run_logs`, else the runtime default."))
     # Backend-neutral qualification for the tables above.
     catalog: Optional[str] = None
     database: Optional[str] = None

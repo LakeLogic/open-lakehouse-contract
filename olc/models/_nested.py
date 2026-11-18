@@ -1011,10 +1011,14 @@ class Quarantine(BaseModel):
     # database with ``format: dlt`` (lakelogic.core.quarantine reads these keys), but the
     # schema closed this object, so an editor flagged a Postgres quarantine as invalid.
     # Wherever data can be written, its rejects can be written too. Same keys as the target.
-    dlt_destination: Optional[str] = None
-    dlt_credentials: Optional[Any] = None
-    dlt_dataset_name: Optional[str] = None
-    dlt_pipeline_name: Optional[str] = None
+    dlt_destination: Optional[str] = Field(default=None, description=(
+        "With `format: dlt`, the database rejects are written to: postgres, mssql, snowflake, duckdb, …"))
+    dlt_credentials: Optional[Any] = Field(default=None, description=(
+        "A secret reference for that database (`env:NAME`, `keyvault://…`), never a literal password."))
+    dlt_dataset_name: Optional[str] = Field(default=None, description=(
+        "The schema the quarantine table is written in. Default: `quarantine`."))
+    dlt_pipeline_name: Optional[str] = Field(default=None, description=(
+        "The dlt pipeline name. Default: `lakelogic_<table>_quarantine`."))
 
 
 class Profiling(BaseModel):

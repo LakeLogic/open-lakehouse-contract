@@ -109,6 +109,41 @@ model:
   through it.
 """
 
+#: Wherever data can be written, its quarantine and run log can be written too (2026-11-18).
+DATABASE_TARGETS = """A contract can write to a database (Postgres, SQL Server, Snowflake, DuckDB, …) through
+dlt as well as to cloud storage. When it does, write its **quarantine** and **run log** to a
+database too, with the same keys. Never leave rejects or logs unwritten because the target is
+not cloud storage.
+
+```yaml
+# a contract
+materialization:
+  format: dlt
+  dlt_destination: postgres            # postgres | mssql | snowflake | duckdb | …
+  dlt_credentials: env:PG_URL          # a secret reference — never a literal password
+  dlt_dataset_name: silver
+quarantine:
+  format: dlt                          # rejects go to the database, not a file path
+  table: quarantine_orders
+  dlt_destination: postgres
+  dlt_credentials: env:PG_URL
+  dlt_dataset_name: quarantine
+```
+
+```yaml
+# _system.yaml — the run log for every contract in the system
+metadata:
+  run_log_backend: dlt
+  run_log_table: run_logs
+  dlt_destination: postgres
+  dlt_credentials: env:PG_URL
+  dlt_dataset_name: run_logs
+```
+
+- `dlt_credentials` is a reference (`env:NAME`, `${ENV:NAME}`, `keyvault://…`), never a value.
+- Quarantine needs no `location` or `target` path when `format: dlt`.
+"""
+
 EXAMPLES = """```yaml
 quality:
   fail_pipeline_on_dataset_error: true
@@ -229,6 +264,10 @@ def build_reference(schema: dict) -> str:
         "## Common shapes",
         "",
         EXAMPLES,
+        "",
+        "## Writing to a database",
+        "",
+        DATABASE_TARGETS,
         "",
         "## Business map",
         "",

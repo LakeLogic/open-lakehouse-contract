@@ -2482,6 +2482,7 @@
             }
           ],
           "default": null,
+          "description": "With `format: dlt`, the database rejects are written to: postgres, mssql, snowflake, duckdb, \u2026",
           "title": "Dlt Destination"
         },
         "dlt_credentials": {
@@ -2492,6 +2493,7 @@
             }
           ],
           "default": null,
+          "description": "A secret reference for that database (`env:NAME`, `keyvault://\u2026`), never a literal password.",
           "title": "Dlt Credentials"
         },
         "dlt_dataset_name": {
@@ -2504,6 +2506,7 @@
             }
           ],
           "default": null,
+          "description": "The schema the quarantine table is written in. Default: `quarantine`.",
           "title": "Dlt Dataset Name"
         },
         "dlt_pipeline_name": {
@@ -2516,6 +2519,7 @@
             }
           ],
           "default": null,
+          "description": "The dlt pipeline name. Default: `lakelogic_<table>_quarantine`.",
           "title": "Dlt Pipeline Name"
         }
       },
