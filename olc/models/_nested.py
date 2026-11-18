@@ -936,6 +936,40 @@ class Quality(BaseModel):
 
     enforce_required: bool = True
     fail_pipeline_on_dataset_error: bool = False
+    #: What a failed DATASET rule does to the batch (everything one run reads). Row rules are
+    #: unchanged: a failing row is quarantined and the rest carry on.
+    #:   continue   - the batch is written; the failure is reported (default)
+    #:   stop       - nothing is written and the run fails (= fail_pipeline_on_dataset_error: true)
+    #:   quarantine - every row of the batch goes to quarantine with the failed rule as its
+    #:                reason, nothing goes to the target, and the run carries on (2026-11-18:
+    #:                "keep certain batch[es] and carry on" - a production need).
+    on_dataset_failure: Optional[Literal["continue", "stop", "quarantine"]] = Field(
+        default=None,
+        description=(
+            "What a failed dataset rule does to the batch: `continue` (write it, report the "
+            "failure; default), `stop` (write nothing, fail the run; same as "
+            "`fail_pipeline_on_dataset_error: true`), or `quarantine` (send every row of the "
+            "batch to quarantine with the rule as the reason, write nothing to the target, and "
+            "carry on). Row rules are not affected."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _one_failure_policy(self) -> "Quality":
+        if self.fail_pipeline_on_dataset_error and self.on_dataset_failure not in (None, "stop"):
+            raise ValueError(
+                "quality: fail_pipeline_on_dataset_error: true means on_dataset_failure: stop; "
+                f"it cannot also be '{self.on_dataset_failure}'. Keep one of them."
+            )
+        return self
+
+    @property
+    def dataset_failure_policy(self) -> str:
+        """The effective policy: ``on_dataset_failure``, else ``stop`` when the old flag is set,
+        else ``continue``. The ONE reading every runtime should use."""
+        if self.on_dataset_failure:
+            return self.on_dataset_failure
+        return "stop" if self.fail_pipeline_on_dataset_error else "continue"
     row_rules: List[
         Union[
             QualityRule,

@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `6d6707181862`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `c5c03e9fe4df`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -466,6 +466,7 @@ Quality rule groups for row and dataset checks.
 |---|---|---|
 | `enforce_required` | boolean | default `true` |
 | `fail_pipeline_on_dataset_error` | boolean | default `false` |
+| `on_dataset_failure` | "continue" \| "stop" \| "quarantine" (nullable) | What a failed dataset rule does to the batch: `continue` (write it, report the failure; default), `stop` (write nothing, fail the run; same as `fail_pipeline_on_dataset_error: true`), or `quarantine` (send every row of the batch to quarantine with the rule as the reason, write nothing to the target, and carry on). Row rules are not affected. |
 | `row_rules` | list[QualityRule \| RowRuleNotNull \| RowRuleAcceptedValues \| RowRuleRegexMatch \| RowRuleRange \| RowRuleReferentialIntegrity \| RowRuleLifecycleWindow] |  |
 | `dataset_rules` | list[QualityRule \| DatasetRuleUnique \| DatasetRuleNullRatio \| DatasetRuleRowCountBetween] |  |
 
