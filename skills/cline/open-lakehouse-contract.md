@@ -49,8 +49,7 @@ runtime can run it. Run it once on sample data before relying on it.
 | Write to Postgres / SQL Server | `materialization: {format: dlt, dlt_destination: postgres}` (see Writing to a database) |
 | Upsert on a key | `primary_key: [id]` + `materialization: {strategy: merge}` |
 | Keep history (SCD2) | `primary_key` + `materialization: {strategy: scd2, format: delta, target_path: …, scd2: {track_columns: [name, address], timestamp_field: updated_at}}` |
-| Remove duplicates | `transformations: [{phase: pre, deduplicate: {on: [order_id], sort_by: [updated_at], order: desc}}]` (`sort_by` required) |
-| Keep the latest row per key | `transformations: [{deduplicate_by_latest: {key_columns: [order_id], timestamp_column: updated_at}}]` |
+| Remove duplicates / keep the latest per key | `transformations: [{phase: pre, deduplicate: {on: [order_id], sort_by: [updated_at], order: desc}}]` (`sort_by` required) |
 | Reject bad rows | `quality.row_rules` (failing rows → `quarantine`) |
 | Fail the run on a dataset check | `quality.dataset_rules` + `fail_pipeline_on_dataset_error: true` |
 | Send rejects to a database | `quarantine: {format: dlt, dlt_destination: …}` |
