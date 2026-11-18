@@ -2236,6 +2236,24 @@
           "title": "Fail Pipeline On Dataset Error",
           "type": "boolean"
         },
+        "on_dataset_failure": {
+          "anyOf": [
+            {
+              "enum": [
+                "continue",
+                "stop",
+                "quarantine"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What a failed dataset rule does to the batch: `continue` (write it, report the failure; default), `stop` (write nothing, fail the run; same as `fail_pipeline_on_dataset_error: true`), or `quarantine` (send every row of the batch to quarantine with the rule as the reason, write nothing to the target, and carry on). Row rules are not affected.",
+          "title": "On Dataset Failure"
+        },
         "row_rules": {
           "items": {
             "anyOf": [
