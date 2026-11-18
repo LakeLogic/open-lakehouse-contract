@@ -6,6 +6,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.34.0] — 2026-11-18
+
+### Added
+
+- Quality.on_dataset_failure (continue | stop | quarantine)
+
+### Documentation
+
+- Update changelog for v0.33.1
 ## [0.33.1] — 2026-11-18
 
 ### Documentation
@@ -393,6 +402,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.34.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.33.1...v0.34.0
 [0.33.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.33.0...v0.33.1
 [0.33.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.32.0...v0.33.0
 [0.32.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.31.2...v0.32.0
