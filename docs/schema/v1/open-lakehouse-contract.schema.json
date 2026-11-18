@@ -187,9 +187,70 @@
       "title": "DeletionConfig",
       "type": "object"
     },
+    "DltAuthConfig": {
+      "additionalProperties": false,
+      "description": "How the REST API is signed in to. The values come from ``credentials`` (``${NAME}``\nfilled from the environment), never written here.\n\n* ``api_key`` - ``credentials.api_key`` sent in the header (or query) ``name``;\n* ``bearer`` - ``credentials.token``;\n* ``http_basic`` - ``credentials.username`` / ``password``;\n* ``oauth2_client_credentials`` - ``credentials.client_id`` / ``client_secret`` exchanged at\n  ``access_token_url``.",
+      "properties": {
+        "type": {
+          "enum": [
+            "api_key",
+            "bearer",
+            "http_basic",
+            "oauth2_client_credentials"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "enum": [
+                "header",
+                "query"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "access_token_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Access Token Url"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "DltAuthConfig",
+      "type": "object"
+    },
     "DltEndpointConfig": {
       "additionalProperties": false,
-      "description": "Single REST API endpoint configuration for dlt.",
+      "description": "Single REST API endpoint configuration for dlt.\n\n``paginator_config`` is dlt's paginator (``type``: single_page, offset, page_number,\nheader_link, json_link, cursor, plus that type's settings); ``data_selector`` the dotted path\nto the list of records in the response; ``primary_key`` the record's key.",
       "properties": {
         "name": {
           "title": "Name",
@@ -215,6 +276,60 @@
           ],
           "default": null,
           "title": "Paginator"
+        },
+        "paginator_config": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Paginator Config"
+        },
+        "data_selector": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data Selector"
+        },
+        "incremental": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DltIncrementalConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "primary_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Primary Key"
         }
       },
       "required": [
@@ -222,6 +337,45 @@
         "path"
       ],
       "title": "DltEndpointConfig",
+      "type": "object"
+    },
+    "DltIncrementalConfig": {
+      "additionalProperties": false,
+      "description": "Read only records changed since the last run (dlt's incremental cursor).\n\n``cursor_path`` is the record field that changes; ``start_param`` the query parameter the\nAPI filters on (omit it when a ``params`` value carries ``{incremental.start_value}``);\n``initial_value`` where the first run starts. The run log keeps the position between runs.",
+      "properties": {
+        "cursor_path": {
+          "title": "Cursor Path",
+          "type": "string"
+        },
+        "initial_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Initial Value"
+        },
+        "start_param": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Param"
+        }
+      },
+      "required": [
+        "cursor_path"
+      ],
+      "title": "DltIncrementalConfig",
       "type": "object"
     },
     "DltSourceConfig": {
@@ -285,6 +439,17 @@
           },
           "title": "Credentials",
           "type": "object"
+        },
+        "auth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DltAuthConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "write_disposition": {
           "default": "replace",

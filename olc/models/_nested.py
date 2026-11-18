@@ -128,14 +128,55 @@ class SourcePartition(BaseModel):
     file_pattern: Optional[str] = None
 
 
+class DltIncrementalConfig(BaseModel):
+    """Read only records changed since the last run (dlt's incremental cursor).
+
+    ``cursor_path`` is the record field that changes; ``start_param`` the query parameter the
+    API filters on (omit it when a ``params`` value carries ``{incremental.start_value}``);
+    ``initial_value`` where the first run starts. The run log keeps the position between runs.
+    """
+
+    model_config = ConfigDict(extra="allow")
+    cursor_path: str
+    initial_value: Optional[str] = None
+    start_param: Optional[str] = None
+
+
 class DltEndpointConfig(BaseModel):
-    """Single REST API endpoint configuration for dlt."""
+    """Single REST API endpoint configuration for dlt.
+
+    ``paginator_config`` is dlt's paginator (``type``: single_page, offset, page_number,
+    header_link, json_link, cursor, plus that type's settings); ``data_selector`` the dotted path
+    to the list of records in the response; ``primary_key`` the record's key.
+    """
 
     model_config = ConfigDict(extra="allow")
     name: str
     path: str
     params: Dict[str, Any] = Field(default_factory=dict)
     paginator: Optional[str] = None
+    paginator_config: Optional[Dict[str, Any]] = None
+    data_selector: Optional[str] = None
+    incremental: Optional[DltIncrementalConfig] = None
+    primary_key: Optional[Union[str, List[str]]] = None
+
+
+class DltAuthConfig(BaseModel):
+    """How the REST API is signed in to. The values come from ``credentials`` (``${NAME}``
+    filled from the environment), never written here.
+
+    * ``api_key`` - ``credentials.api_key`` sent in the header (or query) ``name``;
+    * ``bearer`` - ``credentials.token``;
+    * ``http_basic`` - ``credentials.username`` / ``password``;
+    * ``oauth2_client_credentials`` - ``credentials.client_id`` / ``client_secret`` exchanged at
+      ``access_token_url``.
+    """
+
+    model_config = ConfigDict(extra="allow")
+    type: Literal["api_key", "bearer", "http_basic", "oauth2_client_credentials"]
+    name: Optional[str] = None
+    location: Optional[Literal["header", "query"]] = None
+    access_token_url: Optional[str] = None
 
 
 class DltSourceConfig(BaseModel):
@@ -174,6 +215,7 @@ class DltSourceConfig(BaseModel):
     base_url: Optional[str] = None
     endpoints: Optional[List[DltEndpointConfig]] = None
     credentials: Dict[str, str] = Field(default_factory=dict)
+    auth: Optional[DltAuthConfig] = None
     write_disposition: str = "replace"
     max_table_nesting: int = 1
 
