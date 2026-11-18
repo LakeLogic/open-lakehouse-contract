@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.32.0] — 2026-11-18
+
+### Documentation
+
+- Update changelog for v0.31.2
 ## [0.31.2] — 2026-11-16
 
 ### Documentation
@@ -368,6 +373,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.32.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.31.2...v0.32.0
 [0.31.2]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.31.1...v0.31.2
 [0.31.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.31.0...v0.31.1
 [0.31.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.30.0...v0.31.0
