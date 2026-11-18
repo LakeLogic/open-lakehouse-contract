@@ -553,6 +553,12 @@ class SystemMetadata(_Base):
     platform: Optional[str] = None
     slo_checks_table: Optional[str] = None
     slo_checks_backend: Optional[str] = None
+    #: ``run_log_backend: dlt`` writes the run log to a database (Postgres, SQL Server, …);
+    #: these say which one, as on a target or quarantine (2026-11-18: wherever data can be
+    #: written, its run log can be written too - the runtime reads them, the schema did not).
+    dlt_destination: Optional[str] = None
+    dlt_credentials: Optional[Any] = None
+    dlt_dataset_name: Optional[str] = None
     # Backend-neutral qualification for the tables above.
     catalog: Optional[str] = None
     database: Optional[str] = None

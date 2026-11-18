@@ -1002,9 +1002,19 @@ class Quarantine(BaseModel):
     strict_notifications: bool = True
     fail_on_quarantine: bool = False
     notifications_enabled: bool = True
+    #: Where rejects are written: a table/file format (``delta``, ``parquet``, ``iceberg``, …)
+    #: or ``dlt`` for a database (Postgres, SQL Server, …) through ``dlt_destination``.
     format: Optional[str] = None
     write_mode: str = "append"
     notifications: List[Notification] = Field(default_factory=list)
+    # Declared, not merely tolerated (2026-11-18). The runtime already writes quarantine to a
+    # database with ``format: dlt`` (lakelogic.core.quarantine reads these keys), but the
+    # schema closed this object, so an editor flagged a Postgres quarantine as invalid.
+    # Wherever data can be written, its rejects can be written too. Same keys as the target.
+    dlt_destination: Optional[str] = None
+    dlt_credentials: Optional[Any] = None
+    dlt_dataset_name: Optional[str] = None
+    dlt_pipeline_name: Optional[str] = None
 
 
 class Profiling(BaseModel):

@@ -2471,6 +2471,52 @@
           },
           "title": "Notifications",
           "type": "array"
+        },
+        "dlt_destination": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Destination"
+        },
+        "dlt_credentials": {
+          "anyOf": [
+            {},
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Credentials"
+        },
+        "dlt_dataset_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Dataset Name"
+        },
+        "dlt_pipeline_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dlt Pipeline Name"
         }
       },
       "title": "Quarantine",
