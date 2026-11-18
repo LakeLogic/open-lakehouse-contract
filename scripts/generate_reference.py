@@ -65,7 +65,7 @@ CAPABILITIES: dict[str, str] = {
     "server": "The platform the output lives on and its connection mode.",
     "environments": "Per-environment (dev/prod) path and format overrides.",
     "links": "Reference datasets joined in by transformations (lookups).",
-    "materialization": "How output is written: append, overwrite, merge, SCD1, SCD2, fact; format; partitioning; database targets (dlt).",
+    "materialization": "How output is written: append, overwrite, merge, SCD1, SCD2, fact; format; partitioning; database targets (`format: database` native, or `format: dlt`).",
     "transformations": "SQL or structured steps before (`pre`) or after (`post`) quality checks: rename, derive, dedup, filter, join.",
     "logic": "Full SQL that produces the output, instead of step-by-step transformations.",
     "external_logic": "A Python/notebook hook for processing SQL cannot express.",
@@ -83,6 +83,7 @@ CAPABILITIES: dict[str, str] = {
     "extraction": "LLM extraction of fields from unstructured files (PDF, documents).",
     "compliance": "Retention for this contract, overriding its domain's layer period.",
     "entity": "The business concept this table represents, by its name in `_domain.yaml`.",
+    "metrics": "Declared metrics on a gold table: name, expression over its columns or other metrics, unit, additivity, `of` (the concept).",
     "tier": "Criticality tier of the data product.",
     "metadata": "Free-form key/values a runtime reads (e.g. run-log settings).",
     "extensions": "Vendor blocks (`x-…` keys) a runtime may read; ignored by the standard.",
@@ -96,14 +97,16 @@ TASKS: list[tuple[str, str]] = [
     ("Read a database table", "`source: {type: database, query: …, options: …}`"),
     ("Read a REST API", "`source: {type: dlt, dlt: {…}}`"),
     ("Write to a Delta / Iceberg table", "`materialization: {strategy: append, format: delta}`"),
-    ("Write to Postgres / SQL Server", "`materialization: {format: dlt, dlt_destination: postgres}` (see Writing to a database)"),
+    ("Write to Postgres / MySQL / SQL Server fast", "`materialization: {format: database, connection: env:PG_URL, table: schema.table}` (see Writing to a database)"),
+    ("Write to any other database", "`materialization: {format: dlt, dlt_destination: …}` (see Writing to a database)"),
     ("Upsert on a key", "`primary_key: [id]` + `materialization: {strategy: merge}`"),
     ("Keep history (SCD2)", "`primary_key` + `materialization: {strategy: scd2, format: delta, target_path: …, scd2: {track_columns: [name, address], timestamp_field: updated_at}}`"),
     ("Remove duplicates / keep the latest per key", "`transformations: [{phase: pre, deduplicate: {on: [order_id], sort_by: [updated_at], order: desc}}]` (`sort_by` required)"),
     ("Reject bad rows", "`quality.row_rules` (failing rows → `quarantine`)"),
     ("Fail the run on a dataset check", "`quality.dataset_rules` + `on_dataset_failure: stop`"),
     ("Set a failed batch aside and carry on", "`quality.on_dataset_failure: quarantine` (+ `source.post_ingestion.on_error: move` so it is not read again)"),
-    ("Send rejects to a database", "`quarantine: {format: dlt, dlt_destination: …}`"),
+    ("Send rejects to a database", "`quarantine: {format: database, connection: …, table: …}` (or `format: dlt`)"),
+    ("Set aside only the groups that failed", "`quality.on_dataset_failure: quarantine` + `quarantine_scope: [symbol]`"),
     ("Mark and mask personal data", "`model.fields[]: {pii: true, masking: nullify / hash / redact / partial / encrypt}`"),
     ("Handle unexpected input columns", "`schema_policy.unknown_fields: allow / drop / quarantine`"),
     ("Control how the output table's schema may change", "`schema_policy.evolution: strict / append / merge / overwrite / compatible / allow` (applied when output is written)"),
@@ -174,37 +177,58 @@ model:
 """
 
 #: Wherever data can be written, its quarantine and run log can be written too (2026-11-18).
-DATABASE_TARGETS = """A contract can write to a database (Postgres, SQL Server, Snowflake, DuckDB, …) through
-dlt as well as to cloud storage. When it does, write its **quarantine** and **run log** to a
-database too, with the same keys. Never leave rejects or logs unwritten because the target is
-not cloud storage.
+DATABASE_TARGETS = """A contract can write to a database as well as to cloud storage. When it does, write its
+**quarantine** and **run log** to a database too. Never leave rejects or logs unwritten because
+the target is not cloud storage.
+
+**`format: database`** - the runtime's native writer: a bulk load and one upsert statement per
+batch, in one transaction. Postgres, MySQL / MariaDB, SQL Server / Azure SQL, DuckDB, SQLite.
+The fast choice for frequent loads (a 1,200-row merge in ~0.02 s on Postgres, unchanged rows
+not rewritten).
 
 ```yaml
 # a contract
+primary_key: [symbol, ts]              # needed for merge and on_conflict: ignore
 materialization:
-  format: dlt
-  dlt_destination: postgres            # postgres | mssql | snowflake | duckdb | …
-  dlt_credentials: env:PG_URL          # a secret reference — never a literal password
-  dlt_dataset_name: silver
+  format: database
+  connection: env:PG_URL               # postgresql:// | mysql:// | mssql:// | duckdb:/// | sqlite:///
+  table: market_data.market_bars       # schema.table, created when missing
+  strategy: merge                      # append | merge | overwrite   (scd2: use format: dlt)
+  write: {only_changed: true}          # optional: on_conflict, only_changed, batch_size,
+                                       #   create_table, allow_empty_overwrite
 quarantine:
-  format: dlt                          # rejects go to the database, not a file path
-  table: quarantine_orders
-  dlt_destination: postgres
-  dlt_credentials: env:PG_URL
-  dlt_dataset_name: quarantine
+  format: database
+  connection: env:PG_URL
+  table: quarantine.quarantine_market_bars
 ```
 
 ```yaml
-# _system.yaml — the run log for every contract in the system
+# _system.yaml (or the contract's metadata) - the run log
 metadata:
-  run_log_backend: dlt
-  run_log_table: run_logs
-  dlt_destination: postgres
-  dlt_credentials: env:PG_URL
-  dlt_dataset_name: run_logs
+  run_log_backend: database
+  run_log_table: lakelogic.run_logs
+  run_log_connection: env:PG_URL       # defaults to materialization.connection
 ```
 
-- `dlt_credentials` is a reference (`env:NAME`, `${ENV:NAME}`, `keyvault://…`), never a value.
+**`format: dlt`** - any destination dlt supports (and API sources). Slower per write.
+
+```yaml
+materialization:
+  format: dlt
+  dlt_destination: postgres            # postgres | mssql | snowflake | bigquery | duckdb | …
+  dlt_credentials: env:PG_URL
+  dlt_dataset_name: silver
+quarantine:
+  format: dlt
+  table: quarantine_orders
+  dlt_destination: postgres
+  dlt_credentials: env:PG_URL
+```
+
+- `connection` / `dlt_credentials` are references (`env:NAME`, `${ENV:NAME}`, `keyvault://…`),
+  never values.
+- A failed dataset rule can set the batch aside (`quality.on_dataset_failure: quarantine`), or only
+  the failing groups (`quarantine_scope: [symbol]`); the rest of the batch is still written.
 """
 
 EXAMPLES = """```yaml

@@ -943,6 +943,13 @@ class Quality(BaseModel):
     #:   quarantine - every row of the batch goes to quarantine with the failed rule as its
     #:                reason, nothing goes to the target, and the run carries on (2026-11-18:
     #:                "keep certain batch[es] and carry on" - a production need).
+    quarantine_scope: List[str] = Field(
+        default_factory=list,
+        description=(
+            "With `on_dataset_failure: quarantine`: set aside only the groups (by these columns, "
+            "e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written."
+        ),
+    )
     on_dataset_failure: Optional[Literal["continue", "stop", "quarantine"]] = Field(
         default=None,
         description=(
@@ -1053,6 +1060,9 @@ class Quarantine(BaseModel):
         "The schema the quarantine table is written in. Default: `quarantine`."))
     dlt_pipeline_name: Optional[str] = Field(default=None, description=(
         "The dlt pipeline name. Default: `lakelogic_<table>_quarantine`."))
+    connection: Optional[str] = Field(default=None, description=(
+        "With `format: database`: a secret reference to the connection URL. Rows are appended."))
+    write: Optional[DatabaseWrite] = None
 
 
 class Profiling(BaseModel):
@@ -1414,6 +1424,22 @@ class DeletionConfig(BaseModel):
     )
 
 
+class DatabaseWrite(BaseModel):
+    """How ``format: database`` writes a batch. Every key is optional."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    on_conflict: Optional[Literal["error", "ignore"]] = Field(
+        default=None, description="Append only: on a duplicate key, `error` (default) or `ignore` (needs primary_key).")
+    only_changed: Optional[bool] = Field(
+        default=None, description="Merge: leave rows whose values have not changed untouched (default true).")
+    batch_size: Optional[int] = Field(default=None, ge=1, description="Rows per bulk-load chunk (default 100000).")
+    create_table: Optional[bool] = Field(
+        default=None, description="Create the table from the data when it is missing (default true).")
+    allow_empty_overwrite: Optional[bool] = Field(
+        default=None, description="Overwrite with 0 rows empties the table only when true (default false).")
+
+
 class Materialization(BaseModel):
     """Materialization settings for writing outputs."""
 
@@ -1492,6 +1518,12 @@ class Materialization(BaseModel):
     dlt_destination: Optional[str] = None
     dlt_credentials: Optional[Any] = None
     dlt_dataset_name: Optional[str] = None
+    # format: database - the runtime's native writer (2026-11-18): a bulk load and one upsert
+    # statement per batch, in one transaction. `format: dlt` is unchanged.
+    connection: Optional[str] = Field(
+        default=None, description="With `format: database`: a secret reference to the connection URL (`env:PG_URL`).")
+    table: Optional[str] = Field(default=None, description="With `format: database`: the target `schema.table`.")
+    write: Optional[DatabaseWrite] = None
     _MAT_KNOWN_KEYS: set = {
         "strategy",
         "partition_by",
@@ -1517,7 +1549,21 @@ class Materialization(BaseModel):
         "dlt_destination",
         "dlt_credentials",
         "dlt_dataset_name",
+        "connection",
+        "table",
+        "write",
     }
+
+    @model_validator(mode="after")
+    def _database_format_is_complete(self) -> "Materialization":
+        if str(self.format or "").lower() == "database":
+            missing = [k for k in ("connection", "table") if not getattr(self, k)]
+            if missing:
+                raise ValueError(f"materialization.format: database needs {' and '.join(missing)}")
+            if str(self.strategy or "").lower() == "scd2":
+                raise ValueError("materialization.format: database does not support strategy scd2 yet; "
+                                 "use format: dlt for SCD2")
+        return self
 
     @model_validator(mode="after")
     def _deletion_needs_merge(self) -> "Materialization":

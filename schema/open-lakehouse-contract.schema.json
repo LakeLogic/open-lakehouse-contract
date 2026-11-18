@@ -31,6 +31,84 @@
       "type": "object",
       "additionalProperties": false
     },
+    "DatabaseWrite": {
+      "additionalProperties": false,
+      "description": "How ``format: database`` writes a batch. Every key is optional.",
+      "properties": {
+        "on_conflict": {
+          "anyOf": [
+            {
+              "enum": [
+                "error",
+                "ignore"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Append only: on a duplicate key, `error` (default) or `ignore` (needs primary_key).",
+          "title": "On Conflict"
+        },
+        "only_changed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Merge: leave rows whose values have not changed untouched (default true).",
+          "title": "Only Changed"
+        },
+        "batch_size": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rows per bulk-load chunk (default 100000).",
+          "title": "Batch Size"
+        },
+        "create_table": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Create the table from the data when it is missing (default true).",
+          "title": "Create Table"
+        },
+        "allow_empty_overwrite": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Overwrite with 0 rows empties the table only when true (default false).",
+          "title": "Allow Empty Overwrite"
+        }
+      },
+      "title": "DatabaseWrite",
+      "type": "object"
+    },
     "DatasetRuleNullRatio": {
       "description": "Business-friendly null ratio rule.",
       "properties": {
@@ -1832,9 +1910,147 @@
           ],
           "default": null,
           "title": "Dlt Dataset Name"
+        },
+        "connection": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "With `format: database`: a secret reference to the connection URL (`env:PG_URL`).",
+          "title": "Connection"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "With `format: database`: the target `schema.table`.",
+          "title": "Table"
+        },
+        "write": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DatabaseWrite"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "title": "Materialization",
+      "type": "object"
+    },
+    "Metric": {
+      "additionalProperties": false,
+      "description": "One declared metric on a gold contract.",
+      "properties": {
+        "name": {
+          "description": "The business name, e.g. `Revenue`.",
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "of": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The business concept it measures, by its ontology name.",
+          "title": "Of"
+        },
+        "expression": {
+          "description": "An aggregate over this contract's columns (`SUM(gross_revenue_amount)`), or arithmetic over other metrics on this contract (`Revenue / Trips`).",
+          "minLength": 1,
+          "title": "Expression",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "additivity": {
+          "default": "additive",
+          "description": "`additive`; `semi_additive` (not summed over time, e.g. a balance); `non_additive` (a ratio or distinct count, never summed).",
+          "enum": [
+            "additive",
+            "semi_additive",
+            "non_additive"
+          ],
+          "title": "Additivity",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "also_called": {
+          "description": "Other names the business has agreed mean this metric.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Also Called",
+          "type": "array"
+        },
+        "dimensions": {
+          "description": "Columns it may be broken down by. Empty: LakeLogic chooses.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Dimensions",
+          "type": "array"
+        },
+        "date_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The column its period is read from.",
+          "title": "Date Column"
+        }
+      },
+      "required": [
+        "name",
+        "expression"
+      ],
+      "title": "Metric",
       "type": "object"
     },
     "Model": {
@@ -2236,6 +2452,14 @@
           "title": "Fail Pipeline On Dataset Error",
           "type": "boolean"
         },
+        "quarantine_scope": {
+          "description": "With `on_dataset_failure: quarantine`: set aside only the groups (by these columns, e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Quarantine Scope",
+          "type": "array"
+        },
         "on_dataset_failure": {
           "anyOf": [
             {
@@ -2539,6 +2763,30 @@
           "default": null,
           "description": "The dlt pipeline name. Default: `lakelogic_<table>_quarantine`.",
           "title": "Dlt Pipeline Name"
+        },
+        "connection": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "With `format: database`: a secret reference to the connection URL. Rows are appended.",
+          "title": "Connection"
+        },
+        "write": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DatabaseWrite"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "title": "Quarantine",
@@ -7703,6 +7951,14 @@
       ],
       "default": null,
       "title": "Contract File Name"
+    },
+    "metrics": {
+      "description": "Declared metrics: what this gold table's numbers mean, e.g. `Revenue = SUM(gross_revenue_amount)`. Expressions name only this contract's columns and metrics.",
+      "items": {
+        "$ref": "#/$defs/Metric"
+      },
+      "title": "Metrics",
+      "type": "array"
     }
   },
   "required": [

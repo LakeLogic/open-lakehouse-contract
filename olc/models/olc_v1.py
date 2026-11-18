@@ -39,6 +39,7 @@ from olc.models._nested import (
     UpstreamSource,
 )
 from olc.models._strict_keys import collect_unknown_nested_keys
+from olc.models.metrics import Metric, metric_problems
 
 # Full SemVer 2.0.0 (major.minor.patch with optional -prerelease / +build).
 _SEMVER = (
@@ -209,3 +210,18 @@ class OLCContractV1(BaseModel):
         "by its name in the domain file's `concepts`. Optional; merging it confirms the mapping.",
     )
     contract_file_name: Optional[str] = None
+    metrics: List[Metric] = Field(
+        default_factory=list,
+        description="Declared metrics: what this gold table's numbers mean, e.g. `Revenue = "
+        "SUM(gross_revenue_amount)`. Expressions name only this contract's columns and metrics.",
+    )
+
+    @model_validator(mode="after")
+    def _metrics_name_only_this_contract(self) -> "OLCContractV1":
+        """A metric naming a column the contract lacks, an undeclared metric, or itself, is invalid."""
+        if not self.metrics:
+            return self
+        problems = metric_problems([m.model_dump() for m in self.metrics], [f.name for f in self.model.fields])
+        if problems:
+            raise ValueError("metrics: " + "; ".join(problems))
+        return self

@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `c5c03e9fe4df`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `0a981ff73699`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -62,37 +62,58 @@ contract. Unknown keys are rejected.
 
 ## Writing to a database
 
-A contract can write to a database (Postgres, SQL Server, Snowflake, DuckDB, …) through
-dlt as well as to cloud storage. When it does, write its **quarantine** and **run log** to a
-database too, with the same keys. Never leave rejects or logs unwritten because the target is
-not cloud storage.
+A contract can write to a database as well as to cloud storage. When it does, write its
+**quarantine** and **run log** to a database too. Never leave rejects or logs unwritten because
+the target is not cloud storage.
+
+**`format: database`** - the runtime's native writer: a bulk load and one upsert statement per
+batch, in one transaction. Postgres, MySQL / MariaDB, SQL Server / Azure SQL, DuckDB, SQLite.
+The fast choice for frequent loads (a 1,200-row merge in ~0.02 s on Postgres, unchanged rows
+not rewritten).
 
 ```yaml
 # a contract
+primary_key: [symbol, ts]              # needed for merge and on_conflict: ignore
 materialization:
-  format: dlt
-  dlt_destination: postgres            # postgres | mssql | snowflake | duckdb | …
-  dlt_credentials: env:PG_URL          # a secret reference — never a literal password
-  dlt_dataset_name: silver
+  format: database
+  connection: env:PG_URL               # postgresql:// | mysql:// | mssql:// | duckdb:/// | sqlite:///
+  table: market_data.market_bars       # schema.table, created when missing
+  strategy: merge                      # append | merge | overwrite   (scd2: use format: dlt)
+  write: {only_changed: true}          # optional: on_conflict, only_changed, batch_size,
+                                       #   create_table, allow_empty_overwrite
 quarantine:
-  format: dlt                          # rejects go to the database, not a file path
-  table: quarantine_orders
-  dlt_destination: postgres
-  dlt_credentials: env:PG_URL
-  dlt_dataset_name: quarantine
+  format: database
+  connection: env:PG_URL
+  table: quarantine.quarantine_market_bars
 ```
 
 ```yaml
-# _system.yaml — the run log for every contract in the system
+# _system.yaml (or the contract's metadata) - the run log
 metadata:
-  run_log_backend: dlt
-  run_log_table: run_logs
-  dlt_destination: postgres
-  dlt_credentials: env:PG_URL
-  dlt_dataset_name: run_logs
+  run_log_backend: database
+  run_log_table: lakelogic.run_logs
+  run_log_connection: env:PG_URL       # defaults to materialization.connection
 ```
 
-- `dlt_credentials` is a reference (`env:NAME`, `${ENV:NAME}`, `keyvault://…`), never a value.
+**`format: dlt`** - any destination dlt supports (and API sources). Slower per write.
+
+```yaml
+materialization:
+  format: dlt
+  dlt_destination: postgres            # postgres | mssql | snowflake | bigquery | duckdb | …
+  dlt_credentials: env:PG_URL
+  dlt_dataset_name: silver
+quarantine:
+  format: dlt
+  table: quarantine_orders
+  dlt_destination: postgres
+  dlt_credentials: env:PG_URL
+```
+
+- `connection` / `dlt_credentials` are references (`env:NAME`, `${ENV:NAME}`, `keyvault://…`),
+  never values.
+- A failed dataset rule can set the batch aside (`quality.on_dataset_failure: quarantine`), or only
+  the failing groups (`quarantine_scope: [symbol]`); the rest of the batch is still written.
 
 
 ## Business map
@@ -165,6 +186,7 @@ model:
 | `tier` | string (nullable) |  |
 | `entity` | string (nullable) | Business map: the business concept this contract represents (e.g. `Payment`), by its name in the domain file's `concepts`. Optional; merging it confirms the mapping. |
 | `contract_file_name` | string (nullable) |  |
+| `metrics` | list[Metric] | Declared metrics: what this gold table's numbers mean, e.g. `Revenue = SUM(gross_revenue_amount)`. Expressions name only this contract's columns and metrics. |
 
 Unknown keys rejected.
 
@@ -341,6 +363,9 @@ Materialization settings for writing outputs.
 | `dlt_destination` | string (nullable) |  |
 | `dlt_credentials` | any (nullable) |  |
 | `dlt_dataset_name` | string (nullable) |  |
+| `connection` | string (nullable) | With `format: database`: a secret reference to the connection URL (`env:PG_URL`). |
+| `table` | string (nullable) | With `format: database`: the target `schema.table`. |
+| `write` | DatabaseWrite (nullable) |  |
 
 Unknown keys rejected.
 
@@ -466,6 +491,7 @@ Quality rule groups for row and dataset checks.
 |---|---|---|
 | `enforce_required` | boolean | default `true` |
 | `fail_pipeline_on_dataset_error` | boolean | default `false` |
+| `quarantine_scope` | list[string] | With `on_dataset_failure: quarantine`: set aside only the groups (by these columns, e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written. |
 | `on_dataset_failure` | "continue" \| "stop" \| "quarantine" (nullable) | What a failed dataset rule does to the batch: `continue` (write it, report the failure; default), `stop` (write nothing, fail the run; same as `fail_pipeline_on_dataset_error: true`), or `quarantine` (send every row of the batch to quarantine with the rule as the reason, write nothing to the target, and carry on). Row rules are not affected. |
 | `row_rules` | list[QualityRule \| RowRuleNotNull \| RowRuleAcceptedValues \| RowRuleRegexMatch \| RowRuleRange \| RowRuleReferentialIntegrity \| RowRuleLifecycleWindow] |  |
 | `dataset_rules` | list[QualityRule \| DatasetRuleUnique \| DatasetRuleNullRatio \| DatasetRuleRowCountBetween] |  |
@@ -556,6 +582,8 @@ Quarantine settings and notification routing.
 | `dlt_credentials` | any (nullable) | A secret reference for that database (`env:NAME`, `keyvault://…`), never a literal password. |
 | `dlt_dataset_name` | string (nullable) | The schema the quarantine table is written in. Default: `quarantine`. |
 | `dlt_pipeline_name` | string (nullable) | The dlt pipeline name. Default: `lakelogic_<table>_quarantine`. |
+| `connection` | string (nullable) | With `format: database`: a secret reference to the connection URL. Rows are appended. |
+| `write` | DatabaseWrite (nullable) |  |
 
 Unknown keys rejected.
 
@@ -569,6 +597,24 @@ Unknown keys rejected.
 | `column` | string (nullable) | The column whose OLDEST value measures a record's age (e.g. signup_date). Omitted: the runtime's default age columns. |
 | `starts` | "record_created" \| "relationship_ended" \| "custom" (nullable) | When the retention clock starts: record_created, relationship_ended (e.g. six years after an account closes), or custom (explain in `basis`). |
 | `basis` | string (nullable) | Why this period applies (e.g. legal, contract, 'Tax: 6 years from signup'). |
+
+Unknown keys rejected.
+
+## Metric
+
+One declared metric on a gold contract.
+
+| key | type | notes |
+|---|---|---|
+| `name` | string | **required** · The business name, e.g. `Revenue`. |
+| `of` | string (nullable) | The business concept it measures, by its ontology name. |
+| `expression` | string | **required** · An aggregate over this contract's columns (`SUM(gross_revenue_amount)`), or arithmetic over other metrics on this contract (`Revenue / Trips`). |
+| `unit` | string (nullable) |  |
+| `additivity` | "additive" \| "semi_additive" \| "non_additive" | default `"additive"` · `additive`; `semi_additive` (not summed over time, e.g. a balance); `non_additive` (a ratio or distinct count, never summed). |
+| `description` | string (nullable) |  |
+| `also_called` | list[string] | Other names the business has agreed mean this metric. |
+| `dimensions` | list[string] | Columns it may be broken down by. Empty: LakeLogic chooses. |
+| `date_column` | string (nullable) | The column its period is read from. |
 
 Unknown keys rejected.
 
@@ -1001,6 +1047,20 @@ A dual-write destination executed after the primary materialization.
 | `dlt_dataset_name` | string (nullable) |  |
 | `path` | string (nullable) |  |
 | `mode` | string (nullable) |  |
+
+Unknown keys rejected.
+
+## DatabaseWrite
+
+How ``format: database`` writes a batch.
+
+| key | type | notes |
+|---|---|---|
+| `on_conflict` | "error" \| "ignore" (nullable) | Append only: on a duplicate key, `error` (default) or `ignore` (needs primary_key). |
+| `only_changed` | boolean (nullable) | Merge: leave rows whose values have not changed untouched (default true). |
+| `batch_size` | integer (nullable) | Rows per bulk-load chunk (default 100000). |
+| `create_table` | boolean (nullable) | Create the table from the data when it is missing (default true). |
+| `allow_empty_overwrite` | boolean (nullable) | Overwrite with 0 rows empties the table only when true (default false). |
 
 Unknown keys rejected.
 

@@ -14,6 +14,7 @@ from typing import Any
 
 from olc.models._strict_keys import collect_unknown_nested_keys
 from olc.models.compliance import ContractRetention
+from olc.models.metrics import Metric, metric_problems
 from olc.models.olc_v1 import OLCContractV1, StrictServer
 from olc.models.registry_v1 import (
     BusinessConcept,
@@ -28,6 +29,8 @@ from olc.models.registry_v1 import (
 )
 
 __all__ = [
+    "Metric",
+    "metric_problems",
     "BusinessConcept",
     "BusinessRelationship",
     "BusinessStory",

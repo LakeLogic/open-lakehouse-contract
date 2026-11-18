@@ -35,6 +35,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from olc.models._nested import (
+    DatabaseWrite,  # noqa: F401 - resolves Materialization.write on registry subclasses
     LineageConfig,
     Materialization,
     Notification,
@@ -562,6 +563,9 @@ class SystemMetadata(_Base):
         "A secret reference for that database (`env:NAME`, `keyvault://…`), never a literal password."))
     dlt_dataset_name: Optional[str] = Field(default=None, description=(
         "The schema the run log is written in. Default: an existing `run_logs`, else the runtime default."))
+    run_log_connection: Optional[str] = Field(default=None, description=(
+        "With `run_log_backend: database`: a secret reference to the connection URL "
+        "(defaults to the contract's materialization.connection)."))
     # Backend-neutral qualification for the tables above.
     catalog: Optional[str] = None
     database: Optional[str] = None
