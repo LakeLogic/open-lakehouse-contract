@@ -6,6 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.33.0] — 2026-11-18
+
+### Added
+
+- **agents**: Olc guide + olc reference; short, complete agent guide in every skill file
+- Quarantine and run log to a database (dlt_destination on quarantine and system metadata)
+
+### Documentation
+
+- **skills**: Writing quarantine and run log to a database
+- Update changelog for v0.32.0
 ## [0.32.0] — 2026-11-18
 
 ### Documentation
@@ -373,6 +384,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.33.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.32.0...v0.33.0
 [0.32.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.31.2...v0.32.0
 [0.31.2]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.31.1...v0.31.2
 [0.31.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.31.0...v0.31.1
