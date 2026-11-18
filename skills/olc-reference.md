@@ -93,7 +93,6 @@ metadata:
 ```
 
 - `dlt_credentials` is a reference (`env:NAME`, `${ENV:NAME}`, `keyvault://…`), never a value.
-- Quarantine needs no `location` or `target` path when `format: dlt`.
 
 
 ## Business map

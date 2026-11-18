@@ -51,6 +51,70 @@ CONTEXT_FILES = [
     "skills/gemini/root/GEMINI.md",
 ]
 
+#: Every top-level contract key: what an agent reaches for it to do. COMPLETE by test
+#: (tests/test_reference_drift.py fails when the schema has a key this map does not), so a
+#: capability can never exist without an entry an agent can find (owner, 2026-11-18).
+CAPABILITIES: dict[str, str] = {
+    "version": "Contract version, SemVer (`1.0.0`). Required.",
+    "info": "Title, owner, domain, system, target layer (bronze/silver/gold). Required.",
+    "model": "The columns: name, type, description, PII, nullability. Required.",
+    "dataset": "The table name this contract produces.",
+    "primary_key": "The business key, a list. Merge, SCD2 and dedup match on it.",
+    "natural_key": "Deprecated; use `primary_key`.",
+    "source": "Where data comes from: file/landing, table, Delta/Iceberg, database, API (dlt), SFTP, stream.",
+    "server": "The platform the output lives on and its connection mode.",
+    "environments": "Per-environment (dev/prod) path and format overrides.",
+    "links": "Reference datasets joined in by transformations (lookups).",
+    "materialization": "How output is written: append, overwrite, merge, SCD1, SCD2, fact; format; partitioning; database targets (dlt).",
+    "transformations": "SQL or structured steps before (`pre`) or after (`post`) quality checks: rename, derive, dedup, filter, join.",
+    "logic": "Full SQL that produces the output, instead of step-by-step transformations.",
+    "external_logic": "A Python/notebook hook for processing SQL cannot express.",
+    "quality": "Row rules (failing rows quarantined) and dataset rules (checked once per run).",
+    "quarantine": "Where rejected rows go (table, path or database) and who is notified.",
+    "schema_policy": "What happens to unknown or changed columns: allow, drop, quarantine, evolve.",
+    "service_levels": "Freshness, availability, row-count and partition-completeness objectives.",
+    "profiling": "Statistics profiling of the data: full or sampled.",
+    "lineage": "Lineage capture settings.",
+    "upstream": "Names of upstream contracts (simple form).",
+    "upstream_contracts": "Upstream contracts this one reads, structured.",
+    "upstream_sources": "Origins that are not contracts: source systems, files, APIs, databases.",
+    "downstream": "Consumers of this output: reports, apps, teams.",
+    "schedule": "When the contract runs (cron expression).",
+    "extraction": "LLM extraction of fields from unstructured files (PDF, documents).",
+    "compliance": "Retention for this contract, overriding its domain's layer period.",
+    "entity": "The business concept this table represents, by its name in `_domain.yaml`.",
+    "tier": "Criticality tier of the data product.",
+    "metadata": "Free-form key/values a runtime reads (e.g. run-log settings).",
+    "extensions": "Vendor blocks (`x-…` keys) a runtime may read; ignored by the standard.",
+    "observatory": "Runtime observability settings (free-form).",
+    "contract_file_name": "The file this contract was loaded from (set by tooling).",
+}
+
+#: Common tasks, mapped to the keys that do them. The fastest path for "how do I …".
+TASKS: list[tuple[str, str]] = [
+    ("Read files from a landing folder", "`source: {type: landing, path: …, format: csv}`"),
+    ("Read a database table", "`source: {type: database, query: …, options: …}`"),
+    ("Read a REST API", "`source: {type: dlt, dlt: {…}}`"),
+    ("Write to a Delta / Iceberg table", "`materialization: {strategy: append, format: delta}`"),
+    ("Write to Postgres / SQL Server", "`materialization: {format: dlt, dlt_destination: postgres}` (see Writing to a database)"),
+    ("Upsert on a key", "`primary_key: [id]` + `materialization: {strategy: merge}`"),
+    ("Keep history (SCD2)", "`primary_key` + `materialization: {strategy: scd2, format: delta, target_path: …, scd2: {track_columns: [name, address], timestamp_field: updated_at}}`"),
+    ("Remove duplicates", "`transformations: [{phase: pre, deduplicate: {on: [order_id], sort_by: [updated_at], order: desc}}]` (`sort_by` required)"),
+    ("Keep the latest row per key", "`transformations: [{deduplicate_by_latest: {key_columns: [order_id], timestamp_column: updated_at}}]`"),
+    ("Reject bad rows", "`quality.row_rules` (failing rows → `quarantine`)"),
+    ("Fail the run on a dataset check", "`quality.dataset_rules` + `fail_pipeline_on_dataset_error: true`"),
+    ("Send rejects to a database", "`quarantine: {format: dlt, dlt_destination: …}`"),
+    ("Mark and mask personal data", "`model.fields[]: {pii: true, masking: nullify / hash / redact / partial / encrypt}`"),
+    ("Handle unexpected input columns", "`schema_policy.unknown_fields: allow / drop / quarantine`"),
+    ("Control how the output table's schema may change", "`schema_policy.evolution: strict / append / merge / overwrite / compatible / allow` (applied when output is written)"),
+    ("Set a freshness objective", "`service_levels.freshness`"),
+    ("Partition the output", "`materialization.partition_by`"),
+    ("Process only new data", "`source.load_mode: incremental` + `watermark_field`"),
+    ("Detect deletes in full snapshots", "`materialization.deletion` (needs `strategy: merge`)"),
+    ("Extract fields from PDFs", "`extraction`"),
+    ("Name the business concept", "`entity` (defined in `_domain.yaml`)"),
+]
+
 #: Shapes agents most often get wrong, shown as valid examples.
 PLACEMENT = """These are the placements agents most often get wrong; the validator rejects the wrong ones.
 
@@ -141,7 +205,6 @@ metadata:
 ```
 
 - `dlt_credentials` is a reference (`env:NAME`, `${ENV:NAME}`, `keyvault://…`), never a value.
-- Quarantine needs no `location` or `target` path when `format: dlt`.
 """
 
 EXAMPLES = """```yaml
@@ -296,6 +359,91 @@ def build_reference(schema: dict) -> str:
     return "\n".join(out).rstrip() + "\n"
 
 
+def _anchor(schema: dict, key: str) -> str:
+    """The reference section a root key is detailed in (``## Materialization``), or ``Top level``."""
+    import re
+
+    found = re.findall(r"#/\$defs/(\w+)", json.dumps(schema["properties"].get(key, {})))
+    return found[0] if found else "Top level"
+
+
+def _sections(schema: dict) -> list[str]:
+    """Every section the field reference has, in its order (``Top level`` first)."""
+    defs = schema.get("$defs", {})
+    order: list[str] = []
+    queue = _refs(schema.get("properties", {}))
+    while queue:
+        name = queue.pop(0)
+        if name in order or name not in defs:
+            continue
+        order.append(name)
+        queue.extend(_refs(defs[name]))
+    return ["Top level", *order]
+
+
+def build_guide(schema: dict) -> str:
+    """The SHORT standing-context block every agent skill carries (owner, 2026-11-18: "very
+    scannable … full capabilities easy to find by any agent"). The capability index covers EVERY
+    root key; the field tables live in ``olc-reference.md`` / ``olc reference``, opened on demand."""
+    missing = sorted(set(schema.get("properties", {})) - set(CAPABILITIES))
+    if missing:
+        raise SystemExit(f"CAPABILITIES has no entry for: {', '.join(missing)}")
+    digest = hashlib.sha256(json.dumps(schema, sort_keys=True).encode()).hexdigest()[:12]
+    out = [
+        "# Open Lakehouse Contract — agent guide",
+        "",
+        f"Generated from the schema (sha `{digest}`) by `scripts/generate_reference.py`. Use ONLY",
+        "keys listed here or in the field reference, then validate: `olc validate <path>`.",
+        "",
+        "**Field reference** (every key, type and default): run `olc reference` for all of it, or",
+        "`olc reference <Section>` for one (e.g. `olc reference Materialization`). The same text is",
+        "`olc-reference.md`, installed beside this file.",
+        "",
+        "**Running a contract** is a runtime's job. With LakeLogic Core: `pip install lakelogic`,",
+        "then `lakelogic agent-guide` prints how to run, test and debug contracts.",
+        "",
+        "**`olc validate` checks the shape** of a contract (keys, types, placement), not that a",
+        "runtime can run it. Run it once on sample data before relying on it.",
+        "",
+        "## How do I …",
+        "",
+        "| Task | Keys |",
+        "|---|---|",
+        *[f"| {t} | {k} |" for t, k in TASKS],
+        "",
+        "## Every top-level key",
+        "",
+        "| Key | What it is for | Details |",
+        "|---|---|---|",
+        *[
+            f"| `{k}` | {CAPABILITIES[k]} | `olc reference {_anchor(schema, k)}` |"
+            for k in schema["properties"]
+        ],
+        "",
+        "## Reference sections",
+        "",
+        "`olc reference <Section>` takes any of: "
+        + ", ".join(f"`{n}`" for n in _sections(schema)) + ".",
+        "",
+        "## Where things go",
+        "",
+        PLACEMENT,
+        "",
+        "## Common shapes",
+        "",
+        EXAMPLES,
+        "",
+        "## Writing to a database",
+        "",
+        DATABASE_TARGETS,
+        "",
+        "## Business map",
+        "",
+        BUSINESS_MAP,
+    ]
+    return "\n".join(out).rstrip() + "\n"
+
+
 def _with_block(text: str, reference: str, start: str = START, end: str = END) -> str:
     block = f"{start}\n{reference.rstrip()}\n{end}"
     if start in text and end in text:
@@ -365,14 +513,17 @@ def build_recipes() -> str:
 
 def planned_writes(schema: dict) -> dict[Path, str]:
     reference = build_reference(schema)
+    guide = build_guide(schema)
     recipes = build_recipes()
-    writes = {REFERENCE_PATH: reference}
+    # The Claude skill folder carries the full tables as a file of its own (skills load extra
+    # files on demand), so `olc init --tool claude` installs them beside SKILL.md.
+    writes = {REFERENCE_PATH: reference, ROOT / "skills/claude/skills/olc/olc-reference.md": reference}
     if recipes:
         writes[RECIPES_PATH] = recipes
     for rel in CONTEXT_FILES:
         path = ROOT / rel
         if path.exists():
-            text = _with_block(path.read_text(encoding="utf-8"), reference)
+            text = _with_block(path.read_text(encoding="utf-8"), guide)
             if recipes:
                 text = _with_block(text, recipes, RECIPES_START, RECIPES_END)
             writes[path] = text

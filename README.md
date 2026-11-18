@@ -17,6 +17,11 @@ Define your data's structure, quality rules, ownership and processing steps in o
 
 Use the included Python CLI to check that your contract follows the Open Lakehouse Contract (OLC) schema. Use [LakeLogic Core](https://docs.lakelogic.io/) to execute supported transformations and data quality checks.
 
+> **Using an AI agent?** After `pip install open-lakehouse-contract`, have it run `olc guide`:
+> a task index, every top-level key and the shapes agents get wrong. `olc reference <Section>`
+> prints the field tables. `olc init --tools claude,cursor,…` installs it as standing context.
+> To run contracts: `lakelogic agent-guide`.
+
 ## Validate your first YAML contract
 
 ```yaml
