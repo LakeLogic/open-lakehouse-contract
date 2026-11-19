@@ -947,7 +947,8 @@ class Quality(BaseModel):
         default_factory=list,
         description=(
             "With `on_dataset_failure: quarantine`: set aside only the groups (by these columns, "
-            "e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written."
+            "e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written. A NULL "
+            "or NaN scope value is a group of its own."
         ),
     )
     on_dataset_failure: Optional[Literal["continue", "stop", "quarantine"]] = Field(

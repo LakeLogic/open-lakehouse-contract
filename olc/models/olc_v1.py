@@ -170,7 +170,13 @@ class OLCContractV1(BaseModel):
     environments: Dict[str, Environment] = Field(default_factory=dict)
     links: List[Link] = Field(default_factory=list)
     dataset: Optional[str] = None
-    primary_key: List[str] = Field(default_factory=list)
+    primary_key: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Column(s) that identify a row. Drives merge/SCD2. A conforming runtime checks the key is "
+            "unique and not null: a row with a null key column is quarantined, never written."
+        ),
+    )
     natural_key: List[str] = Field(
         default_factory=list,
         description=(

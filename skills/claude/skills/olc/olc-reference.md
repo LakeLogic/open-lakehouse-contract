@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `0a981ff73699`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `362b36f1304c`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -163,7 +163,7 @@ model:
 | `environments` | map[string → Environment] |  |
 | `links` | list[Link] |  |
 | `dataset` | string (nullable) |  |
-| `primary_key` | list[string] |  |
+| `primary_key` | list[string] | Column(s) that identify a row. Drives merge/SCD2. A conforming runtime checks the key is unique and not null: a row with a null key column is quarantined, never written. |
 | `natural_key` | list[string] | DEPRECATED. Still accepted so existing contracts validate; a conforming runtime does not read it. `primary_key` is the business key (SCD2 matches versions on it, and a type-1 surrogate key is a hash of it). State version uniqueness as a `unique` rule, e.g. `unique: {columns: [customer_id, effective_from]}`. |
 | `lineage` | LineageConfig (nullable) |  |
 | `materialization` | Materialization (nullable) |  |
@@ -491,7 +491,7 @@ Quality rule groups for row and dataset checks.
 |---|---|---|
 | `enforce_required` | boolean | default `true` |
 | `fail_pipeline_on_dataset_error` | boolean | default `false` |
-| `quarantine_scope` | list[string] | With `on_dataset_failure: quarantine`: set aside only the groups (by these columns, e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written. |
+| `quarantine_scope` | list[string] | With `on_dataset_failure: quarantine`: set aside only the groups (by these columns, e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written. A NULL or NaN scope value is a group of its own. |
 | `on_dataset_failure` | "continue" \| "stop" \| "quarantine" (nullable) | What a failed dataset rule does to the batch: `continue` (write it, report the failure; default), `stop` (write nothing, fail the run; same as `fail_pipeline_on_dataset_error: true`), or `quarantine` (send every row of the batch to quarantine with the rule as the reason, write nothing to the target, and carry on). Row rules are not affected. |
 | `row_rules` | list[QualityRule \| RowRuleNotNull \| RowRuleAcceptedValues \| RowRuleRegexMatch \| RowRuleRange \| RowRuleReferentialIntegrity \| RowRuleLifecycleWindow] |  |
 | `dataset_rules` | list[QualityRule \| DatasetRuleUnique \| DatasetRuleNullRatio \| DatasetRuleRowCountBetween] |  |

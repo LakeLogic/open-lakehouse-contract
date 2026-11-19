@@ -130,6 +130,8 @@ A dataset rule is an **aggregate** SQL assertion over the whole good dataset —
 - `severity: error | warning | info` — `error` fails the rule; `warning` / `info` log only.
 - `fail_pipeline_on_dataset_error: true` (on the `quality` block) — a failed error-severity dataset rule **aborts the whole run**, so a bad aggregate never publishes.
 - `must_be_between` / `must_be_greater_than` / `must_be_less_than` — bound the scalar the rule's SQL returns (else the SQL should return a boolean).
+- **NULL result:** a rule whose `WHERE` matches no rows (`SELECT SUM(amount) FROM source WHERE amount < 0` on a clean batch) **passes** — nothing broke it. Rows that match but still give NULL **fail**: the value is unmeasured, not fine.
+- `on_dataset_failure: quarantine` + `quarantine_scope: [symbol]` — set aside only the failing groups; the rest is written. A NULL (or NaN) scope value is a group of its own.
 
 ### Custom SQL (the canonical form)
 

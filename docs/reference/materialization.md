@@ -22,7 +22,7 @@ materialization:
 | `strategy` | Converges the table to… |
 |---|---|
 | `append` | …all rows, added. |
-| `merge` | …latest row per `primary_key` (upsert). |
+| `merge` | …latest row per `primary_key` (upsert). A declared column the batch does not carry is left as it is on matched rows (not set to null). |
 | `scd2` | …full history — a slowly-changing dimension with validity windows. |
 | `overwrite` | …exactly the current batch (replace). |
 

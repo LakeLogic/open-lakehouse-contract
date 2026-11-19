@@ -2453,7 +2453,7 @@
           "type": "boolean"
         },
         "quarantine_scope": {
-          "description": "With `on_dataset_failure: quarantine`: set aside only the groups (by these columns, e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written.",
+          "description": "With `on_dataset_failure: quarantine`: set aside only the groups (by these columns, e.g. `[symbol]`) that fail a dataset rule; the rest of the batch is written. A NULL or NaN scope value is a group of its own.",
           "items": {
             "type": "string"
           },
@@ -7712,6 +7712,7 @@
       "title": "Dataset"
     },
     "primary_key": {
+      "description": "Column(s) that identify a row. Drives merge/SCD2. A conforming runtime checks the key is unique and not null: a row with a null key column is quarantined, never written.",
       "items": {
         "type": "string"
       },
