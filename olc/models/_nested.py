@@ -1666,6 +1666,17 @@ class DownstreamConsumer(BaseModel):
             name: Churn Prediction
             platform: mlflow
             owner: data-science
+
+          - type: feed                  # data sent OUTSIDE the platform
+            name: Driver payouts to Sage
+            destination: sage           # target system (a system slug when it is one of ours)
+            format: csv
+            delivery: sftp              # sftp | api | file_share | database | email | other
+            path: /outbound/payouts/
+            refresh: "daily 02:00 UTC"
+
+    A ``feed`` is declared, never observed: nothing scans data leaving the platform, so a
+    feed is exactly as complete as its contract says (2026-11-26).
     """
 
     model_config = ConfigDict(extra="allow")
@@ -1676,6 +1687,16 @@ class DownstreamConsumer(BaseModel):
     owner: Optional[str] = None
     description: Optional[str] = None
     refresh: Optional[str] = None
+    #: ``type: feed`` — the system the data is sent to. A ``_system.yaml`` slug when the
+    #: destination is a declared system, so the estate can show a system that both sends
+    #: and receives data; otherwise free text.
+    destination: Optional[str] = None
+    #: ``type: feed`` — the file or payload format sent (csv, json, parquet, xml, excel, …).
+    format: Optional[str] = None
+    #: ``type: feed`` — how it is sent: sftp, api, file_share, database, email or other.
+    delivery: Optional[str] = None
+    #: ``type: feed`` — where it is written (an outbound folder, endpoint or table).
+    path: Optional[str] = None
     columns_used: List[str] = Field(default_factory=list)
     sla: Optional[str] = None
     managed: Optional[bool] = None

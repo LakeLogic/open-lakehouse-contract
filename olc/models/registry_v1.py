@@ -75,6 +75,9 @@ __all__ = [
     "RegistryEnvironment",
     "RegistryNotification",
     "RegistryQuarantine",
+    "SourceSystem",
+    "SourceSystemFormat",
+    "SourceSystemKind",
     "SystemContractEntry",
     "SystemCost",
     "SystemMetadata",
@@ -640,6 +643,49 @@ class ExternalSource(_Base):
     consumed_by: Optional[List[str]] = None
 
 
+#: What kind of source a system is. ``other`` is the honest answer for anything else.
+SourceSystemKind = Literal["erp", "app_database", "saas_api", "file_drop", "stream", "other"]
+#: How a source system's data arrives.
+#: Documents (pdf, docx, image) are real formats: Core extracts fields from them.
+SourceSystemFormat = Literal["csv", "json", "parquet", "avro", "xml", "excel", "pdf", "docx", "image",
+                             "table", "stream", "other"]
+
+
+class SourceSystem(_Base):
+    """What a system IS — the source behind one ``_system.yaml`` (2026-11-26).
+
+    In a LakeLogic estate one system folder is one source system, and ``system:`` (the
+    slug) stays its identity. Until this block the slug was all a system recorded, so the
+    estate showed ``google_analytics`` and guessed the vendor's logo from the name.
+
+    Named ``source_system``, not ``source``: a bronze contract's ``source:`` block already
+    means how to read the landing zone, and one word must not mean two things.
+
+    Example YAML::
+
+        system: google_analytics
+        source_system:
+          name: Google Analytics 4
+          kind: saas_api
+          vendor: Google
+          formats: [json]
+          connection: ga4-prod
+    """
+
+    #: Display name ("Sage 200", "Google Analytics 4").
+    name: Optional[str] = None
+    kind: Optional[SourceSystemKind] = None
+    #: The vendor ("Sage", "Google"); free text. ``None`` for the organisation's own app.
+    vendor: Optional[str] = None
+    #: How its data arrives. With more than one, a contract states which it uses.
+    formats: List[SourceSystemFormat] = Field(default_factory=list)
+    #: Name of the platform connection that reads it.
+    connection: Optional[str] = None
+    #: Owner of the SOURCE, when that is not the domain owner.
+    owner: Optional[str] = None
+    description: Optional[str] = None
+
+
 # ── Data products ─────────────────────────────────────────────────────────────
 
 #: A product or expected-output ``id``: a lowercase slug, set once and never changed. The
@@ -983,6 +1029,9 @@ class OLCSystemV1(_RegistryDocument):
     configuration, plus any domain field it overrides."""
 
     system: Optional[str] = None
+    #: What the system is: name, kind, vendor, formats. Optional; without it the estate
+    #: shows the slug and "type not declared", never a guess.
+    source_system: Optional[SourceSystem] = None
     #: How contract targets are addressed: ``catalog`` (``catalog.schema.table``) or ``path``
     #: (a storage URI). Legacy ``uc`` and ``direct`` are accepted by runtimes as aliases.
     storage_mode: Optional[str] = None
