@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.36.1] — 2026-11-27
+
+### Fixed
+
+- **source-options**: Declare kafka workers (parallel stream sinks per topic, 1-16)
 ## [0.36.0] — 2026-11-27
 
 ### Added
@@ -432,6 +437,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.36.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.36.0...v0.36.1
 [0.36.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.35.1...v0.36.0
 [0.35.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.35.0...v0.35.1
 [0.35.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.34.0...v0.35.0
