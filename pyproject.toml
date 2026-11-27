@@ -37,6 +37,8 @@ dependencies = ["jsonschema>=4.18", "pyyaml>=6.0"]
 # install it with `pip install open-lakehouse-contract[models]`.
 [project.optional-dependencies]
 models = ["pydantic>=2"]
+# Structured metrics: metric_sql() and the "translates to every platform" check.
+sql = ["sqlglot>=25"]
 
 [project.urls]
 Homepage = "https://www.lakelogic.io"

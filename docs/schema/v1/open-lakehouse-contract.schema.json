@@ -545,7 +545,7 @@
     },
     "DownstreamConsumer": {
       "additionalProperties": false,
-      "description": "A downstream consumer of a contract's output.\n\nEnables end-to-end lineage tracking from source \u2192 gold \u2192 dashboard/report.\nDeclared on gold-layer contracts to capture what uses the data.\n\nExample YAML:\n    downstream:\n      - type: dashboard\n        name: Monthly Revenue Dashboard\n        platform: power_bi\n        url: https://app.powerbi.com/groups/.../dashboards/...\n        owner: analytics-team\n        refresh: \"daily 06:00 UTC\"\n\n      - type: report\n        name: Weekly Sales Report\n        platform: databricks_sql\n\n      - type: api\n        name: Customer Lookup API\n        platform: internal\n        url: https://api.internal.com/v1/customers\n\n      - type: ml_model\n        name: Churn Prediction\n        platform: mlflow\n        owner: data-science",
+      "description": "A downstream consumer of a contract's output.\n\nEnables end-to-end lineage tracking from source \u2192 gold \u2192 dashboard/report.\nDeclared on gold-layer contracts to capture what uses the data.\n\nExample YAML:\n    downstream:\n      - type: dashboard\n        name: Monthly Revenue Dashboard\n        platform: power_bi\n        url: https://app.powerbi.com/groups/.../dashboards/...\n        owner: analytics-team\n        refresh: \"daily 06:00 UTC\"\n\n      - type: report\n        name: Weekly Sales Report\n        platform: databricks_sql\n\n      - type: api\n        name: Customer Lookup API\n        platform: internal\n        url: https://api.internal.com/v1/customers\n\n      - type: ml_model\n        name: Churn Prediction\n        platform: mlflow\n        owner: data-science\n\n      - type: feed                  # data sent OUTSIDE the platform\n        name: Driver payouts to Sage\n        destination: sage           # target system (a system slug when it is one of ours)\n        format: csv\n        delivery: sftp              # sftp | api | file_share | database | email | other\n        path: /outbound/payouts/\n        refresh: \"daily 02:00 UTC\"\n\nA ``feed`` is declared, never observed: nothing scans data leaving the platform, so a\nfeed is exactly as complete as its contract says (2026-11-26).",
       "properties": {
         "type": {
           "title": "Type",
@@ -614,6 +614,54 @@
           ],
           "default": null,
           "title": "Refresh"
+        },
+        "destination": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Destination"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Format"
+        },
+        "delivery": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Delivery"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
         },
         "columns_used": {
           "items": {
@@ -1954,7 +2002,7 @@
     },
     "Metric": {
       "additionalProperties": false,
-      "description": "One declared metric on a gold contract.",
+      "description": "One declared metric.",
       "properties": {
         "name": {
           "description": "The business name, e.g. `Revenue`.",
@@ -1975,11 +2023,101 @@
           "description": "The business concept it measures, by its ontology name.",
           "title": "Of"
         },
-        "expression": {
-          "description": "An aggregate over this contract's columns (`SUM(gross_revenue_amount)`), or arithmetic over other metrics on this contract (`Revenue / Trips`).",
-          "minLength": 1,
-          "title": "Expression",
+        "type": {
+          "default": "simple",
+          "description": "`simple` (an aggregation) or `ratio` (numerator / denominator).",
+          "enum": [
+            "simple",
+            "ratio"
+          ],
+          "title": "Type",
           "type": "string"
+        },
+        "aggregation": {
+          "anyOf": [
+            {
+              "enum": [
+                "sum",
+                "count",
+                "count_distinct",
+                "avg",
+                "min",
+                "max"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "sum | count | count_distinct | avg | min | max (simple metrics with parts).",
+          "title": "Aggregation"
+        },
+        "expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What is aggregated: a column, or a row-level expression (`price * quantity`). Never an aggregate.",
+          "title": "Expr"
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Business state the metric counts (`status = 'completed'`).",
+          "title": "Filter"
+        },
+        "numerator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ratio: the metric on top, by name.",
+          "title": "Numerator"
+        },
+        "denominator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ratio: the metric below, by name. Zero gives no data.",
+          "title": "Denominator"
+        },
+        "expression": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Fallback when the parts cannot say it: an aggregate over this contract's columns (`SUM(gross_revenue_amount)`), or arithmetic over other metrics (`Revenue / Trips`). Never beside parts.",
+          "title": "Expression"
         },
         "unit": {
           "anyOf": [
@@ -1993,16 +2131,36 @@
           "default": null,
           "title": "Unit"
         },
-        "additivity": {
-          "default": "additive",
-          "description": "`additive`; `semi_additive` (not summed over time, e.g. a balance); `non_additive` (a ratio or distinct count, never summed).",
-          "enum": [
-            "additive",
-            "semi_additive",
-            "non_additive"
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
           ],
-          "title": "Additivity",
-          "type": "string"
+          "default": null,
+          "description": "Display format for exports, e.g. `#,##0.00` or `0.0%`.",
+          "title": "Format"
+        },
+        "additivity": {
+          "anyOf": [
+            {
+              "enum": [
+                "additive",
+                "semi_additive",
+                "non_additive"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`additive`; `semi_additive` (not summed over time, e.g. a balance); `non_additive` (a ratio or distinct count). Default: derived from the parts, else additive.",
+          "title": "Additivity"
         },
         "description": {
           "anyOf": [
@@ -2047,8 +2205,7 @@
         }
       },
       "required": [
-        "name",
-        "expression"
+        "name"
       ],
       "title": "Metric",
       "type": "object"

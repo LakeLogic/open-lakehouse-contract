@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `362b36f1304c`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `cd3da19e36a5`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -465,6 +465,10 @@ A downstream consumer of a contract's output.
 | `owner` | string (nullable) |  |
 | `description` | string (nullable) |  |
 | `refresh` | string (nullable) |  |
+| `destination` | string (nullable) |  |
+| `format` | string (nullable) |  |
+| `delivery` | string (nullable) |  |
+| `path` | string (nullable) |  |
 | `columns_used` | list[string] |  |
 | `sla` | string (nullable) |  |
 | `managed` | boolean (nullable) |  |
@@ -602,15 +606,22 @@ Unknown keys rejected.
 
 ## Metric
 
-One declared metric on a gold contract.
+One declared metric.
 
 | key | type | notes |
 |---|---|---|
 | `name` | string | **required** · The business name, e.g. `Revenue`. |
 | `of` | string (nullable) | The business concept it measures, by its ontology name. |
-| `expression` | string | **required** · An aggregate over this contract's columns (`SUM(gross_revenue_amount)`), or arithmetic over other metrics on this contract (`Revenue / Trips`). |
+| `type` | "simple" \| "ratio" | default `"simple"` · `simple` (an aggregation) or `ratio` (numerator / denominator). |
+| `aggregation` | "sum" \| "count" \| "count_distinct" \| "avg" \| "min" \| "max" (nullable) | sum \| count \| count_distinct \| avg \| min \| max (simple metrics with parts). |
+| `expr` | string (nullable) | What is aggregated: a column, or a row-level expression (`price * quantity`). Never an aggregate. |
+| `filter` | string (nullable) | Business state the metric counts (`status = 'completed'`). |
+| `numerator` | string (nullable) | Ratio: the metric on top, by name. |
+| `denominator` | string (nullable) | Ratio: the metric below, by name. Zero gives no data. |
+| `expression` | string (nullable) | Fallback when the parts cannot say it: an aggregate over this contract's columns (`SUM(gross_revenue_amount)`), or arithmetic over other metrics (`Revenue / Trips`). Never beside parts. |
 | `unit` | string (nullable) |  |
-| `additivity` | "additive" \| "semi_additive" \| "non_additive" | default `"additive"` · `additive`; `semi_additive` (not summed over time, e.g. a balance); `non_additive` (a ratio or distinct count, never summed). |
+| `format` | string (nullable) | Display format for exports, e.g. `#,##0.00` or `0.0%`. |
+| `additivity` | "additive" \| "semi_additive" \| "non_additive" (nullable) | `additive`; `semi_additive` (not summed over time, e.g. a balance); `non_additive` (a ratio or distinct count). Default: derived from the parts, else additive. |
 | `description` | string (nullable) |  |
 | `also_called` | list[string] | Other names the business has agreed mean this metric. |
 | `dimensions` | list[string] | Columns it may be broken down by. Empty: LakeLogic chooses. |

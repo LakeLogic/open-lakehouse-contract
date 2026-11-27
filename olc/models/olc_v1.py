@@ -227,7 +227,14 @@ class OLCContractV1(BaseModel):
         """A metric naming a column the contract lacks, an undeclared metric, or itself, is invalid."""
         if not self.metrics:
             return self
-        problems = metric_problems([m.model_dump() for m in self.metrics], [f.name for f in self.model.fields])
+        fields = self.model.fields
+        pk = getattr(self, "primary_key", None) or []
+        problems = metric_problems(
+            [m.model_dump(exclude_none=True) for m in self.metrics], [f.name for f in fields],
+            field_types={f.name: str(getattr(f, "type", "") or "") for f in fields},
+            keys=[pk] if isinstance(pk, str) else list(pk),
+            references=[f.name for f in fields if getattr(f, "foreign_key", None)],
+        )
         if problems:
             raise ValueError("metrics: " + "; ".join(problems))
         return self
