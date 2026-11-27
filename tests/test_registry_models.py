@@ -328,14 +328,20 @@ class SourceSystemBlockTests(unittest.TestCase):
     """``source_system`` says what a system IS (2026-11-26): name, kind, vendor, formats."""
 
     def test_a_declared_source_system_validates(self) -> None:
-        model = load_strict_system({
-            "system": "google_analytics",
-            "source_system": {
-                "name": "Google Analytics 4", "kind": "saas_api", "vendor": "Google",
-                "formats": ["json"], "connection": "ga4-prod", "owner": "Growth Analytics",
-                "description": "Web and app events",
-            },
-        })
+        model = load_strict_system(
+            {
+                "system": "google_analytics",
+                "source_system": {
+                    "name": "Google Analytics 4",
+                    "kind": "saas_api",
+                    "vendor": "Google",
+                    "formats": ["json"],
+                    "connection": "ga4-prod",
+                    "owner": "Growth Analytics",
+                    "description": "Web and app events",
+                },
+            }
+        )
         self.assertEqual(model.source_system.name, "Google Analytics 4")
         self.assertEqual(model.source_system.kind, "saas_api")
         self.assertEqual(model.source_system.formats, ["json"])
@@ -352,7 +358,12 @@ class SourceSystemBlockTests(unittest.TestCase):
             load_strict_system({"system": "s", "source_system": {"formats": ["mp3"]}})
 
     def test_document_formats_are_accepted(self) -> None:
-        model = load_strict_system({"system": "checkr", "source_system": {"formats": ["csv", "pdf", "docx", "image"]}})
+        model = load_strict_system(
+            {
+                "system": "checkr",
+                "source_system": {"formats": ["csv", "pdf", "docx", "image"]},
+            }
+        )
         self.assertEqual(model.source_system.formats, ["csv", "pdf", "docx", "image"])
 
     def test_a_misspelled_key_inside_the_block_is_named(self) -> None:

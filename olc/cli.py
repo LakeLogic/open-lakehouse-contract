@@ -69,7 +69,7 @@ def _print_skill(cmd: str, rest: list[str]) -> int:
     if not rest:
         print(text)
         return 0
-    want = " ".join(rest).strip().lower()   # "Top level" arrives as two arguments
+    want = " ".join(rest).strip().lower()  # "Top level" arrives as two arguments
     sections = text.split("\n## ")
     title = lambda s: s.split("\n", 1)[0].strip()  # noqa: E731
     for s in sections[1:]:

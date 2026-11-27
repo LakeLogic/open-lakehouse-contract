@@ -4,6 +4,7 @@
 contract key has an index entry an agent can find, and the standing-context block stays
 short enough to scan - the field tables live in olc-reference.md / `olc reference`.
 """
+
 from __future__ import annotations
 
 import json
@@ -20,16 +21,24 @@ SCHEMA = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
 
 def test_every_top_level_key_has_an_index_entry():
     missing = set(SCHEMA["properties"]) - set(CAPABILITIES)
-    assert not missing, f"add these to CAPABILITIES in scripts/generate_reference.py: {sorted(missing)}"
-    assert not set(CAPABILITIES) - set(SCHEMA["properties"]), "CAPABILITIES names a key the schema dropped"
+    assert not missing, (
+        f"add these to CAPABILITIES in scripts/generate_reference.py: {sorted(missing)}"
+    )
+    assert not set(CAPABILITIES) - set(SCHEMA["properties"]), (
+        "CAPABILITIES names a key the schema dropped"
+    )
 
 
 def test_task_rows_only_name_keys_that_exist():
     import re
 
-    known = set(SCHEMA["properties"]) | {k for d in SCHEMA["$defs"].values() for k in d.get("properties", {})}
+    known = set(SCHEMA["properties"]) | {
+        k for d in SCHEMA["$defs"].values() for k in d.get("properties", {})
+    }
     for task, keys in TASKS:
-        for key in re.findall(r"`([a-z]\w*)[.:]", keys):   # `_domain.yaml` is a file, not a key
+        for key in re.findall(
+            r"`([a-z]\w*)[.:]", keys
+        ):  # `_domain.yaml` is a file, not a key
             assert key in known, f"{task}: `{key}` is not a key the schema declares"
 
 

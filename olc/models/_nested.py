@@ -964,7 +964,10 @@ class Quality(BaseModel):
 
     @model_validator(mode="after")
     def _one_failure_policy(self) -> "Quality":
-        if self.fail_pipeline_on_dataset_error and self.on_dataset_failure not in (None, "stop"):
+        if self.fail_pipeline_on_dataset_error and self.on_dataset_failure not in (
+            None,
+            "stop",
+        ):
             raise ValueError(
                 "quality: fail_pipeline_on_dataset_error: true means on_dataset_failure: stop; "
                 f"it cannot also be '{self.on_dataset_failure}'. Keep one of them."
@@ -978,6 +981,7 @@ class Quality(BaseModel):
         if self.on_dataset_failure:
             return self.on_dataset_failure
         return "stop" if self.fail_pipeline_on_dataset_error else "continue"
+
     row_rules: List[
         Union[
             QualityRule,
@@ -1053,16 +1057,34 @@ class Quarantine(BaseModel):
     # database with ``format: dlt`` (lakelogic.core.quarantine reads these keys), but the
     # schema closed this object, so an editor flagged a Postgres quarantine as invalid.
     # Wherever data can be written, its rejects can be written too. Same keys as the target.
-    dlt_destination: Optional[str] = Field(default=None, description=(
-        "With `format: dlt`, the database rejects are written to: postgres, mssql, snowflake, duckdb, …"))
-    dlt_credentials: Optional[Any] = Field(default=None, description=(
-        "A secret reference for that database (`env:NAME`, `keyvault://…`), never a literal password."))
-    dlt_dataset_name: Optional[str] = Field(default=None, description=(
-        "The schema the quarantine table is written in. Default: `quarantine`."))
-    dlt_pipeline_name: Optional[str] = Field(default=None, description=(
-        "The dlt pipeline name. Default: `lakelogic_<table>_quarantine`."))
-    connection: Optional[str] = Field(default=None, description=(
-        "With `format: database`: a secret reference to the connection URL. Rows are appended."))
+    dlt_destination: Optional[str] = Field(
+        default=None,
+        description=(
+            "With `format: dlt`, the database rejects are written to: postgres, mssql, snowflake, duckdb, …"
+        ),
+    )
+    dlt_credentials: Optional[Any] = Field(
+        default=None,
+        description=(
+            "A secret reference for that database (`env:NAME`, `keyvault://…`), never a literal password."
+        ),
+    )
+    dlt_dataset_name: Optional[str] = Field(
+        default=None,
+        description=(
+            "The schema the quarantine table is written in. Default: `quarantine`."
+        ),
+    )
+    dlt_pipeline_name: Optional[str] = Field(
+        default=None,
+        description=("The dlt pipeline name. Default: `lakelogic_<table>_quarantine`."),
+    )
+    connection: Optional[str] = Field(
+        default=None,
+        description=(
+            "With `format: database`: a secret reference to the connection URL. Rows are appended."
+        ),
+    )
     write: Optional[DatabaseWrite] = None
 
 
@@ -1431,14 +1453,24 @@ class DatabaseWrite(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     on_conflict: Optional[Literal["error", "ignore"]] = Field(
-        default=None, description="Append only: on a duplicate key, `error` (default) or `ignore` (needs primary_key).")
+        default=None,
+        description="Append only: on a duplicate key, `error` (default) or `ignore` (needs primary_key).",
+    )
     only_changed: Optional[bool] = Field(
-        default=None, description="Merge: leave rows whose values have not changed untouched (default true).")
-    batch_size: Optional[int] = Field(default=None, ge=1, description="Rows per bulk-load chunk (default 100000).")
+        default=None,
+        description="Merge: leave rows whose values have not changed untouched (default true).",
+    )
+    batch_size: Optional[int] = Field(
+        default=None, ge=1, description="Rows per bulk-load chunk (default 100000)."
+    )
     create_table: Optional[bool] = Field(
-        default=None, description="Create the table from the data when it is missing (default true).")
+        default=None,
+        description="Create the table from the data when it is missing (default true).",
+    )
     allow_empty_overwrite: Optional[bool] = Field(
-        default=None, description="Overwrite with 0 rows empties the table only when true (default false).")
+        default=None,
+        description="Overwrite with 0 rows empties the table only when true (default false).",
+    )
 
 
 class Materialization(BaseModel):
@@ -1522,8 +1554,12 @@ class Materialization(BaseModel):
     # format: database - the runtime's native writer (2026-11-18): a bulk load and one upsert
     # statement per batch, in one transaction. `format: dlt` is unchanged.
     connection: Optional[str] = Field(
-        default=None, description="With `format: database`: a secret reference to the connection URL (`env:PG_URL`).")
-    table: Optional[str] = Field(default=None, description="With `format: database`: the target `schema.table`.")
+        default=None,
+        description="With `format: database`: a secret reference to the connection URL (`env:PG_URL`).",
+    )
+    table: Optional[str] = Field(
+        default=None, description="With `format: database`: the target `schema.table`."
+    )
     write: Optional[DatabaseWrite] = None
     _MAT_KNOWN_KEYS: set = {
         "strategy",
@@ -1560,10 +1596,14 @@ class Materialization(BaseModel):
         if str(self.format or "").lower() == "database":
             missing = [k for k in ("connection", "table") if not getattr(self, k)]
             if missing:
-                raise ValueError(f"materialization.format: database needs {' and '.join(missing)}")
+                raise ValueError(
+                    f"materialization.format: database needs {' and '.join(missing)}"
+                )
             if str(self.strategy or "").lower() == "scd2":
-                raise ValueError("materialization.format: database does not support strategy scd2 yet; "
-                                 "use format: dlt for SCD2")
+                raise ValueError(
+                    "materialization.format: database does not support strategy scd2 yet; "
+                    "use format: dlt for SCD2"
+                )
         return self
 
     @model_validator(mode="after")

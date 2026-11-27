@@ -18,9 +18,14 @@ from olc.models import load_strict
 ROOT = Path(__file__).resolve().parents[1]
 
 FEED = {
-    "type": "feed", "name": "Driver payouts to Sage", "destination": "sage",
-    "format": "csv", "delivery": "sftp", "path": "/outbound/payouts/",
-    "refresh": "daily 02:00 UTC", "owner": "Finance Engineering",
+    "type": "feed",
+    "name": "Driver payouts to Sage",
+    "destination": "sage",
+    "format": "csv",
+    "delivery": "sftp",
+    "path": "/outbound/payouts/",
+    "refresh": "daily 02:00 UTC",
+    "owner": "Finance Engineering",
     "columns_used": ["driver_id", "payout_amount"],
 }
 
@@ -28,7 +33,10 @@ FEED = {
 def _contract(downstream):
     return {
         "version": "1.0.0",
-        "info": {"title": "Driver payouts", "table_name": "gold_rideflow_driver_payouts"},
+        "info": {
+            "title": "Driver payouts",
+            "table_name": "gold_rideflow_driver_payouts",
+        },
         "model": {"fields": [{"name": "driver_id", "type": "string"}]},
         "downstream": downstream,
     }
@@ -37,11 +45,17 @@ def _contract(downstream):
 class DownstreamFeedTests(unittest.TestCase):
     def test_a_feed_passes_the_strict_check(self) -> None:
         feed = load_strict(_contract([FEED])).downstream[0]
-        self.assertEqual((feed.destination, feed.format, feed.delivery), ("sage", "csv", "sftp"))
+        self.assertEqual(
+            (feed.destination, feed.format, feed.delivery), ("sage", "csv", "sftp")
+        )
         self.assertEqual(feed.columns_used, ["driver_id", "payout_amount"])
 
     def test_a_feed_passes_the_published_schema(self) -> None:
-        schema = json.loads((ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(encoding="utf-8"))
+        schema = json.loads(
+            (ROOT / "schema" / "open-lakehouse-contract.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
         errors = list(Draft202012Validator(schema).iter_errors(_contract([FEED])))
         self.assertEqual(errors, [])
 

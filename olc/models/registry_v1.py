@@ -560,15 +560,31 @@ class SystemMetadata(_Base):
     #: ``run_log_backend: dlt`` writes the run log to a database (Postgres, SQL Server, …);
     #: these say which one, as on a target or quarantine (2026-11-18: wherever data can be
     #: written, its run log can be written too - the runtime reads them, the schema did not).
-    dlt_destination: Optional[str] = Field(default=None, description=(
-        "With `run_log_backend: dlt`, the database the run log is written to: postgres, mssql, …"))
-    dlt_credentials: Optional[Any] = Field(default=None, description=(
-        "A secret reference for that database (`env:NAME`, `keyvault://…`), never a literal password."))
-    dlt_dataset_name: Optional[str] = Field(default=None, description=(
-        "The schema the run log is written in. Default: an existing `run_logs`, else the runtime default."))
-    run_log_connection: Optional[str] = Field(default=None, description=(
-        "With `run_log_backend: database`: a secret reference to the connection URL "
-        "(defaults to the contract's materialization.connection)."))
+    dlt_destination: Optional[str] = Field(
+        default=None,
+        description=(
+            "With `run_log_backend: dlt`, the database the run log is written to: postgres, mssql, …"
+        ),
+    )
+    dlt_credentials: Optional[Any] = Field(
+        default=None,
+        description=(
+            "A secret reference for that database (`env:NAME`, `keyvault://…`), never a literal password."
+        ),
+    )
+    dlt_dataset_name: Optional[str] = Field(
+        default=None,
+        description=(
+            "The schema the run log is written in. Default: an existing `run_logs`, else the runtime default."
+        ),
+    )
+    run_log_connection: Optional[str] = Field(
+        default=None,
+        description=(
+            "With `run_log_backend: database`: a secret reference to the connection URL "
+            "(defaults to the contract's materialization.connection)."
+        ),
+    )
     # Backend-neutral qualification for the tables above.
     catalog: Optional[str] = None
     database: Optional[str] = None
@@ -644,11 +660,25 @@ class ExternalSource(_Base):
 
 
 #: What kind of source a system is. ``other`` is the honest answer for anything else.
-SourceSystemKind = Literal["erp", "app_database", "saas_api", "file_drop", "stream", "other"]
+SourceSystemKind = Literal[
+    "erp", "app_database", "saas_api", "file_drop", "stream", "other"
+]
 #: How a source system's data arrives.
 #: Documents (pdf, docx, image) are real formats: Core extracts fields from them.
-SourceSystemFormat = Literal["csv", "json", "parquet", "avro", "xml", "excel", "pdf", "docx", "image",
-                             "table", "stream", "other"]
+SourceSystemFormat = Literal[
+    "csv",
+    "json",
+    "parquet",
+    "avro",
+    "xml",
+    "excel",
+    "pdf",
+    "docx",
+    "image",
+    "table",
+    "stream",
+    "other",
+]
 
 
 class SourceSystem(_Base):

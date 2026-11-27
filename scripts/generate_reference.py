@@ -93,27 +93,69 @@ CAPABILITIES: dict[str, str] = {
 
 #: Common tasks, mapped to the keys that do them. The fastest path for "how do I …".
 TASKS: list[tuple[str, str]] = [
-    ("Read files from a landing folder", "`source: {type: landing, path: …, format: csv}`"),
+    (
+        "Read files from a landing folder",
+        "`source: {type: landing, path: …, format: csv}`",
+    ),
     ("Read a database table", "`source: {type: database, query: …, options: …}`"),
     ("Read a REST API", "`source: {type: dlt, dlt: {…}}`"),
-    ("Write to a Delta / Iceberg table", "`materialization: {strategy: append, format: delta}`"),
-    ("Write to Postgres / MySQL / SQL Server fast", "`materialization: {format: database, connection: env:PG_URL, table: schema.table}` (see Writing to a database)"),
-    ("Write to any other database", "`materialization: {format: dlt, dlt_destination: …}` (see Writing to a database)"),
+    (
+        "Write to a Delta / Iceberg table",
+        "`materialization: {strategy: append, format: delta}`",
+    ),
+    (
+        "Write to Postgres / MySQL / SQL Server fast",
+        "`materialization: {format: database, connection: env:PG_URL, table: schema.table}` (see Writing to a database)",
+    ),
+    (
+        "Write to any other database",
+        "`materialization: {format: dlt, dlt_destination: …}` (see Writing to a database)",
+    ),
     ("Upsert on a key", "`primary_key: [id]` + `materialization: {strategy: merge}`"),
-    ("Keep history (SCD2)", "`primary_key` + `materialization: {strategy: scd2, format: delta, target_path: …, scd2: {track_columns: [name, address], timestamp_field: updated_at}}`"),
-    ("Remove duplicates / keep the latest per key", "`transformations: [{phase: pre, deduplicate: {on: [order_id], sort_by: [updated_at], order: desc}}]` (`sort_by` required)"),
+    (
+        "Keep history (SCD2)",
+        "`primary_key` + `materialization: {strategy: scd2, format: delta, target_path: …, scd2: {track_columns: [name, address], timestamp_field: updated_at}}`",
+    ),
+    (
+        "Remove duplicates / keep the latest per key",
+        "`transformations: [{phase: pre, deduplicate: {on: [order_id], sort_by: [updated_at], order: desc}}]` (`sort_by` required)",
+    ),
     ("Reject bad rows", "`quality.row_rules` (failing rows → `quarantine`)"),
-    ("Fail the run on a dataset check", "`quality.dataset_rules` + `on_dataset_failure: stop`"),
-    ("Set a failed batch aside and carry on", "`quality.on_dataset_failure: quarantine` (+ `source.post_ingestion.on_error: move` so it is not read again)"),
-    ("Send rejects to a database", "`quarantine: {format: database, connection: …, table: …}` (or `format: dlt`)"),
-    ("Set aside only the groups that failed", "`quality.on_dataset_failure: quarantine` + `quarantine_scope: [symbol]`"),
-    ("Mark and mask personal data", "`model.fields[]: {pii: true, masking: nullify / hash / redact / partial / encrypt}`"),
-    ("Handle unexpected input columns", "`schema_policy.unknown_fields: allow / drop / quarantine`"),
-    ("Control how the output table's schema may change", "`schema_policy.evolution: strict / append / merge / overwrite / compatible / allow` (applied when output is written)"),
+    (
+        "Fail the run on a dataset check",
+        "`quality.dataset_rules` + `on_dataset_failure: stop`",
+    ),
+    (
+        "Set a failed batch aside and carry on",
+        "`quality.on_dataset_failure: quarantine` (+ `source.post_ingestion.on_error: move` so it is not read again)",
+    ),
+    (
+        "Send rejects to a database",
+        "`quarantine: {format: database, connection: …, table: …}` (or `format: dlt`)",
+    ),
+    (
+        "Set aside only the groups that failed",
+        "`quality.on_dataset_failure: quarantine` + `quarantine_scope: [symbol]`",
+    ),
+    (
+        "Mark and mask personal data",
+        "`model.fields[]: {pii: true, masking: nullify / hash / redact / partial / encrypt}`",
+    ),
+    (
+        "Handle unexpected input columns",
+        "`schema_policy.unknown_fields: allow / drop / quarantine`",
+    ),
+    (
+        "Control how the output table's schema may change",
+        "`schema_policy.evolution: strict / append / merge / overwrite / compatible / allow` (applied when output is written)",
+    ),
     ("Set a freshness objective", "`service_levels.freshness`"),
     ("Partition the output", "`materialization.partition_by`"),
     ("Process only new data", "`source.load_mode: incremental` + `watermark_field`"),
-    ("Detect deletes in full snapshots", "`materialization.deletion` (needs `strategy: merge`)"),
+    (
+        "Detect deletes in full snapshots",
+        "`materialization.deletion` (needs `strategy: merge`)",
+    ),
     ("Extract fields from PDFs", "`extraction`"),
     ("Name the business concept", "`entity` (defined in `_domain.yaml`)"),
 ]
@@ -412,7 +454,9 @@ def build_guide(schema: dict) -> str:
     missing = sorted(set(schema.get("properties", {})) - set(CAPABILITIES))
     if missing:
         raise SystemExit(f"CAPABILITIES has no entry for: {', '.join(missing)}")
-    digest = hashlib.sha256(json.dumps(schema, sort_keys=True).encode()).hexdigest()[:12]
+    digest = hashlib.sha256(json.dumps(schema, sort_keys=True).encode()).hexdigest()[
+        :12
+    ]
     out = [
         "# Open Lakehouse Contract — agent guide",
         "",
@@ -447,7 +491,8 @@ def build_guide(schema: dict) -> str:
         "## Reference sections",
         "",
         "`olc reference <Section>` takes any of: "
-        + ", ".join(f"`{n}`" for n in _sections(schema)) + ".",
+        + ", ".join(f"`{n}`" for n in _sections(schema))
+        + ".",
         "",
         "## Where things go",
         "",
@@ -541,7 +586,10 @@ def planned_writes(schema: dict) -> dict[Path, str]:
     recipes = build_recipes()
     # The Claude skill folder carries the full tables as a file of its own (skills load extra
     # files on demand), so `olc init --tool claude` installs them beside SKILL.md.
-    writes = {REFERENCE_PATH: reference, ROOT / "skills/claude/skills/olc/olc-reference.md": reference}
+    writes = {
+        REFERENCE_PATH: reference,
+        ROOT / "skills/claude/skills/olc/olc-reference.md": reference,
+    }
     if recipes:
         writes[RECIPES_PATH] = recipes
     for rel in CONTEXT_FILES:
