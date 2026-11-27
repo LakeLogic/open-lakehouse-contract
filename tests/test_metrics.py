@@ -292,10 +292,21 @@ def test_common_expressions_convert_to_parts_and_back():
 def test_value_names_carry_meaning_and_must_name_allowed_values():
     from olc.models._nested import FieldDefinition
 
-    f = FieldDefinition(name="status", type="string", accepted_values=["used", "failed"],
-                        value_names={"failed": ["rejected", "not accepted"]})
+    f = FieldDefinition(
+        name="status",
+        type="string",
+        accepted_values=["used", "failed"],
+        value_names={"failed": ["rejected", "not accepted"]},
+    )
     assert f.value_names["failed"] == ["rejected", "not accepted"]
     with pytest.raises(ValueError, match="value_names names refunded"):
-        FieldDefinition(name="status", type="string", accepted_values=["used"], value_names={"refunded": ["returned"]})
+        FieldDefinition(
+            name="status",
+            type="string",
+            accepted_values=["used"],
+            value_names={"refunded": ["returned"]},
+        )
     # Without declared values the names stand on their own (the values may be declared upstream).
-    assert FieldDefinition(name="status", type="string", value_names={"x": ["y"]}).value_names == {"x": ["y"]}
+    assert FieldDefinition(
+        name="status", type="string", value_names={"x": ["y"]}
+    ).value_names == {"x": ["y"]}

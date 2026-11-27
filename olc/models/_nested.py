@@ -1257,8 +1257,10 @@ class FieldDefinition(BaseModel):
             allowed = {str(v) for v in self.accepted_values}
             unknown = sorted(k for k in self.value_names if str(k) not in allowed)
             if unknown:
-                raise ValueError(f"field '{self.name}': value_names names {', '.join(unknown)}, "
-                                 "which are not in its accepted_values")
+                raise ValueError(
+                    f"field '{self.name}': value_names names {', '.join(unknown)}, "
+                    "which are not in its accepted_values"
+                )
         return self
 
 

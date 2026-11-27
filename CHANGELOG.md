@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [0.36.2] — 2026-11-27
+
+### Added
+
+- **models**: Value_names on fields: other words per allowed value (meaning only; accepted_values unchanged)
 ## [0.36.1] — 2026-11-27
 
 ### Fixed
@@ -437,6 +442,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
 <!-- Link definitions -->
+[0.36.2]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.36.1...v0.36.2
 [0.36.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.36.0...v0.36.1
 [0.36.0]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.35.1...v0.36.0
 [0.35.1]: https://github.com/LakeLogic/open-lakehouse-contract/compare/v0.35.0...v0.35.1
