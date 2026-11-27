@@ -434,6 +434,14 @@ class KafkaOptions(_Options):
     starting_offsets: Optional[Literal["earliest", "latest"]] = _STARTING_OFFSETS
     checkpoint: Optional[str] = _CHECKPOINT
     batch_size: Optional[int] = _BATCH_SIZE
+    workers: Optional[int] = Field(
+        default=None,
+        ge=1,
+        le=16,
+        description="Parallel stream sinks for one topic (1–16). Worker `i` reads the partitions where "
+        "`partition % workers == i`, with its own checkpoint; run one process per worker with "
+        "`LAKELOGIC_STREAM_WORKER=i`. Changing it resumes each partition from where it was. Default 1.",
+    )
     trigger: Optional[Literal["available_now", "continuous", "processing_time"]] = (
         _TRIGGER
     )

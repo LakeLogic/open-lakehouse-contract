@@ -6972,6 +6972,21 @@
           "description": "Events per micro-batch (Polars / DuckDB). Default 1000.",
           "title": "Batch Size"
         },
+        "workers": {
+          "anyOf": [
+            {
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Parallel stream sinks for one topic (1\u201316). Worker `i` reads the partitions where `partition % workers == i`, with its own checkpoint; run one process per worker with `LAKELOGIC_STREAM_WORKER=i`. Changing it resumes each partition from where it was. Default 1.",
+          "title": "Workers"
+        },
         "trigger": {
           "anyOf": [
             {

@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `cd3da19e36a5`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `2bb1a04c1ca3`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -872,6 +872,7 @@ Options for `type: stream` with `kind: kafka`: any Kafka-protocol broker (Apache
 | `starting_offsets` | "earliest" \| "latest" (nullable) | Where a FIRST run starts: `earliest` (default) or `latest`. Later runs continue from the checkpoint. |
 | `checkpoint` | string (nullable) | Where the read position is kept. Polars / DuckDB: a SQLite file; Spark: a folder beside it (`<name>_spark/`). Default `_checkpoints/<dataset>` next to the contract. |
 | `batch_size` | integer (nullable) | Events per micro-batch (Polars / DuckDB). Default 1000. |
+| `workers` | integer (nullable) | Parallel stream sinks for one topic (1–16). Worker `i` reads the partitions where `partition % workers == i`, with its own checkpoint; run one process per worker with `LAKELOGIC_STREAM_WORKER=i`. Changing it resumes each partition from where it was. Default 1. |
 | `trigger` | "available_now" \| "continuous" \| "processing_time" (nullable) | `available_now` (default): read everything there now, then stop — for scheduled jobs. `continuous`: keep running and read new events as they arrive. |
 | `processing_time` | string (nullable) | Spark with `trigger: continuous`: how often a micro-batch runs, e.g. `30 seconds` (default). |
 | `max_offsets_per_trigger` | integer (nullable) | Spark only: cap on events per micro-batch. Default: no cap. |
