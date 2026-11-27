@@ -1,6 +1,6 @@
 # Open Lakehouse Contract — format reference
 
-Generated from `schema/open-lakehouse-contract.schema.json` (sha `2bb1a04c1ca3`). Do not
+Generated from `schema/open-lakehouse-contract.schema.json` (sha `9a819413b477`). Do not
 edit by hand: run `python scripts/generate_reference.py`. When writing or changing a
 contract, use ONLY the keys below, then validate with `olc validate <path>`.
 
@@ -645,6 +645,7 @@ Schema field definition.
 | `description` | string (nullable) |  |
 | `rules` | list[QualityRule] |  |
 | `accepted_values` | list[any] (nullable) |  |
+| `value_names` | map[string → list[string]] (nullable) | Other words people use for each allowed value, e.g. `{failed: [rejected, not accepted]}`, so a question saying 'rejected' filters on `failed`. Keys are values of this column (its `accepted_values` when declared). Meaning only: it never changes what the quality check accepts. |
 | `min` | number (nullable) |  |
 | `max` | number (nullable) |  |
 | `foreign_key` | ForeignKeyRef (nullable) |  |

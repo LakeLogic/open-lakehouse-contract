@@ -1207,6 +1207,12 @@ class FieldDefinition(BaseModel):
     description: Optional[str] = None
     rules: List[QualityRule] = Field(default_factory=list)
     accepted_values: Optional[List[Any]] = None
+    value_names: Optional[Dict[str, List[str]]] = Field(
+        None,
+        description="Other words people use for each allowed value, e.g. `{failed: [rejected, not accepted]}`, "
+        "so a question saying 'rejected' filters on `failed`. Keys are values of this column (its "
+        "`accepted_values` when declared). Meaning only: it never changes what the quality check accepts.",
+    )
     min: Optional[float] = None
     max: Optional[float] = None
     foreign_key: Optional[ForeignKeyRef] = None
@@ -1243,6 +1249,17 @@ class FieldDefinition(BaseModel):
     #: positions in each record, ``[start, end]`` — 0-based, end-exclusive, so ``[0, 1]`` is
     #: the first character. Ignored for every other format.
     range: Optional[List[int]] = None
+
+    @model_validator(mode="after")
+    def _value_names_name_allowed_values(self) -> "FieldDefinition":
+        """A name for a value the column does not allow would map a question to nothing."""
+        if self.value_names and self.accepted_values:
+            allowed = {str(v) for v in self.accepted_values}
+            unknown = sorted(k for k in self.value_names if str(k) not in allowed)
+            if unknown:
+                raise ValueError(f"field '{self.name}': value_names names {', '.join(unknown)}, "
+                                 "which are not in its accepted_values")
+        return self
 
 
 class Model(BaseModel):

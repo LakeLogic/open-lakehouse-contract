@@ -1119,6 +1119,25 @@
           "default": null,
           "title": "Accepted Values"
         },
+        "value_names": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Other words people use for each allowed value, e.g. `{failed: [rejected, not accepted]}`, so a question saying 'rejected' filters on `failed`. Keys are values of this column (its `accepted_values` when declared). Meaning only: it never changes what the quality check accepts.",
+          "title": "Value Names"
+        },
         "min": {
           "anyOf": [
             {
